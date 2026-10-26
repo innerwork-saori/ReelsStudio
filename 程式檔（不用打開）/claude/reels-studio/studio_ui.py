@@ -17,12 +17,18 @@ STATE_FILE = os.path.join(HERE, "ui_state.json")       # recent project folders,
 TMP = tempfile.mkdtemp(prefix="reels_studio_ui_")
 TOKEN = secrets.token_urlsafe(18)
 APP_ID = "reels-studio-ui"
-APP_VERSION = (open(os.path.join(HERE, "VERSION"), encoding="utf-8").read().strip()
-               if os.path.exists(os.path.join(HERE, "VERSION")) else "")   # written by the installer
+def app_version():
+    """the release number the installer wrote; read on every request, so the footer is right even if the panel
+    started before the installer finished"""
+    try: return open(os.path.join(HERE, "VERSION"), encoding="utf-8").read().strip()
+    except OSError: return ""
+
 # the page is read once at start so a running server never pairs a newer page with its older code;
-# VERSION changes whenever either file changes, so a reinstall makes the next launch replace the old server
+# VERSION changes whenever the code, the page or the release number changes, so a reinstall makes the next
+# launch replace the old server
 INDEX_HTML = open(os.path.join(UI_DIR, "index.html"), encoding="utf-8").read()
-VERSION = __import__("hashlib").sha1(open(os.path.abspath(__file__), "rb").read() + INDEX_HTML.encode("utf-8")).hexdigest()[:12]
+VERSION = __import__("hashlib").sha1(open(os.path.abspath(__file__), "rb").read() + INDEX_HTML.encode("utf-8")
+                                     + app_version().encode("utf-8")).hexdigest()[:12]
 IDLE_EXIT = 15 * 60
 NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 MEDIA_EXT = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".mp4": "video/mp4",
@@ -686,7 +692,7 @@ class Handler(BaseHTTPRequestHandler):
                 brands = [load_brand(d) for d in brand_dirs()]
                 cur = st.get("brand") if st.get("brand") in [b["dir"] for b in brands] else brands[0]["dir"]
                 out = {"brands": brands, "current": cur, "palettes": PALETTES, "recent": recent_projects(),
-                       "style_options": STYLE_OPTIONS, "style_presets": STYLE_PRESETS, "version": APP_VERSION,
+                       "style_options": STYLE_OPTIONS, "style_presets": STYLE_PRESETS, "version": app_version(),
                        "studio": HERE, "env_brand": os.environ.get("REELS_BRAND")}
             elif path == "/api/ping": out = {"ok": True}
             elif path == "/api/fonts": out = fonts()

@@ -62,6 +62,8 @@ foreach ($p in $Parts) {
     Say "  OK  $($p.To)" Green
 }
 if (Test-Path $Backup) { Say "  舊檔已備份到 $Backup" Yellow }
+# the release number goes in with the program files, so a panel started mid-install already sees the new one
+if ($Version) { [System.IO.File]::WriteAllText((Join-Path $Studio 'VERSION'), "$Version`n", $Utf8) }
 
 # ---------- 2. 字型 jf open 粉圓 ----------
 Say "`n[2/6] 字型 jf open 粉圓" Cyan
@@ -194,7 +196,6 @@ if (Test-Path $Guide) {
     New-Item -ItemType Directory -Force (Join-Path $Studio 'font') | Out-Null
     Copy-Item (Join-Path $Src 'font\OFL.txt') (Join-Path $Studio 'font\OFL.txt') -Force
 }
-if ($Version) { [System.IO.File]::WriteAllText((Join-Path $Studio 'VERSION'), "$Version`n", $Utf8) }   # 控制台頁尾會顯示版本
 $Pyw = $null                                       # 控制台用 pythonw 跑，不會跳出黑色視窗
 if ($Py) {
     $Pyw = (& $Py -c "import os, sys; d = os.path.dirname(sys.executable); w = os.path.join(d, 'pythonw.exe'); print(w if os.path.exists(w) else sys.executable)" 2>$null)
