@@ -95,6 +95,9 @@
   .tick input:focus-visible + span { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
   .todo.done { background: var(--ok-soft); border-color: var(--ok); }
   .todo.done > div > strong:first-child { color: #5F6E5D; }
+  figure.shot { margin: 12px 0 4px; }
+  figure.shot img { display: block; max-width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); }
+  figure.shot figcaption { color: var(--muted); font-size: 14px; margin-top: 4px; }
   table.disk { margin: 8px 0; max-width: 520px; }
   table.disk td { padding: 6px 10px; font-size: 16px; }
   table.disk td:last-child { text-align: right; white-space: nowrap; }
@@ -170,6 +173,7 @@
   <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-run"><span></span></label><div>
     <strong><label for="c-inst-run">2. 雙擊 <span class="file">② 雙擊安裝</span></label></strong>
     在解壓縮出來的資料夾裡，就在這份說明的旁邊（有些電腦會顯示成 <span class="file">② 雙擊安裝.bat</span>）。會跳出一個黑色視窗，畫面上的字會顯示進度。
+    <figure class="shot"><a href="程式檔（不用打開）/說明圖片/1-安裝中.png" target="_blank" rel="noopener"><img src="程式檔（不用打開）/說明圖片/1-安裝中.png" alt="安裝中的黑色視窗：依序顯示 1/6 到 6/6 的步驟" loading="lazy"></a><figcaption>安裝中的畫面長這樣：會依序跑 [1/6] 到 [6/6]。路徑裡會是你自己的使用者名稱。</figcaption></figure>
     <div class="note warn"><b class="t">如果出現藍色的「Windows 已保護您的電腦」</b>點 <b>「其他資訊」</b>，再點 <b>「仍要執行」</b>。這是 Windows 對所有從網路來的檔案都會跳的提醒。</div>
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-answer"><span></span></label><div>
@@ -183,11 +187,13 @@
   <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-done"><span></span></label><div>
     <strong><label for="c-inst-done">4. 看到綠色的「全部完成！」</label></strong>
     按任意鍵關掉黑色視窗。
+    <figure class="shot"><a href="程式檔（不用打開）/說明圖片/2-安裝完成.png" target="_blank" rel="noopener"><img src="程式檔（不用打開）/說明圖片/2-安裝完成.png" alt="安裝完成：檢查都是綠色的字，最後一行是「全部完成！」" loading="lazy"></a><figcaption>看到最下面綠色的「全部完成！」就成功了。版本號這類細節可能跟你的畫面有一點不同。</figcaption></figure>
     <div class="note ok"><b class="t">出現黃色或紅色的問題清單？</b>照畫面上的提示處理，再雙擊一次 <span class="file">② 雙擊安裝</span> 就好。重複執行不會弄壞東西。</div>
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-panel"><span></span></label><div>
     <strong><label for="c-inst-panel">5. 瀏覽器打開了 Reels Studio 控制台，桌面多了一個 <span class="file">Reels Studio</span> 圖示</label></strong>
     之後點這個圖示就能再打開控制台（控制台右上角也有這份說明）。沒看到的話，見最下面的「常見問題」。
+    <figure class="shot"><a href="程式檔（不用打開）/說明圖片/3-桌面圖示.png" target="_blank" rel="noopener"><img src="程式檔（不用打開）/說明圖片/3-桌面圖示.png" alt="桌面上的 Reels Studio 圖示（紅框處）" loading="lazy"></a><figcaption>桌面上紅框裡的就是 Reels Studio 圖示。</figcaption></figure>
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-restart"><span></span></label><div>
     <strong><label for="c-inst-restart">6. 把 Claude 桌面 App 完全關掉，再重新打開</label></strong>

@@ -7,3 +7,6 @@ ui_state.json
 studio_ui.log
 *.bak
 my-brand*/
+
+# original screenshots (not masked) — never publish
+_原始截圖/

@@ -184,8 +184,13 @@ Say "`n[6/6] 控制台與桌面捷徑" Cyan
 $GuideCopy = Join-Path $Studio '使用說明.html'      # 複製一份，安裝包刪掉後捷徑也還能用
 if (Test-Path $Guide) {
     Copy-Item $Guide $GuideCopy -Force
-    $html = [System.IO.File]::ReadAllText($GuideCopy, $Utf8).Replace('程式檔（不用打開）\font\OFL.txt', 'font\OFL.txt')
+    $html = [System.IO.File]::ReadAllText($GuideCopy, $Utf8).Replace('程式檔（不用打開）\font\OFL.txt', 'font\OFL.txt').Replace('程式檔（不用打開）/說明圖片/', '說明圖片/')
     [System.IO.File]::WriteAllText($GuideCopy, $html, $Utf8)
+    $Shots = Join-Path $Src '說明圖片'                 # screenshots the guide shows next to each step
+    if (Test-Path $Shots) {
+        New-Item -ItemType Directory -Force (Join-Path $Studio '說明圖片') | Out-Null
+        Copy-Item (Join-Path $Shots '*') (Join-Path $Studio '說明圖片') -Force
+    }
     New-Item -ItemType Directory -Force (Join-Path $Studio 'font') | Out-Null
     Copy-Item (Join-Path $Src 'font\OFL.txt') (Join-Path $Studio 'font\OFL.txt') -Force
 }

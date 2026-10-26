@@ -9,7 +9,7 @@ panel only rewrites the "- 欄位：值" lines the user changed and leaves every
 """
 import ast, glob, json, os, re, secrets, shutil, subprocess, sys, tempfile, threading, time, webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, quote, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 UI_DIR = os.path.join(HERE, "ui")
@@ -622,6 +622,11 @@ class Handler(BaseHTTPRequestHandler):
             p = os.path.join(HERE, "使用說明.html")
             if not os.path.exists(p): return self.send(404, "還沒有使用說明，請重新執行安裝程式。", "text/plain; charset=utf-8")
             return self.send(200, open(p, encoding="utf-8").read(), "text/html; charset=utf-8")
+        if unquote(u.path).startswith("/說明圖片/"):          # the guide's screenshots (relative to /guide)
+            name = os.path.basename(unquote(u.path))
+            p = os.path.join(HERE, "說明圖片", name)
+            if not name.lower().endswith(".png") or not os.path.isfile(p): return self.send(404, {"error": "not found"})
+            return self.send(200, open(p, "rb").read(), "image/png")
         if u.path == "/api/ping":
             return self.send(200, {"app": APP_ID, "version": VERSION})
         if u.path == "/file":
