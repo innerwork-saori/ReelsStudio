@@ -15,10 +15,9 @@ def _av_open_compat(*a, **kw):
     kw.pop("metadata_errors", None)
     return _av_open(*a, **kw)
 av.open = _av_open_compat
-from faster_whisper import WhisperModel
+import whisper_model
 import opencc
 
-MODEL = "mobiuslabsgmbh/faster-whisper-large-v3-turbo"
 
 
 def extract(src, t0, t1, out_wav):
@@ -63,7 +62,7 @@ def main():
     os.makedirs(a.clipdir, exist_ok=True)
     wav = os.path.join(a.clipdir, "seg.wav")
     extract(a.audio, a.t0, a.t1, wav)
-    m = WhisperModel(MODEL, device="cpu", compute_type="int8", cpu_threads=max(2, (os.cpu_count() or 4) - 2))
+    m = whisper_model.load()
     cc = opencc.OpenCC("s2twp")
     segs, _ = m.transcribe(wav, language="zh", word_timestamps=True, beam_size=5,
                            initial_prompt="以下是繁體中文的口語內容。" + a.prompt)

@@ -1,5 +1,7 @@
 # Reels Studio 短影音小幫手
 
+**目前版本：第一版（v1.0.0，2026-10-26）**｜[版本記錄](CHANGELOG.md)
+
 讓 Claude 幫你把錄音、影片，或一個還沒錄的想法，做成直式短影音（IG Reels／TikTok／YouTube Shorts）：聽打逐字稿、挑出精華片段、剪成有字幕和插圖的 9:16 影片，再寫好貼文文案。
 
 ## 👉 [下載 Reels Studio（Windows）](https://github.com/innerwork-saori/ReelsStudio/releases/latest/download/ReelsStudio.zip)
@@ -12,6 +14,7 @@
 - Windows 電腦
 - [Claude 桌面 App](https://claude.ai/download)，而且你的方案可以使用 Claude Code
 - 網路連線（安裝時會下載 Python 和需要的套件）
+- C 槽至少空出 **3 GB**：Python 和套件約 0.4 GB、語音辨識模型約 1.6 GB（第一次聽打時下載），其餘留給安裝暫存和前幾支影片。之後每支影片約 50–80 MB（成品＋可刪的工作檔）。
 
 ## 安裝：三步驟
 

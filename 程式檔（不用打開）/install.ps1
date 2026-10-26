@@ -22,6 +22,14 @@ function Say($msg, $color = 'White') { Write-Host $msg -ForegroundColor $color }
 $Version = if (Test-Path (Join-Path $Src 'VERSION')) { (Get-Content (Join-Path $Src 'VERSION') -TotalCount 1).Trim() } else { '' }
 Say "`n=== Reels Studio 安裝程式 $(if ($Version) { "v$Version" }) ===" Cyan
 Say "安裝到：$Claude"
+try {                                                 # Python, packages and the speech model need about 3 GB on this drive
+    $drive = Get-PSDrive -Name ($TargetHome.Substring(0, 1)) -ErrorAction Stop
+    $freeGB = [math]::Round($drive.Free / 1GB, 1)
+    if ($freeGB -lt 3) {
+        Say "  ⚠ $($drive.Name): 槽只剩 $freeGB GB。安裝和第一次聽打總共需要約 3 GB，空間不夠可能會失敗。" Yellow
+        Say "    建議先清出空間（例如清空資源回收筒、刪掉不用的大檔案）再安裝。" Yellow
+    } else { Say "  $($drive.Name): 槽可用空間 $freeGB GB（需要約 3 GB）" }
+} catch {}
 
 # ---------- 1. 複製 agents / skill / 工具包 ----------
 Say "`n[1/6] 複製 agents、skill、工具包" Cyan

@@ -18,10 +18,10 @@ def _av_open_compat(*a, **kw):
     kw.pop("metadata_errors", None)
     return _av_open(*a, **kw)
 av.open = _av_open_compat
-from faster_whisper import WhisperModel, decode_audio
+from faster_whisper import decode_audio
+import whisper_model
 import opencc
 
-MODEL = "mobiuslabsgmbh/faster-whisper-large-v3-turbo"
 SR = 16000
 CHUNK = 300   # seconds per transcription pass
 SEARCH = 15   # seconds either side of each nominal cut to search for silence
@@ -62,7 +62,7 @@ def main():
     base = os.path.splitext(a.audio)[0]
     out = a.out or base + "_逐字稿.txt"
     cc = opencc.OpenCC("s2twp")
-    model = WhisperModel(MODEL, device="cpu", compute_type="int8", cpu_threads=max(2, (os.cpu_count() or 4) - 2))
+    model = whisper_model.load()
     prompt = "以下是繁體中文的口語內容逐字稿。" + a.prompt
     audio = decode_audio(a.audio, sampling_rate=SR)
     total, cuts = len(audio) / SR, cut_points(audio)

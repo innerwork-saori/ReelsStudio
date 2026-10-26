@@ -95,6 +95,9 @@
   .tick input:focus-visible + span { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
   .todo.done { background: var(--ok-soft); border-color: var(--ok); }
   .todo.done > div > strong:first-child { color: #5F6E5D; }
+  table.disk { margin: 8px 0; max-width: 520px; }
+  table.disk td { padding: 6px 10px; font-size: 16px; }
+  table.disk td:last-child { text-align: right; white-space: nowrap; }
   .opt { display: inline-block; margin-left: 8px; font-size: 13px; font-weight: 700; color: var(--muted); background: var(--code);
     border-radius: 99px; padding: 1px 10px; vertical-align: middle; }
   @media print { .progress { position: static; } .ptop button { display: none; } }
@@ -117,7 +120,7 @@
 <main>
 
 <header>
-  <span class="badge">Reels Studio</span>
+  <span class="badge">Reels Studio · 第一版 v1.0.0</span>
   <h1>短影音小幫手 安裝說明</h1>
   <p>讓 Claude 幫你把錄音、影片，或一個還沒錄的想法，做成直式短影音（IG Reels／TikTok／YouTube Shorts），字幕、插圖、貼文文案一起準備好。</p>
 </header>
@@ -135,6 +138,17 @@
   <li class="todo"><label class="tick"><input type="checkbox" id="c-pre-win"><span></span></label><div>
     <strong><label for="c-pre-win">Windows 電腦，已經裝好 Claude 桌面 App</label></strong>
     需要可以使用 Claude Code 的方案。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-pre-disk"><span></span></label><div>
+    <strong><label for="c-pre-disk">C 槽（放使用者資料夾的那顆硬碟）至少空出 3 GB</label></strong>
+    <table class="disk">
+      <tr><td>Python 和需要的套件</td><td>約 0.4 GB</td></tr>
+      <tr><td>語音辨識模型（第一次聽打時自動下載，只要一次）</td><td>約 1.6 GB</td></tr>
+      <tr><td>安裝過程的暫存檔、做前幾支影片的空間</td><td>約 1 GB</td></tr>
+      <tr><td><b>合計</b></td><td><b>約 3 GB</b></td></tr>
+    </table>
+    之後每做一支影片：成品約 15–30 MB，加上約 30–50 MB 的工作檔（有用實拍素材會多一些；影片做好後，素材資料夾裡的 <span class="file">_reels_work</span> 可以刪掉）。錄音和影片素材本身可以放在任何一顆硬碟。
+    <div class="note ok"><b class="t">怎麼看還剩多少空間？</b>按 <kbd>Win</kbd> + <kbd>E</kbd> 打開檔案總管，點左邊的「本機」，C 槽下面會寫「可用 ○○ GB」。</div>
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-pre-net"><span></span></label><div>
     <strong><label for="c-pre-net">網路連線正常</label></strong>
