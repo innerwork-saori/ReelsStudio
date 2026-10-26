@@ -483,11 +483,13 @@ function newChannelMode(on) {        // the new-channel form takes over the page
   $("#db-form").hidden = true;
   if (on) { $("#nb-name").value = ""; $("#nb-name").focus(); window.scrollTo(0, 0); }
 }
-$("#nb-open").addEventListener("click", () => newChannelMode(true));
+$("#nb-open").addEventListener("click", () => {
+  if (dirty && !confirm(`「${cur.exists ? cur.brand.name : cur.folder}」有還沒儲存的修改，新增頻道後這些修改會不見。要繼續嗎？`)) return;
+  newChannelMode(true);
+});
 $("#nb-cancel").addEventListener("click", () => newChannelMode(false));
 $("#nb-name").addEventListener("keydown", e => { if (e.key === "Enter") $("#nb-create").click(); });
 $("#nb-create").addEventListener("click", async () => {
-  if (dirty && !confirm("目前的修改還沒儲存，要放棄嗎？")) return;
   const name = $("#nb-name").value.trim();
   if (!name) { toast("請輸入新頻道的名稱"); $("#nb-name").focus(); return; }
   const copy = document.querySelector("input[name=nb-from]:checked").value === "copy";
@@ -506,7 +508,7 @@ $("#nb-create").addEventListener("click", async () => {
   btn.disabled = false; btn.textContent = "建立";
 });
 $("#brandpick").addEventListener("change", async e => {
-  if (dirty && !confirm("目前的修改還沒儲存，要放棄嗎？")) { e.target.value = cur.dir; return; }
+  if (dirty && !confirm(`「${cur.exists ? cur.brand.name : cur.folder}」有還沒儲存的修改，換到別的頻道後這些修改會不見。要繼續嗎？`)) { e.target.value = cur.dir; return; }
   await api("/api/select-brand", { dir: e.target.value });
   S.current = e.target.value;
   renderBrandPicker(); fillBrand(S.brands.find(b => b.dir === S.current)); renderHome();
@@ -649,7 +651,8 @@ function collect() {
 
 function setDirty(v) { dirty = v; $("#dirty-msg").replaceChildren(v ? h("span", { class: "dirty" }, "● 有還沒儲存的修改") : ""); }
 function markDirty() { setDirty(true); }
-$("#tab-brand").addEventListener("input", e => { if (e.target.id !== "brandpick") markDirty(); });
+// only the channel form counts as "unsaved changes" — not the channel picker or the new-channel / delete boxes
+$("#tab-brand").addEventListener("input", e => { if (!e.target.closest("#brandpick-card")) markDirty(); });
 window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
 function showPreview(src, caption) {
