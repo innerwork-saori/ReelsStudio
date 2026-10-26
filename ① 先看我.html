@@ -103,6 +103,17 @@
   table.disk td:last-child { text-align: right; white-space: nowrap; }
   .opt { display: inline-block; margin-left: 8px; font-size: 13px; font-weight: 700; color: var(--muted); background: var(--code);
     border-radius: 99px; padding: 1px 10px; vertical-align: middle; }
+  /* 範例影片 */
+  .demos { display: flex; justify-content: center; gap: 20px; margin: 20px 0 4px; }
+  .demo { flex: 0 1 220px; text-decoration: none; color: var(--muted); font-size: 15px; text-align: center; }
+  .demo .thumb { position: relative; display: block; aspect-ratio: 9 / 16; border-radius: 18px; overflow: hidden;
+    background: var(--code); border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(75,70,67,.12); margin-bottom: 8px; }
+  .demo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .demo .play { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%;
+    background: rgba(140,95,90,.9); display: flex; align-items: center; justify-content: center; transition: transform .2s; }
+  .demo .play::after { content: ""; margin-left: 5px; border-style: solid; border-width: 12px 0 12px 20px; border-color: transparent transparent transparent #fff; }
+  .demo:hover .play { transform: scale(1.1); }
+  .demos-hint { text-align: center; color: var(--muted); font-size: 14px; margin: 0 auto; }
   @media print { .progress { position: static; } .ptop button { display: none; } }
   footer { margin-top: 56px; color: var(--muted); font-size: 15px; text-align: center; }
   footer .author { border-top: 1px solid var(--line); padding-top: 28px; margin-bottom: 20px; }
@@ -126,6 +137,11 @@
   <span class="badge">Reels Studio · 第一版 v1.1.0</span>
   <h1>短影音小幫手 安裝說明</h1>
   <p>讓 Claude 幫你把錄音、影片，或一個還沒錄的想法，做成直式短影音（IG Reels／TikTok／YouTube Shorts），字幕、插圖、貼文文案一起準備好。</p>
+  <div class="demos">
+    <a class="demo" href="https://youtube.com/shorts/dUlQOnkEBcA" target="_blank" rel="noopener"><span class="thumb"><img src="https://i.ytimg.com/vi/dUlQOnkEBcA/hqdefault.jpg" alt="範例影片 1" loading="lazy"><span class="play"></span></span>範例 1</a>
+    <a class="demo" href="https://youtube.com/shorts/I-VEkYZTpO8" target="_blank" rel="noopener"><span class="thumb"><img src="https://i.ytimg.com/vi/I-VEkYZTpO8/hqdefault.jpg" alt="範例影片 2" loading="lazy"><span class="play"></span></span>範例 2</a>
+  </div>
+  <p class="demos-hint">做出來的影片長這樣，點一下會在 YouTube 播放。</p>
 </header>
 
 <div class="progress" id="progress">

@@ -33,6 +33,11 @@
 | 一篇文章或一個想法 | 幫我把這篇寫成 reels 口播稿 |
 | 已經剪好的影片 | 幫我寫文案、幫我整理發文包 |
 
+## 範例影片
+
+[![範例影片 1](https://img.youtube.com/vi/dUlQOnkEBcA/hqdefault.jpg)](https://youtube.com/shorts/dUlQOnkEBcA?feature=share)
+[![範例影片 2](https://img.youtube.com/vi/I-VEkYZTpO8/hqdefault.jpg)](https://youtube.com/shorts/I-VEkYZTpO8?feature=share)
+
 安裝後桌面會有一個 **Reels Studio** 控制台：用點選的方式設定頻道的配色、字型、版面風格和結尾卡，選要剪的片段，播放成品、一鍵複製文案。
 
 ### 五種版面風格
