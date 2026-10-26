@@ -367,7 +367,6 @@ function showTab(name) {
   document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "tab-" + name);
   if (name === "brand") loadFonts();
   if (name === "works" && !$("#w-body").childElementCount && S && S.recent.length) loadProject(S.recent[0]);
-  try { localStorage.setItem("rs-tab", name); } catch {}
   window.scrollTo(0, 0);
 }
 document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
@@ -906,9 +905,9 @@ $("#quit").addEventListener("click", async () => {
 setInterval(() => api("/api/ping").catch(() => {}), 60000);
 
 refresh().then(() => {
-  let tab = "home";
-  try { tab = localStorage.getItem("rs-tab") || "home"; } catch {}
-  if (!S.brands.some(b => b.exists)) tab = "home";
+  // where to start: not the last tab used, but what this person needs next —
+  // no channel yet → 開始 (it says to set one up); channel set and a folder opened before → 我的作品 (the daily work)
+  let tab = S.brands.some(b => b.exists) && S.recent.length ? "works" : "home";
   const hash = location.hash.slice(1);
   if (["home", "brand", "works"].includes(hash)) tab = hash;
   showTab(tab);
