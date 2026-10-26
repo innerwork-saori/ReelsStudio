@@ -1,0 +1,19 @@
+{
+  "name": "我的頻道",
+  "tag": null,
+  "palette": "cream",
+  "colors": {},
+  "font": "jf-openhuninn-1.1.ttf",
+  "font_weight": 400,
+  "speaker_label": "主持人",
+  "end_card": {
+    "icon": "play",
+    "badge": "",
+    "cta": "看完整版",
+    "sub": "連結在個人檔案",
+    "guest_prefix": "本集來賓"
+  },
+  "style": {
+    "preset": "handmade"
+  }
+}

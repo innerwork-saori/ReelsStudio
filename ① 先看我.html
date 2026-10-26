@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reels Studio 安裝說明</title>
+<style>
+  /* 莫蘭迪色：低彩度、帶灰的柔和色，固定淺色 */
+  :root {
+    color-scheme: light;
+    --bg: #F3EFEA;          /* 燕麥灰 */
+    --card: #FBF9F6;
+    --ink: #4B4643;         /* 暖炭灰 */
+    --muted: #6F6862;
+    --accent: #8C5F5A;      /* 深灰玫瑰：標題數字、連結、按鈕 */
+    --accent-soft: #EBDFDB; /* 淡灰粉 */
+    --highlight: #DCCBB8;   /* 奶茶 */
+    --ok: #93A391;          /* 灰綠 */
+    --ok-soft: #E6EBE4;
+    --warn: #C3A19C;        /* 灰粉 */
+    --warn-soft: #F3E7E4;
+    --say: #E2E7EC;         /* 霧藍 */
+    --line: #E3DBD3;
+    --code: #EEE8E2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "jf open 粉圓 1.1", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
+    font-size: 18px; line-height: 1.75;
+  }
+  main { max-width: 780px; margin: 0 auto; padding: 32px 16px 80px; }
+  header { text-align: center; padding: 24px 0 8px; }
+  header .badge { display: inline-block; background: var(--highlight); color: var(--ink); border-radius: 999px;
+    padding: 2px 14px; font-size: 15px; font-weight: 700; }
+  h1 { font-size: 34px; margin: 12px 0 8px; }
+  header p { color: var(--muted); margin: 0 auto; max-width: 560px; }
+  h2 { font-size: 24px; margin: 48px 0 16px; display: flex; align-items: center; gap: 10px; }
+  h2 .num { background: var(--accent-soft); color: var(--accent); width: 36px; height: 36px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 18px; flex: none; }
+  .card { background: var(--card); border: 1px solid var(--line); box-shadow: 0 2px 10px rgba(75,70,67,.05); border-radius: 20px; padding: 20px 24px; margin: 14px 0; }
+  .steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+  .steps > li { counter-increment: s; position: relative; padding: 16px 20px 16px 64px; margin: 12px 0;
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 2px 10px rgba(75,70,67,.05); }
+  .steps > li::before { content: counter(s); position: absolute; left: 18px; top: 16px; width: 32px; height: 32px;
+    border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700;
+    display: flex; align-items: center; justify-content: center; }
+  .steps > li strong:first-child { display: block; font-size: 19px; }
+  .note { border-radius: 16px; padding: 14px 18px; margin: 14px 0; border: 1px solid; border-left-width: 5px; }
+  .note.warn { background: var(--warn-soft); border-color: var(--warn); }
+  .note.ok { background: var(--ok-soft); border-color: var(--ok); }
+  .note b.t { display: block; margin-bottom: 4px; }
+  kbd, .file { background: var(--code); border: 1px solid var(--line); border-radius: 8px; padding: 1px 8px;
+    font-family: Consolas, "Courier New", monospace; font-size: 16px; white-space: nowrap; }
+  .file { font-family: inherit; font-weight: 700; color: var(--accent); white-space: normal; overflow-wrap: anywhere; }
+  .say { display: inline-block; background: var(--say); border-radius: 12px; padding: 2px 12px; font-weight: 700; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-size: 15px; font-weight: 700; }
+  tr:last-child td { border-bottom: none; }
+  .copy { display: flex; align-items: center; gap: 8px; background: var(--code); border-radius: 12px; padding: 8px 8px 8px 14px; margin: 8px 0; }
+  .copy code { flex: 1; font-family: Consolas, "Courier New", monospace; font-size: 15px; overflow-wrap: anywhere; }
+  .copy button { border: none; background: var(--accent); color: #fff; border-radius: 10px; padding: 6px 14px;
+    font: inherit; font-size: 15px; cursor: pointer; flex: none; }
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 4px 18px; margin: 10px 0; }
+  summary { cursor: pointer; font-weight: 700; padding: 10px 0; }
+  details[open] summary { border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  ul.check { list-style: none; padding: 0; margin: 0; }
+  ul.check li { padding-left: 28px; position: relative; margin: 8px 0; }
+  ul.check li::before { content: "•"; position: absolute; left: 8px; color: var(--accent); font-weight: 700; }
+  /* checklist */
+  .lead { color: var(--muted); margin: -6px 0 8px; }
+  .progress { position: sticky; top: 0; z-index: 5; background: rgba(243,239,234,.96); backdrop-filter: blur(6px);
+    border: 1px solid var(--line); border-radius: 18px; padding: 12px 18px; margin: 18px 0 8px; box-shadow: 0 4px 14px rgba(75,70,67,.08); }
+  .ptop { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ptop span { color: var(--muted); font-size: 16px; }
+  .ptop button { margin-left: auto; border: 1px solid var(--accent); background: var(--card); color: var(--accent); border-radius: 10px;
+    padding: 2px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+  .bar { height: 10px; background: var(--code); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .3s; }
+  .phint { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+  h2 .cnt { margin-left: auto; font-size: 15px; font-weight: 700; color: var(--muted); background: var(--code); border-radius: 99px; padding: 2px 12px; }
+  h2 .cnt.all { color: #fff; background: var(--ok); }
+  .todos { list-style: none; padding: 0; margin: 0; }
+  .todo { position: relative; padding: 16px 20px 16px 68px; margin: 12px 0; background: var(--card); border: 1px solid var(--line);
+    border-radius: 18px; box-shadow: 0 2px 10px rgba(75,70,67,.05); transition: background .2s, border-color .2s; }
+  .todo > div > strong:first-child { display: block; font-size: 19px; }
+  .todo > div > strong label { cursor: pointer; }
+  .tick { position: absolute; left: 16px; top: 14px; width: 36px; height: 36px; cursor: pointer; }
+  .tick input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .tick span { display: flex; width: 36px; height: 36px; border-radius: 50%; border: 2.5px solid var(--accent); background: #fff;
+    align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 20px; }
+  .tick input:checked + span { background: var(--ok); border-color: var(--ok); }
+  .tick input:checked + span::after { content: "✓"; }
+  .tick input:focus-visible + span { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
+  .todo.done { background: var(--ok-soft); border-color: var(--ok); }
+  .todo.done > div > strong:first-child { color: #5F6E5D; }
+  .opt { display: inline-block; margin-left: 8px; font-size: 13px; font-weight: 700; color: var(--muted); background: var(--code);
+    border-radius: 99px; padding: 1px 10px; vertical-align: middle; }
+  @media print { .progress { position: static; } .ptop button { display: none; } }
+  footer { margin-top: 56px; color: var(--muted); font-size: 15px; text-align: center; }
+  footer .author { border-top: 1px solid var(--line); padding-top: 28px; margin-bottom: 20px; }
+  footer .author p { margin: 0 0 4px; }
+  footer .who { color: var(--ink); font-size: 17px; }
+  footer .links { display: inline-block; margin-top: 12px; padding: 8px 18px; border-radius: 999px;
+    background: var(--card); border: 1px solid var(--accent); text-decoration: none; font-weight: 700; }
+  footer .links:hover { background: var(--accent); color: #fff; }
+  a { color: var(--accent); }
+  @media (max-width: 520px) {
+    body { font-size: 17px; } h1 { font-size: 28px; }
+    .steps > li { padding-left: 56px; } th, td { padding: 10px 8px; }
+    .todo { padding-left: 60px; } .tick { left: 12px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <span class="badge">Reels Studio</span>
+  <h1>短影音小幫手 安裝說明</h1>
+  <p>讓 Claude 幫你把錄音、影片，或一個還沒錄的想法，做成直式短影音（IG Reels／TikTok／YouTube Shorts），字幕、插圖、貼文文案一起準備好。</p>
+</header>
+
+<div class="progress" id="progress">
+  <div class="ptop"><b>你的進度</b><span id="ptext">已完成 0 項</span><button type="button" id="preset">全部重來</button></div>
+  <div class="bar"><i id="pbar"></i></div>
+  <p class="phint">每做完一步，就點左邊的圓圈打勾。這台電腦的瀏覽器會記住你勾到哪裡。</p>
+</div>
+
+<div class="note ok"><b class="t">解壓縮出來的資料夾裡，<span class="file">程式檔（不用打開）</span> 是安裝程式自己要用的</b>你不用打開它，只要照下面的清單一步一步做。</div>
+
+<h2><span class="num">0</span>安裝前，先確認<span class="cnt" data-for="sec0"></span></h2>
+<ol class="todos" id="sec0">
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-pre-win"><span></span></label><div>
+    <strong><label for="c-pre-win">Windows 電腦，已經裝好 Claude 桌面 App</label></strong>
+    需要可以使用 Claude Code 的方案。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-pre-net"><span></span></label><div>
+    <strong><label for="c-pre-net">網路連線正常</label></strong>
+    安裝時要下載 Python 和套件，第一次聽打還會下載約 1.6 GB 的語音辨識模型。
+  </div></li>
+  <li class="todo optional"><label class="tick"><input type="checkbox" id="c-pre-pexels"><span></span></label><div>
+    <strong><label for="c-pre-pexels">Pexels 金鑰</label><span class="opt">可略過</span></strong>
+    讓影片穿插免費的實拍照片和影片。沒有也完全可以用，畫面會全部用插圖。想要的話到 <a href="https://www.pexels.com/api/" target="_blank" rel="noopener">pexels.com/api</a> 免費申請。
+  </div></li>
+</ol>
+
+<h2><span class="num">1</span>安裝<span class="cnt" data-for="sec1"></span></h2>
+<ol class="todos" id="sec1">
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-unzip"><span></span></label><div>
+    <strong><label for="c-inst-unzip">1. 把壓縮檔解壓縮</label></strong>
+    在壓縮檔（<span class="file">.zip</span>）上按右鍵 → <b>「解壓縮全部」</b>，放在哪裡都可以（例如桌面）。
+    <div class="note warn"><b class="t">⚠️ 不要直接在壓縮檔裡面點兩下</b>那樣安裝會失敗。要先解壓縮，再打開解壓縮出來的資料夾。</div>
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-run"><span></span></label><div>
+    <strong><label for="c-inst-run">2. 雙擊 <span class="file">② 雙擊安裝</span></label></strong>
+    在解壓縮出來的資料夾裡，就在這份說明的旁邊（有些電腦會顯示成 <span class="file">② 雙擊安裝.bat</span>）。會跳出一個黑色視窗，畫面上的字會顯示進度。
+    <div class="note warn"><b class="t">如果出現藍色的「Windows 已保護您的電腦」</b>點 <b>「其他資訊」</b>，再點 <b>「仍要執行」</b>。這是 Windows 對所有從網路來的檔案都會跳的提醒。</div>
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-answer"><span></span></label><div>
+    <strong><label for="c-inst-answer">3. 照畫面回答問題</label></strong>
+    <ul>
+      <li><b>「要自動安裝 Python 嗎？(Y/n)」</b>：直接按 <kbd>Enter</kbd> 就是要。它會從 Python 官方網站下載，只裝給你自己，不需要管理員權限，約 1–3 分鐘。</li>
+      <li><b>「請貼上 Pexels API 金鑰」</b>：有金鑰就貼上（按右鍵就能貼上，畫面不會顯示是正常的），然後按 <kbd>Enter</kbd>；沒有就直接按 <kbd>Enter</kbd> 跳過。</li>
+    </ul>
+    安裝套件那一步會跑出很多英文字，那是正常的，等它跑完就好（約幾分鐘）。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-done"><span></span></label><div>
+    <strong><label for="c-inst-done">4. 看到綠色的「全部完成！」</label></strong>
+    按任意鍵關掉黑色視窗。
+    <div class="note ok"><b class="t">出現黃色或紅色的問題清單？</b>照畫面上的提示處理，再雙擊一次 <span class="file">② 雙擊安裝</span> 就好。重複執行不會弄壞東西。</div>
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-panel"><span></span></label><div>
+    <strong><label for="c-inst-panel">5. 瀏覽器打開了 Reels Studio 控制台，桌面多了一個 <span class="file">Reels Studio</span> 圖示</label></strong>
+    之後點這個圖示就能再打開控制台（控制台右上角也有這份說明）。沒看到的話，見最下面的「常見問題」。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-restart"><span></span></label><div>
+    <strong><label for="c-inst-restart">6. 把 Claude 桌面 App 完全關掉，再重新打開</label></strong>
+    這樣 Claude 才會認得剛裝好的小幫手。
+  </div></li>
+</ol>
+
+<h2 id="start"><span class="num">2</span>建立你的頻道設定<span class="cnt" data-for="sec2"></span></h2>
+<p class="lead">設定一次，之後每支影片都會自動套用。全部在控制台用點的就好。</p>
+<ol class="todos" id="sec2">
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-open"><span></span></label><div>
+    <strong><label for="c-brand-open">1. 打開控制台，點上面的「頻道設定」</label></strong>
+    點桌面的 <span class="file">Reels Studio</span> 圖示就會打開。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-name"><span></span></label><div>
+    <strong><label for="c-brand-name">2. 填頻道名稱</label></strong>
+    會出現在影片上方的小標籤和結尾卡。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-look"><span></span></label><div>
+    <strong><label for="c-brand-look">3. 選版面風格和配色</label></strong>
+    點一個版面風格就會自動出樣張（右邊）。不想跟別人的影片撞款，換風格最有感。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-font"><span></span></label><div>
+    <strong><label for="c-brand-font">4. 選字型和結尾卡</label></strong>
+    結尾卡可以選圖示、按鈕文字和下面的小字，例如「每週三更新」。
+  </div></li>
+  <li class="todo optional"><label class="tick"><input type="checkbox" id="c-brand-claude"><span></span></label><div>
+    <strong><label for="c-brand-claude">5. 填「給 Claude 看的頻道說明」</label><span class="opt">可以之後再補</span></strong>
+    文案語氣、目標觀眾、固定 hashtag 這些。點灰色的小按鈕就能快速填入。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-save"><span></span></label><div>
+    <strong><label for="c-brand-save">6. 按「看樣張」確認，再按「儲存設定」</label></strong>
+    看到綠色的「已儲存 ✓」就完成了。之後想改，回來改完再儲存一次就好。
+  </div></li>
+</ol>
+<details>
+  <summary>不想用控制台？讓 Claude 一題一題問你</summary>
+  <ol>
+    <li>在 Claude 開新的對話，輸入 <span class="say">/reels-studio</span>，或直接說 <span class="say">幫我做 reels</span>。</li>
+    <li>回答 Claude 的問題：頻道名稱、內容類型、配色、版面風格、字型、文案語氣、結尾想讓觀眾做什麼、固定 hashtag。</li>
+    <li>看它做的樣張，不滿意就用一般的話講，例如 <span class="say">換成藍色</span> <span class="say">換字型</span> <span class="say">結尾寫「每週三更新」</span>。</li>
+  </ol>
+  <p>結果跟用控制台設定一樣。想重來，說 <span class="say">重新設定品牌</span> 就可以。</p>
+</details>
+
+<h2><span class="num">3</span>做第一支影片<span class="cnt" data-for="sec3"></span></h2>
+<ol class="todos" id="sec3">
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-first-folder"><span></span></label><div>
+    <strong><label for="c-first-folder">1. 把錄音或影片放進一個資料夾</label></strong>
+    錄音檔（mp3、m4a）或影片檔（mp4、mov）都可以。還沒錄也沒關係，可以先請 Claude 幫你寫稿。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-first-open"><span></span></label><div>
+    <strong><label for="c-first-open">2. 在控制台的「我的作品」選這個資料夾</label></strong>
+    按「選擇資料夾⋯」選它，就會看到做到哪一步。
+  </div></li>
+  <li class="todo optional"><label class="tick"><input type="checkbox" id="c-first-settings"><span></span></label><div>
+    <strong><label for="c-first-settings">3. 在「這個資料夾的設定」選頻道、要做幾支、這次的要求，按「儲存設定」</label><span class="opt">可略過</span></strong>
+    不選的話就用預設頻道、做 3 支。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-first-say"><span></span></label><div>
+    <strong><label for="c-first-say">4. 照「下一步」複製句子，在 Claude 開新對話、貼上送出</label></strong>
+    句子裡已經寫好資料夾和頻道，不用再另外說明。長的錄音要先聽打，可能要 30–60 分鐘。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-first-picks"><span></span></label><div>
+    <strong><label for="c-first-picks">5. 選要剪的片段</label></strong>
+    Claude 挑好精華片段後，回到「我的作品」的「選要剪的片段」勾選、改標題，按「確定要剪這幾段」，再照「下一步」把句子貼給 Claude。短影片沒有這一步，可以直接打勾。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-first-watch"><span></span></label><div>
+    <strong><label for="c-first-watch">6. 影片剪好後，完整看一遍</label></strong>
+    在「我的作品」就能播放。Claude 沒辦法真的「聽」聲音，字幕有錯直接跟它說。
+  </div></li>
+  <li class="todo"><label class="tick"><input type="checkbox" id="c-first-post"><span></span></label><div>
+    <strong><label for="c-first-post">7. 寫文案、發文</label></strong>
+    照「下一步」請 Claude 寫文案、整理發文包，再到 IG／TikTok 自己發文（Claude 不會登入或代發你的帳號）。
+  </div></li>
+</ol>
+
+<h2><span class="num">4</span>平常怎麼用</h2>
+<div class="card">
+  <table>
+    <tr><th>你手上有</th><th>跟 Claude 說</th></tr>
+    <tr><td>一段很長的錄音或影片（Podcast、訪談、講座、直播）</td><td><span class="say">幫我把這個檔案做成 3 支 reels</span><br>它會先聽打、挑出精華讓你選，再開始剪。</td></tr>
+    <tr><td>一支自己拍的口播或 vlog</td><td><span class="say">幫我剪這支</span><br>會保留你的畫面，自動剪掉停頓，加上字幕和插圖。</td></tr>
+    <tr><td>一篇文章或一個想法</td><td><span class="say">幫我把這篇寫成 reels 口播稿</span><br>寫好稿你照著錄，錄好再說 <span class="say">錄好了，幫我剪</span>。</td></tr>
+    <tr><td>已經剪好的影片</td><td><span class="say">幫我寫文案</span> <span class="say">幫我整理發文包</span></td></tr>
+  </table>
+</div>
+
+<div class="note ok"><b class="t">用控制台更省事</b>在「我的作品」選素材資料夾，「下一步」會告訴你現在該跟 Claude 說什麼，複製的句子會自動寫上<b>資料夾和頻道</b>，在 Claude 開新對話、貼上送出就好。也可以在那裡選片段、播放成品、一鍵複製文案。</div>
+
+<h2><span class="num">5</span>小提醒</h2>
+<div class="card">
+  <ul class="check">
+    <li>剪一支大約要 10–30 分鐘（有露臉的影片比較久），可以同時剪 2 支。這段時間電腦可以做別的事，但不要關機。</li>
+    <li>第一次聽打會先下載語音辨識模型，會特別久，之後就快了。</li>
+    <li>Claude 沒辦法真的「聽」聲音，<b>成品請自己完整看一遍</b>，字幕有錯直接跟它說。</li>
+    <li>發文要你自己操作，Claude 不會登入或代發你的帳號。</li>
+    <li>輸入 <span class="say">/reels-studio</span> 這種斜線指令時，同一則訊息裡不要放網址；有連結的話，用一般句子講就好。</li>
+  </ul>
+</div>
+
+<h2><span class="num">?</span>常見問題</h2>
+<details>
+  <summary>跳出「找不到需要的檔案」，或黑色視窗一閃就不見了</summary>
+  <p>通常是還在壓縮檔裡面執行。請先「解壓縮全部」，再到解壓縮出來的資料夾雙擊 <span class="file">② 雙擊安裝</span>。</p>
+</details>
+<details>
+  <summary>Python 自動安裝失敗</summary>
+  <p>到 <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org/downloads</a> 下載 Python 3.13 自己安裝。安裝畫面第一頁<b>一定要勾選「Add python.exe to PATH」</b>，裝好之後再雙擊一次 <span class="file">② 雙擊安裝</span>。</p>
+</details>
+<details>
+  <summary>安裝時跳過了 Pexels 金鑰，之後想加</summary>
+  <p>按鍵盤的 <kbd>Win</kbd>，搜尋「PowerShell」並打開，貼上下面這行（把「你的金鑰」換成真的金鑰），按 <kbd>Enter</kbd>，再重開 Claude。</p>
+  <div class="copy"><code>setx PEXELS_API_KEY "你的金鑰"</code><button type="button" data-copy='setx PEXELS_API_KEY "你的金鑰"'>複製</button></div>
+</details>
+<details>
+  <summary>輸入 /reels-studio 沒有反應</summary>
+  <p>確認安裝最後有出現「全部完成！」，而且有把 Claude 桌面 App <b>完全關掉再打開</b>。還是不行的話，直接說「幫我做 reels」試試看。</p>
+</details>
+<details>
+  <summary>我的頻道設定存在哪裡？可以自己改嗎？</summary>
+  <p>在 <span class="file">C:\Users\你的名字\.claude\reels-studio\my-brand\</span>。裡面的 <span class="file">brand.json</span> 是配色、字型、結尾卡；<span class="file">BRAND.md</span> 是文案語氣和 hashtag。最簡單的方式是在控制台的「頻道設定」修改，或直接跟 Claude 說你想改什麼。控制台只會改你動過的那幾項，Claude 依你的要求記下的其他規則不會被洗掉。</p>
+</details>
+<details>
+  <summary>我有好幾個頻道或帳號，怎麼分開設定？</summary>
+  <p>在控制台的「頻道設定」按 <b>「＋ 新增頻道」</b>，輸入名稱，選「從空白開始」或「沿用某個頻道的配色、字型、版面風格和結尾卡」，建好後照平常一樣填寫、儲存。之後在「我的作品」選素材資料夾，在「用哪個頻道的設定」選它並按「儲存設定」，Claude 和剪片程式就會自動套用那個頻道。沒有選的資料夾會用預設頻道。</p>
+  <p>不要的頻道：在「頻道設定」選它，按 <b>「刪除這個頻道」</b>。它會移到資源回收筒，刪錯了可以從那裡還原。預設頻道不能刪除。</p>
+</details>
+<details>
+  <summary>點桌面的 Reels Studio 沒有反應</summary>
+  <p>等 5 秒左右，瀏覽器應該會自己打開。如果還是沒有，直接跟 Claude 說「打開控制台」。控制台只在你自己的電腦上執行，不會上傳任何東西；關掉分頁 15 分鐘後它會自己結束，也可以按右上角的「關閉」。</p>
+</details>
+<details>
+  <summary>重新安裝會不會把我的設定洗掉？</summary>
+  <p>不會。重新安裝只會更新程式，你的頻道設定會保留；被替換的舊檔也會先備份到 <span class="file">.claude\backup-reels-studio-日期時間\</span>。</p>
+</details>
+
+<h2><span class="num">!</span>使用須知與免責聲明</h2>
+<div class="card">
+  <ul class="check">
+    <li><b>成品請自己檢查</b>：逐字稿、字幕、精華片段和貼文文案都是 AI 產生的，可能有錯字、聽錯或斷句不對。發布前請完整看過影片、讀過文案。</li>
+    <li><b>哪些資料會交給 Claude</b>：聽打在你自己的電腦上執行；但逐字稿、文案，以及剪片時用來檢查畫面的截圖，會在對話中交給 Claude（Anthropic）處理，適用 Anthropic 的使用條款與隱私政策。含有不公開內容的素材請自行斟酌。</li>
+    <li><b>素材的權利由你負責</b>：請確認你有權使用錄音、影片、照片與音樂，來賓或入鏡的人同意公開，並遵守 Pexels 素材授權和各社群平台的規範。</li>
+    <li><b>安裝會改動這台電腦</b>：會下載安裝 Python 與套件、安裝字型、寫入 <span class="file">.claude</span> 資料夾，選填的 Pexels 金鑰會存成使用者環境變數。</li>
+    <li><b>非官方工具</b>：Reels Studio 是個人作品，與 Anthropic、Meta（Instagram）、TikTok、Google（YouTube）沒有關係。</li>
+    <li><b>不提供任何保證</b>：本工具依「現狀」提供，作者不保證它沒有錯誤或適合特定用途；因使用本工具或其成品造成的任何損失，作者不負責任。</li>
+    <li><b>授權</b>：本工具採用 CC BY-NC 4.0，可以分享、修改，但要註明出處（Saori），而且工具本身不能拿去賣或包裝成付費產品。<b>用它做出來的影片不受這個限制，可以商業使用</b>，例如店家宣傳、業配、幫客戶做影片收費。</li>
+  </ul>
+</div>
+
+<footer>
+  <div class="author">
+    <p class="who">製作：<b>Saori</b></p>
+    <p class="roles">軟體工程師・系統分析師・生涯諮詢師</p>
+    <a class="links" href="https://lab.heysaori.com/links.html" target="_blank" rel="noopener">更多 Saori 的作品與聯絡方式 →</a>
+  </div>
+  影片字型使用 justfont 的 jf open 粉圓，以 SIL Open Font License 1.1 釋出（授權全文見 <span class="file">程式檔（不用打開）\font\OFL.txt</span>）。
+</footer>
+
+</main>
+<script>
+  // checklist: ticks are remembered by this browser (localStorage); the page still works when storage is blocked
+  (function () {
+    var KEY = "reels-studio-guide-checklist-v1", done = {};
+    try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) {}
+    var boxes = Array.prototype.slice.call(document.querySelectorAll(".todo input[type=checkbox]"));
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} }
+    function update() {
+      var n = 0;
+      boxes.forEach(function (b) { b.closest(".todo").classList.toggle("done", b.checked); if (b.checked) n++; });
+      document.getElementById("ptext").textContent = n === boxes.length ? "全部完成了！🎉" : "已完成 " + n + " / " + boxes.length + " 項";
+      document.getElementById("pbar").style.width = (100 * n / boxes.length) + "%";
+      document.querySelectorAll("h2 .cnt").forEach(function (c) {
+        var list = document.getElementById(c.dataset.for).querySelectorAll("input[type=checkbox]");
+        var k = Array.prototype.filter.call(list, function (b) { return b.checked; }).length;
+        c.textContent = k === list.length ? "✓ 完成" : k + " / " + list.length;
+        c.classList.toggle("all", k === list.length);
+      });
+    }
+    boxes.forEach(function (b) {
+      b.checked = !!done[b.id];
+      b.addEventListener("change", function () { done[b.id] = b.checked; save(); update(); });
+    });
+    document.getElementById("preset").addEventListener("click", function () {
+      if (!confirm("要把所有打勾都清掉，從頭開始嗎？")) return;
+      done = {}; save(); boxes.forEach(function (b) { b.checked = false; }); update();
+    });
+    update();
+  })();
+
+  document.querySelectorAll("button[data-copy]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var done = function () { b.textContent = "已複製"; setTimeout(function () { b.textContent = "複製"; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.copy).then(done, function () {});
+    });
+  });
+</script>
+</body>
+</html>

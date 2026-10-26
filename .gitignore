@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+dist/
+
+# made when the toolkit runs from this folder
+ui_state.json
+studio_ui.log
+*.bak
+my-brand*/

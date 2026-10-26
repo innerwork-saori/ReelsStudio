@@ -1,0 +1,10 @@
+# Python packages for the Reels Studio toolkit (keep this file ASCII: pip reads it with the system codepage)
+# Tested on Python 3.13 with: faster-whisper 1.2.1, opencc-python-reimplemented 0.1.7, av 18.1.0,
+# skia-python 144.0.post2, numpy 2.5.3, soundfile 0.14.0, pillow 12.3.0
+faster-whisper>=1.2
+opencc-python-reimplemented>=0.1.7
+av>=14
+skia-python>=138
+numpy>=2
+soundfile>=0.12
+pillow>=10

@@ -1,0 +1,12 @@
+# Later lines win, so the catch-all comes first.
+* text=auto
+
+# Windows scripts are stored exactly as they are (CRLF; install.ps1 keeps its UTF-8 BOM so
+# Windows PowerShell 5.1 reads the Chinese text correctly). A changed line ending breaks .bat blocks.
+*.bat  -text
+*.ps1  -text
+
+*.ttf  binary
+*.ico  binary
+*.png  binary
+*.jpg  binary

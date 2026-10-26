@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reels Studio 控制台</title>
+<link rel="icon" href="/icon.ico">
+<style>
+  /* 跟使用說明同一套莫蘭迪色，固定淺色 */
+  :root {
+    color-scheme: light;
+    --bg: #F3EFEA; --card: #FBF9F6; --ink: #4B4643; --muted: #6F6862;
+    --accent: #8C5F5A; --accent-soft: #EBDFDB; --highlight: #DCCBB8;
+    --ok: #93A391; --ok-soft: #E6EBE4; --warn: #C3A19C; --warn-soft: #F3E7E4;
+    --say: #E2E7EC; --line: #E3DBD3; --code: #EEE8E2;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }   /* .folderbar / .brandlayout set their own display */
+  body { margin: 0; background: var(--bg); color: var(--ink); font-size: 17px; line-height: 1.7;
+    font-family: "jf open 粉圓 1.1", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  a { color: var(--accent); }
+
+  header.top { position: sticky; top: 0; z-index: 5; background: rgba(243,239,234,.94); backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line); }
+  .bar { max-width: 1160px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .logo { font-weight: 700; font-size: 19px; display: flex; align-items: center; gap: 8px; margin-right: 8px; }
+  .logo .dot { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); display: inline-flex;
+    align-items: center; justify-content: center; color: #fff; font-size: 13px; }
+  nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav button { border: none; background: none; padding: 6px 14px; border-radius: 999px; cursor: pointer; color: var(--muted); font-weight: 700; }
+  nav button[aria-selected="true"] { background: var(--accent-soft); color: var(--accent); }
+  .bar .right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+  main { max-width: 1160px; margin: 0 auto; padding: 24px 16px 80px; }
+  section[hidden] { display: none; }
+  h1 { font-size: 28px; margin: 4px 0 6px; }
+  h2 { font-size: 21px; margin: 0 0 10px; }
+  h3 { font-size: 17px; margin: 18px 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 20px 22px; margin: 0 0 16px;
+    box-shadow: 0 2px 10px rgba(75,70,67,.05); }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .btn { border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 12px; padding: 7px 16px;
+    cursor: pointer; font-weight: 700; }
+  .btn.ghost { background: var(--card); color: var(--accent); }
+  .btn.small { padding: 3px 12px; font-size: 15px; border-radius: 10px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .muted { color: var(--muted); }
+  .small { font-size: 15px; }
+  .say { display: inline-block; background: var(--say); border-radius: 12px; padding: 1px 12px; font-weight: 700; }
+  .note { border-radius: 14px; padding: 12px 16px; margin: 12px 0; border: 1px solid var(--warn); border-left-width: 5px; background: var(--warn-soft); }
+  .note.ok { background: var(--ok-soft); border-color: var(--ok); }
+  .note b.t { display: block; margin-bottom: 2px; }
+  .file { font-weight: 700; color: var(--accent); overflow-wrap: anywhere; }
+
+  /* home */
+  table.phrases { width: 100%; border-collapse: collapse; }
+  table.phrases td { padding: 10px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.phrases tr:last-child td { border-bottom: none; }
+  .status { display: flex; gap: 14px; align-items: center; }
+  .status img { width: 120px; border-radius: 10px; border: 1px solid var(--line); }
+  .chiplist { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 3px 12px; cursor: pointer; font-size: 15px; }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* brand */
+  .brandlayout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
+  .previewbox { position: sticky; top: 76px; }
+  .previewbox img { width: 100%; border-radius: 12px; border: 1px solid var(--line); background: #fff; display: block; }
+  .previewbox .empty { aspect-ratio: 1260 / 703; border-radius: 12px; border: 1px dashed var(--line); display: flex;
+    align-items: center; justify-content: center; color: var(--muted); text-align: center; padding: 16px; }
+  .actions { display: flex; gap: 8px; margin: 12px 0 0; flex-wrap: wrap; }
+  label.f { display: block; margin: 12px 0 0; font-weight: 700; }
+  label.f .hint { font-weight: 400; color: var(--muted); font-size: 15px; margin-left: 6px; }
+  input[type=text], select, textarea { width: 100%; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 7px 12px; margin-top: 4px; }
+  textarea { resize: vertical; min-height: 44px; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .field .chiplist { margin-top: 6px; }
+  .palettes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 8px; }
+  .pal { border: 2px solid var(--line); border-radius: 14px; padding: 10px; cursor: pointer; background: #fff; text-align: left; }
+  .pal[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .pal .sw { display: flex; gap: 4px; margin-bottom: 6px; }
+  .pal .desc { color: var(--muted); font-size: 14px; line-height: 1.5; margin-top: 2px; }
+  .pal .mock { height: 54px; border-radius: 8px; margin-bottom: 8px; position: relative; overflow: hidden; border: 1px solid var(--line); }
+  .pal .sw i { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); display: inline-block; }
+  .colorrow { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+  .colorrow input[type=color] { width: 44px; height: 32px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: #fff; }
+  .icons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .icons label { border: 1px solid var(--line); border-radius: 12px; padding: 4px 12px; cursor: pointer; background: #fff; }
+  .icons input { margin-right: 4px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+  .sheet { max-width: 100%; border: 1px solid var(--line); border-radius: 10px; margin-top: 8px; }
+  .dirty { color: var(--accent); font-weight: 700; }
+
+  /* works */
+  .folderbar { display: flex; gap: 8px; flex-wrap: wrap; }
+  .folderbar input { flex: 1; min-width: 240px; margin: 0; }
+  ol.steps { list-style: none; padding: 0; margin: 0; }
+  ol.steps li { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  ol.steps li:last-child { border-bottom: none; }
+  ol.steps .mark { flex: none; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center;
+    justify-content: center; font-size: 14px; background: var(--code); color: var(--muted); margin-top: 2px; }
+  ol.steps li.done .mark { background: var(--ok); color: #fff; }
+  ol.steps .files { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+  .clips { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .clip video { width: 100%; aspect-ratio: 9 / 16; background: #222; border-radius: 12px; display: block; }
+  .clip h3 { margin: 10px 0 2px; overflow-wrap: anywhere; }
+  .clip pre { white-space: pre-wrap; background: var(--code); border-radius: 10px; padding: 10px 12px; max-height: 220px; overflow: auto;
+    font-family: inherit; font-size: 15px; margin: 8px 0; }
+
+  ol.howto { margin: 6px 0 6px; padding-left: 22px; }
+  ol.howto li { margin: 6px 0; }
+  .pathrow { margin-top: 4px; }
+  .saybox { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 6px 0; font-weight: 700; overflow-wrap: anywhere; }
+  .pick { padding: 10px 0; border-bottom: 1px dashed var(--line); }
+  .pick:last-of-type { border-bottom: none; }
+  .pickhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; cursor: pointer; }
+  .pickhead input { width: 18px; height: 18px; }
+  .pick pre { white-space: pre-wrap; background: var(--code); border-radius: 10px; padding: 8px 10px; font-family: inherit; max-height: 200px; overflow: auto; }
+
+  /* footer: same as the guide (① 先看我.html) */
+  footer { margin-top: 56px; color: var(--muted); font-size: 15px; text-align: center; }
+  footer .author { border-top: 1px solid var(--line); padding-top: 28px; margin-bottom: 20px; }
+  footer .author p { margin: 0 0 4px; }
+  footer .who { color: var(--ink); font-size: 17px; }
+  footer .links { display: inline-block; margin-top: 12px; padding: 8px 18px; border-radius: 999px;
+    background: var(--card); border: 1px solid var(--accent); text-decoration: none; font-weight: 700; }
+  footer .links:hover { background: var(--accent); color: #fff; }
+
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: #fff;
+    padding: 8px 18px; border-radius: 999px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 10; }
+  #toast.show { opacity: .95; }
+  #closed { display: none; text-align: center; padding: 120px 16px; }
+
+  @media (max-width: 900px) {
+    .brandlayout { grid-template-columns: 1fr; }
+    .previewbox { position: static; }
+  }
+  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="bar">
+    <div class="logo"><span class="dot">▶</span>Reels Studio 控制台</div>
+    <nav role="tablist">
+      <button role="tab" data-tab="home" aria-selected="true">開始</button>
+      <button role="tab" data-tab="brand">頻道設定</button>
+      <button role="tab" data-tab="works">我的作品</button>
+    </nav>
+    <div class="right">
+      <a class="btn ghost small" href="/guide" target="_blank" rel="noopener">使用說明</a>
+      <button class="btn ghost small" id="quit" title="關掉這個控制台（之後可以從桌面捷徑再打開）">關閉</button>
+    </div>
+  </div>
+</header>
+
+<main id="app">
+
+<!-- ============ 開始 ============ -->
+<section id="tab-home">
+  <h1>嗨，今天想做什麼？</h1>
+  <p class="lead">這個控制台讓你用點選的方式設定頻道、看做好的影片和文案。實際的聽打、剪片、寫文案，還是交給 Claude。</p>
+  <div class="grid2">
+    <div class="card">
+      <h2>① 頻道設定</h2>
+      <div id="home-brand" class="status"></div>
+    </div>
+    <div class="card">
+      <h2>② 最近的作品資料夾</h2>
+      <div id="home-recent"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>③ 在 Claude 這樣說</h2>
+    <div class="note ok" style="margin-top:0"><b class="t">建議先到「我的作品」選素材資料夾</b>那裡的「下一步」會把資料夾和頻道一起寫進要貼給 Claude 的句子，複製貼上就好。<button class="btn small" style="margin-left:8px" onclick="showTab('works')">去我的作品</button></div>
+    <p class="muted small">下面是通用的說法：在 Claude 桌面 App 開新對話時選素材所在的資料夾，再貼上句子。</p>
+    <table class="phrases" id="phrases"></table>
+  </div>
+</section>
+
+<!-- ============ 頻道設定 ============ -->
+<section id="tab-brand" hidden>
+  <h1>頻道設定</h1>
+  <p class="lead">影片的配色、字型、結尾卡，以及 Claude 寫文案時要遵守的語氣。設定一次，之後每支影片都會套用。</p>
+  <div class="card" id="brandpick-card">
+    <div class="folderbar" style="align-items:end" id="brandpick-row">
+      <label class="f" style="margin:0;flex:1;min-width:240px">要設定哪個頻道？
+        <select id="brandpick"></select>
+      </label>
+      <button class="btn ghost" id="nb-open">＋ 新增頻道</button>
+      <button class="btn ghost" id="db-open">刪除這個頻道</button>
+    </div>
+    <div id="db-form" class="note" hidden style="margin-top:14px"></div>
+    <div id="nb-form" hidden>
+      <h2>新增頻道</h2>
+      <label class="f" style="margin-top:0">新頻道的名稱<span class="hint">例如「我的讀書心得」</span>
+        <input type="text" id="nb-name" maxlength="30"></label>
+      <label class="f">從哪裡開始</label>
+      <div class="icons">
+        <label><input type="radio" name="nb-from" value="" checked> 從空白開始</label>
+        <label><input type="radio" name="nb-from" value="copy"> 沿用 <select id="nb-copy" style="width:auto;margin:0 4px;padding:2px 8px"></select> 的配色、字型、版面風格和結尾卡</label>
+      </div>
+      <p class="muted small" style="margin:6px 0 0">文案語氣、hashtag 這些說明會從空白開始。按「建立」之後，就會打開新頻道的設定讓你填。</p>
+      <div class="actions"><button class="btn" id="nb-create">建立</button><button class="btn ghost" id="nb-cancel">取消</button></div>
+    </div>
+  </div>
+  <div class="brandlayout" id="brandlayout">
+    <div>
+      <div class="card">
+        <h2>基本</h2>
+        <label class="f">頻道名稱<span class="hint">出現在影片上方標籤和結尾卡</span>
+          <input type="text" id="b-name" maxlength="30"></label>
+        <label class="f">影片上方標籤<span class="hint">空白＝用頻道名稱</span>
+          <input type="text" id="b-tag" maxlength="40"></label>
+      </div>
+
+      <div class="card">
+        <h2>版面風格</h2>
+        <p class="muted small" style="margin:0">字幕、標題卡、背景、插圖線條、動畫和結尾卡的整體樣子。點一個就會出樣張；跟別人的影片撞款時，換一個風格最有感。</p>
+        <div class="palettes" id="presets"></div>
+        <details id="style-d"><summary>逐項調整</summary>
+          <p class="muted small" style="margin:6px 0 0">從上面選的風格出發，只換你想換的那幾項。</p>
+          <div class="row2" id="style-parts"></div></details>
+      </div>
+
+      <div class="card">
+        <h2>配色</h2>
+        <div class="palettes" id="palettes"></div>
+        <div class="colorrow">
+          <label><input type="checkbox" id="c-accent-on"> 自己選強調色</label>
+          <input type="color" id="c-accent">
+          <label style="margin-left:12px"><input type="checkbox" id="c-hl-on"> 自己選亮點色</label>
+          <input type="color" id="c-hl">
+        </div>
+        <p class="muted small" style="margin:6px 0 0">強調色用在標題重點字和按鈕；亮點色用在字幕的重點底色。背景一律是淺色，字幕才看得清楚。</p>
+      </div>
+
+      <div class="card">
+        <h2>字型</h2>
+        <div class="row2">
+          <label class="f" style="margin-top:0">字幕字型
+            <select id="b-font"><option>載入這台電腦的字型中⋯⋯</option></select></label>
+          <label class="f" style="margin-top:0">粗細
+            <select id="b-weight"></select></label>
+        </div>
+        <details id="fontsheet-d"><summary>看所有字型的樣本</summary><div id="fontsheet" class="muted small">載入中⋯⋯</div></details>
+        <details><summary>想要更多免費字型？</summary><div id="freefonts" class="small"></div>
+          <p class="small muted">下載後在字型檔上按右鍵 →「安裝」，再按右上角「關閉」並重新打開控制台，新字型就會出現在清單裡。</p></details>
+      </div>
+
+      <div class="card">
+        <h2>結尾卡</h2>
+        <label class="f" style="margin-top:0">圖示</label>
+        <div class="icons" id="icons"></div>
+        <div class="row2">
+          <label class="f">名稱上面的小貼紙<span class="hint">例如「嗨！」，可空白</span><input type="text" id="e-badge" maxlength="6"></label>
+          <label class="f">按鈕文字<span class="hint">4–6 字</span><input type="text" id="e-cta" maxlength="10"></label>
+        </div>
+        <div class="row2">
+          <label class="f">按鈕下面的小字<span class="hint">例如「每週三更新」</span><input type="text" id="e-sub" maxlength="24"></label>
+          <label class="f">來賓前面的字<span class="hint">訪談節目用</span><input type="text" id="e-guest" maxlength="8"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>給 Claude 看的頻道說明</h2>
+        <p class="muted small" style="margin:0">寫文案、選片段時會照這裡。點灰色的小按鈕可以快速填入，也可以自己打字。</p>
+        <div id="mdfields"></div>
+        <p class="muted small" id="md-extra" hidden></p>
+      </div>
+    </div>
+
+    <aside class="previewbox">
+      <div class="card">
+        <h2>樣張</h2>
+        <div id="pv"></div>
+        <div id="pv-msg"></div>
+        <div class="actions">
+          <button class="btn ghost" id="btn-preview">看樣張（先不存）</button>
+          <button class="btn" id="btn-save">儲存設定</button>
+        </div>
+        <p class="small muted" id="dirty-msg" style="margin:8px 0 0"></p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ 我的作品 ============ -->
+<section id="tab-works" hidden>
+  <h1>我的作品</h1>
+  <p class="lead">選素材所在的資料夾，看看做到哪一步、播放剪好的影片、複製文案。</p>
+  <div class="card">
+    <div class="folderbar">
+      <input type="text" id="w-path" placeholder="資料夾路徑，例如 C:\Users\你\Desktop\EP80">
+      <button class="btn ghost" id="w-pick">選擇資料夾⋯</button>
+      <button class="btn" id="w-load">開啟</button>
+    </div>
+    <div class="chiplist" id="w-recent" style="margin-top:10px"></div>
+  </div>
+  <div id="w-body"></div>
+</section>
+
+<footer>
+  <div class="author">
+    <p class="who">製作：<b>Saori</b></p>
+    <p class="roles">軟體工程師・系統分析師・生涯諮詢師</p>
+    <a class="links" href="https://lab.heysaori.com/links.html" target="_blank" rel="noopener">更多 Saori 的作品與聯絡方式 →</a>
+  </div>
+  影片字型使用 justfont 的 jf open 粉圓，以 SIL Open Font License 1.1 釋出（授權全文見 <span class="file">.claude\reels-studio\font\OFL.txt</span>）。
+  <p id="appver" style="margin:8px 0 0"></p>
+</footer>
+
+</main>
+<div id="closed"><h1>控制台已關閉</h1><p class="muted">可以關掉這個分頁了。要再打開，點桌面上的「Reels Studio」。</p></div>
+<div id="toast"></div>
+
+<script>
+const TOKEN = "__TOKEN__";
+const $ = (s, el = document) => el.querySelector(s);
+const h = (tag, attrs = {}, ...kids) => {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k.startsWith("aria-")) el.setAttribute(k, String(v));
+    else if (v !== null && v !== undefined && v !== false) el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid !== null && kid !== undefined) el.append(kid.nodeType ? kid : String(kid));
+  return el;
+};
+
+function staleBanner(msg) {           // this tab belongs to a panel that was closed or replaced by a newer one
+  if ($("#stale")) return;
+  document.body.prepend(h("div", { id: "stale", class: "note", style: "margin:0;border-radius:0;position:sticky;top:0;z-index:20;text-align:center" },
+    msg, " ", h("button", { class: "btn small", onclick: () => location.reload() }, "重新整理")));
+}
+async function api(path, body = {}) {
+  let r;
+  try {
+    r = await fetch(path, { method: "POST", headers: { "X-Token": TOKEN, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  } catch {
+    if (path !== "/api/ping") staleBanner("控制台已經關閉了。點桌面上的「Reels Studio」重新打開，再按");
+    throw new Error("控制台已經關閉了，請點桌面上的「Reels Studio」重新打開。");
+  }
+  const j = await r.json().catch(() => ({ error: "伺服器沒有回應" }));
+  if (r.status === 403 || (r.status === 404 && j.error === "not found" && path.startsWith("/api/"))) {
+    staleBanner("控制台剛更新過，這個分頁是舊的。請按");
+    throw new Error("控制台剛更新過，請按上方的「重新整理」。");
+  }
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 1800); }
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); toast("已複製，可以貼上了"); }
+  catch { toast("複製失敗，請自己選取文字複製"); }
+}
+const copyBtn = (text, label = "複製") => h("button", { class: "btn ghost small", onclick: () => copy(text) }, label);
+
+// ---------------- tabs ----------------
+function showTab(name) {
+  document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
+  document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "tab-" + name);
+  if (name === "brand") loadFonts();
+  if (name === "works" && !$("#w-body").childElementCount && S && S.recent.length) loadProject(S.recent[0]);
+  try { localStorage.setItem("rs-tab", name); } catch {}
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+
+// ---------------- data ----------------
+let S = null;          // /api/state
+let cur = null;        // current brand object from the server
+let dirty = false;
+const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色" };
+const ICONS = [["mic", "🎙 麥克風"], ["play", "▶ 播放"], ["heart", "♥ 愛心"], ["star", "★ 星星"], ["none", "不要圖示"]];
+const MD = [
+  ["內容類型", "multi", ["Podcast／訪談錄音", "自己拍的口播或 vlog（露臉）", "講座或課程錄音", "從想法或文章寫稿"], ""],
+  ["主要講者", "text", [], "名字或稱呼，例如：Saori（主持人）"],
+  ["常一起出現的人與字幕標示", "text", [], "例如：共同主持人 Amy，字幕標「Amy」",
+   "主講者的字幕不加標籤；這裡寫的人說話時，字幕會換成綠色邊、左上角加上你寫的標籤（像樣張第三格）。只有你一個人說話就留空。"],
+  ["目標觀眾", "text", [], "一句話，例如：剛出社會、對未來迷惘的 25–30 歲上班族"],
+  ["發布平台", "multi", ["IG Reels", "TikTok", "YouTube Shorts"], ""],
+  ["發文頻率", "one", ["每 2–3 天一支", "每週一支", "每週兩支"], ""],
+  ["語氣", "one", ["提問引導：用問題陪觀眾想，不說教", "乾貨重點：條列、直接給方法", "故事分享：第一人稱、有畫面", "輕鬆幽默：口語、有梗"], "也可以用自己的話描述"],
+  ["結尾行動（CTA）", "multi", ["看／聽完整版", "追蹤帳號", "點個人檔案連結", "留言互動"], "例如：🎧 完整收聽〈節目名〉，連結在個人檔案"],
+  ["固定 hashtag", "text", [], "每篇都要有的，例如：#我的頻道 #職涯"],
+  ["Hashtag 數量", "one", ["3–5 個", "6–12 個", "不要 hashtag"], ""],
+  ["禁用的詞或 hashtag", "text", [], "不想出現的詞，例如：雞湯、#某某某"],
+  ["Emoji", "one", ["多", "少", "不用"], ""],
+  ["露臉", "one", ["依素材判斷", "一律不露臉，只用插圖"], ""],
+];
+
+async function refresh() {
+  S = await api("/api/state");
+  $("#appver").textContent = S.version ? `Reels Studio v${S.version}` : "";
+  const b = S.brands.find(x => x.dir === S.current) || S.brands[0];
+  renderHome();
+  renderBrandPicker();
+  fillBrand(b);
+  renderRecent();
+}
+
+// ---------------- home ----------------
+const PHRASES = [
+  ["一段很長的錄音或影片（Podcast、訪談、講座、直播）", "幫我把這個檔案做成 3 支 reels", "會先聽打、挑精華讓你選，再開始剪"],
+  ["一支自己拍的口播或 vlog", "幫我剪這支", "保留你的畫面，自動剪掉停頓，加上字幕和插圖"],
+  ["一篇文章或一個想法", "幫我把這篇寫成 reels 口播稿", "寫好稿你照著錄，錄好再說「錄好了，幫我剪」"],
+  ["已經剪好的影片", "幫我寫文案", "寫好之後可以再說「幫我整理發文包」"],
+];
+function renderHome() {
+  const b = S.brands.find(x => x.dir === S.current) || S.brands[0];
+  const box = $("#home-brand"); box.replaceChildren();
+  if (b.exists) {
+    box.append(b.preview ? h("img", { src: b.preview, alt: "目前的樣張" }) : "",
+      h("div", {}, h("div", {}, "已設定：", h("b", {}, b.brand.name)),
+        h("div", { class: "muted small" }, `配色 ${PAL_NAMES[b.brand.palette] || b.brand.palette}`),
+        h("button", { class: "btn ghost small", style: "margin-top:8px", onclick: () => showTab("brand") }, "修改設定")));
+  } else {
+    box.append(h("div", {}, h("p", { style: "margin:0 0 8px" }, "還沒設定。先花 2 分鐘選配色、字型和結尾卡，之後每支影片都會套用。"),
+      h("button", { class: "btn", onclick: () => showTab("brand") }, "開始設定")));
+  }
+  const rc = $("#home-recent"); rc.replaceChildren();
+  if (!S.recent.length) rc.append(h("p", { class: "muted", style: "margin:0 0 8px" }, "還沒有。到「我的作品」選素材所在的資料夾。"),
+    h("button", { class: "btn ghost small", onclick: () => showTab("works") }, "去我的作品"));
+  else rc.append(h("div", { class: "chiplist" }, S.recent.slice(0, 5).map(p =>
+    h("button", { class: "chip", title: p, onclick: () => { showTab("works"); loadProject(p); } }, p.split("\\").pop()))));
+  const t = $("#phrases"); t.replaceChildren();
+  for (const [have, say, note] of PHRASES)
+    t.append(h("tr", {}, h("td", { style: "width:34%" }, have),
+      h("td", {}, h("span", { class: "say" }, say), " ", copyBtn(say), h("div", { class: "muted small" }, note))));
+}
+
+// ---------------- brand form ----------------
+const brandLabel = b => `${b.exists ? b.brand.name : "（還沒設定）"}${b.folder === "my-brand" ? "（預設）" : ""}`;
+function renderBrandPicker() {
+  const sel = $("#brandpick");
+  sel.replaceChildren(...S.brands.map(b => h("option", { value: b.dir, selected: b.dir === S.current }, `${brandLabel(b)}　—　${b.folder}`)));
+  $("#nb-copy").replaceChildren(...S.brands.filter(b => b.exists).map(b => h("option", { value: b.dir, selected: b.dir === S.current }, b.brand.name)));
+  const cur = S.brands.find(b => b.dir === S.current);
+  const isDefault = !cur || cur.folder === "my-brand";
+  $("#db-open").disabled = isDefault;
+  $("#db-open").title = isDefault ? "預設頻道不能刪除：沒有選頻道的資料夾都會用它" : "";
+  $("#db-form").hidden = true;
+}
+$("#db-open").addEventListener("click", async () => {
+  const b = S.brands.find(x => x.dir === S.current);
+  if (!b) return;
+  const box = $("#db-form"); box.hidden = false;
+  box.replaceChildren(h("p", { class: "muted", style: "margin:0" }, "檢查中⋯⋯"));
+  let used = [];
+  try { used = (await api("/api/brand-usage", { dir: b.dir })).projects; } catch {}
+  const name = b.exists ? b.brand.name : b.folder;
+  box.replaceChildren(
+    h("b", { class: "t" }, `確定要刪除「${name}」嗎？`),
+    h("div", {}, "這個頻道的配色、字型、結尾卡和給 Claude 看的說明會一起移到", h("b", {}, "資源回收筒"), "，刪錯了可以從資源回收筒還原（資料夾名稱是 ",
+      h("span", { class: "file" }, b.folder), "）。"),
+    used.length ? h("div", { style: "margin-top:8px" }, `這些作品資料夾正在用這個頻道，刪除後會改用預設頻道：`,
+      h("ul", { style: "margin:4px 0 0" }, used.map(p => h("li", { class: "small" }, p)))) : "",
+    h("div", { class: "actions" },
+      h("button", { class: "btn", onclick: async ev => {
+        const btn = ev.currentTarget; btn.disabled = true;
+        try {
+          const r = await api("/api/delete-brand", { dir: b.dir });
+          setDirty(false);
+          S = await api("/api/state");
+          renderBrandPicker(); renderHome(); fillBrand(S.brands.find(x => x.dir === S.current) || S.brands[0]);
+          $("#pv-msg").replaceChildren(h("div", { class: "note ok" }, h("b", { class: "t" }, `已刪除「${name}」`),
+            r.where === "資源回收筒" ? "已移到資源回收筒，需要的話可以從那裡還原。" : ["已移到 ", h("span", { class: "file" }, r.where), "，需要的話可以搬回來。"]));
+          toast("頻道已刪除");
+        } catch (err) { toast(err.message); btn.disabled = false; }
+      } }, "刪除"),
+      h("button", { class: "btn ghost", onclick: () => { box.hidden = true; } }, "取消")));
+});
+function newChannelMode(on) {        // the new-channel form takes over the page; the current channel's settings come back after
+  $("#nb-form").hidden = !on;
+  $("#brandpick-row").hidden = on;
+  $("#brandlayout").hidden = on;
+  $("#db-form").hidden = true;
+  if (on) { $("#nb-name").value = ""; $("#nb-name").focus(); window.scrollTo(0, 0); }
+}
+$("#nb-open").addEventListener("click", () => newChannelMode(true));
+$("#nb-cancel").addEventListener("click", () => newChannelMode(false));
+$("#nb-name").addEventListener("keydown", e => { if (e.key === "Enter") $("#nb-create").click(); });
+$("#nb-create").addEventListener("click", async () => {
+  if (dirty && !confirm("目前的修改還沒儲存，要放棄嗎？")) return;
+  const name = $("#nb-name").value.trim();
+  if (!name) { toast("請輸入新頻道的名稱"); $("#nb-name").focus(); return; }
+  const copy = document.querySelector("input[name=nb-from]:checked").value === "copy";
+  const btn = $("#nb-create"); btn.disabled = true; btn.textContent = "建立中⋯⋯";
+  try {
+    const r = await api("/api/new-brand", { name, copy_from: copy ? $("#nb-copy").value : null });
+    S = await api("/api/state");
+    S.current = r.brand.dir;
+    renderBrandPicker(); renderHome();
+    fillBrand(S.brands.find(b => b.dir === r.brand.dir));
+    newChannelMode(false);
+    $("#pv-msg").replaceChildren(h("div", { class: "note ok" }, h("b", { class: "t" }, `已建立「${name}」✓`),
+      "接著在下面選配色、字型，填寫給 Claude 看的說明，最後按「儲存設定」。要用這個頻道剪片時，在「我的作品」選它就好。"));
+    toast("新頻道建立好了");
+  } catch (err) { toast(err.message); }
+  btn.disabled = false; btn.textContent = "建立";
+});
+$("#brandpick").addEventListener("change", async e => {
+  if (dirty && !confirm("目前的修改還沒儲存，要放棄嗎？")) { e.target.value = cur.dir; return; }
+  await api("/api/select-brand", { dir: e.target.value });
+  S.current = e.target.value;
+  renderBrandPicker(); fillBrand(S.brands.find(b => b.dir === S.current)); renderHome();
+});
+
+function fillBrand(b) {
+  cur = b;
+  const br = b.brand, e = br.end_card || {};
+  $("#b-name").value = b.exists ? br.name : "";
+  $("#b-name").placeholder = "例如：蛤！人生有什麼意義";
+  $("#b-tag").value = br.tag || "";
+  // palettes
+  const pals = $("#palettes"); pals.replaceChildren();
+  for (const [key, p] of Object.entries(S.palettes)) {
+    pals.append(h("button", { type: "button", class: "pal", "aria-pressed": key === br.palette, "data-key": key,
+      onclick: ev => { pals.querySelectorAll(".pal").forEach(x => x.setAttribute("aria-pressed", x === ev.currentTarget)); syncColors(); markDirty();
+        document.querySelectorAll("#presets .pal").forEach(b => b.querySelector(".mock").replaceWith(presetMock(b.dataset.preset))); } },
+      h("div", { class: "sw" }, ["bg", "ink", "accent", "highlight"].map(r => h("i", { style: `background:${p[r]}` }))),
+      h("b", {}, PAL_NAMES[key] || key), h("div", { class: "muted small" }, key)));
+  }
+  const colors = br.colors || {};
+  $("#c-accent-on").checked = !!colors.accent; $("#c-hl-on").checked = !!colors.highlight;
+  $("#c-accent").value = colors.accent || ""; $("#c-hl").value = colors.highlight || "";
+  syncColors();
+  renderStyle(br.style);
+  // icons
+  const ic = $("#icons"); ic.replaceChildren();
+  for (const [k, label] of ICONS)
+    ic.append(h("label", {}, h("input", { type: "radio", name: "icon", value: k, checked: (e.icon || "play") === k }), label));
+  $("#e-badge").value = e.badge || ""; $("#e-cta").value = e.cta || ""; $("#e-sub").value = e.sub || ""; $("#e-guest").value = e.guest_prefix || "";
+  // BRAND.md fields
+  const box = $("#mdfields"); box.replaceChildren();
+  for (const [label, kind, chips, ph, note] of MD) {
+    const long = label === "語氣" || label === "結尾行動（CTA）";
+    const input = h(long ? "textarea" : "input", { type: long ? null : "text", "data-md": label, placeholder: ph || (chips.length ? "點下面的按鈕，或自己打字" : ""), rows: long ? 2 : null });
+    input.value = b.fields[label] || "";
+    const chipEls = chips.map(c => h("button", { type: "button", class: "chip", onclick: () => {
+      if (kind === "multi") { const parts = input.value.split("、").map(s => s.trim()).filter(Boolean); if (!parts.includes(c)) parts.push(c); input.value = parts.join("、"); }
+      else input.value = c;
+      markDirty(); } }, c));
+    box.append(h("div", { class: "field" }, h("label", { class: "f" }, label, input), chipEls.length ? h("div", { class: "chiplist" }, chipEls) : "",
+      note ? h("p", { class: "muted small", style: "margin:4px 0 0" }, note) : ""));
+  }
+  const ex = $("#md-extra");
+  ex.hidden = !b.md_exists;
+  ex.replaceChildren("說明檔裡還有 Claude 依你的要求寫下的其他規則，這裡不會動到它們。想看全部：",
+    h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: b.dir + "\\BRAND.md" }).catch(err => toast(err.message)) }, "用記事本打開"));
+  // font select
+  fillFonts();
+  // preview
+  showPreview(b.preview, b.exists ? "目前儲存的樣張" : null);
+  $("#pv-msg").replaceChildren();
+  setDirty(false);
+}
+
+// ---------------- layout style (版面風格) ----------------
+const PRESET_INFO = {
+  handmade: ["手作便條", "膠帶便條卡、手繪色塊、粗線條、活潑彈跳（原本的樣子）"],
+  clean:    ["俐落簡約", "細框卡、純色背景、膠囊字幕、細線條、俐落動畫"],
+  magazine: ["雜誌感", "色塊斜帶標題、柔和漸層、深色字幕框、名片卡結尾"],
+  notebook: ["筆記本", "方格紙背景、便條紙標題、淡淡的細線插圖、柔和動畫"],
+  street:   ["街頭活力", "滿版大字標題、描邊字幕、純色背景、彈跳感"],
+};
+const PART_INFO = {
+  subtitle: ["字幕", { box: "白色框（原本）", outline: "描邊大字、沒有框", pill: "每行一條白色膠囊", dark: "深色半透明框" }],
+  title: ["開頭標題卡", { note: "膠帶便條紙（原本）", bold: "滿版大字、沒有卡片", line: "細框卡＋側邊色條", magazine: "斜斜的色塊帶" }],
+  background: ["背景與裝飾", { blobs: "手繪色塊＋星光（原本）", plain: "乾淨純色", grid: "方格筆記紙", gradient: "柔和漸層光暈" }],
+  line: ["插圖線條", { bold: "粗墨線（原本）", thin: "細線", soft: "淡淡的細線" }],
+  motion: ["動畫", { bouncy: "活潑彈跳（原本）", snappy: "俐落、輕微回彈", gentle: "柔和、不彈跳" }],
+  end: ["結尾卡", { classic: "大圖示＋按鈕（原本）", minimal: "極簡：大字＋外框按鈕", card: "名片卡" }],
+};
+function resolveStyle(s) {
+  s = s || {};
+  const out = Object.assign({}, S.style_presets[s.preset] || S.style_presets.handmade);
+  for (const [k, opts] of Object.entries(S.style_options)) if (opts.includes(s[k])) out[k] = s[k];
+  return out;
+}
+function presetMock(key) {           // a tiny drawing of the look in the current palette
+  const p = S.palettes[selectedPalette()] || S.palettes.cream, st = S.style_presets[key];
+  const bg = { blobs: `radial-gradient(circle at 10% 20%, ${p.peach} 0 26%, transparent 27%), radial-gradient(circle at 95% 90%, ${p.highlight}66 0 30%, transparent 31%), ${p.bg}`,
+               plain: p.bg, grid: `repeating-linear-gradient(0deg, ${p.ink}14 0 1px, transparent 1px 9px), repeating-linear-gradient(90deg, ${p.ink}14 0 1px, transparent 1px 9px), ${p.bg}`,
+               gradient: `radial-gradient(circle at 80% 20%, ${p.highlight}66, transparent 55%), linear-gradient(${p.bg}, ${p.peach})` }[st.background];
+  const sub = { box: `background:#fff;border:2px solid ${p.ink};border-radius:6px`,
+                outline: `background:transparent;color:#fff;-webkit-text-stroke:3px ${p.ink};paint-order:stroke fill;font-size:13px`,
+                pill: `background:#fff;border-radius:99px;box-shadow:0 1px 4px ${p.ink}40`, dark: `background:${p.ink};color:#fff;border-radius:5px` }[st.subtitle];
+  const txtCol = "";
+  return h("div", { class: "mock", style: `background:${bg}` },
+    h("span", { style: `position:absolute;left:50%;bottom:7px;transform:translateX(-50%);font-size:11px;padding:1px 8px;white-space:nowrap;font-weight:700;${sub};${txtCol}` }, "字幕長這樣"));
+}
+function renderStyle(style) {
+  const preset = (style && style.preset) || "handmade";
+  const box = $("#presets"); box.replaceChildren();
+  for (const key of Object.keys(S.style_presets)) {
+    const [name, desc] = PRESET_INFO[key] || [key, ""];
+    box.append(h("button", { type: "button", class: "pal", "aria-pressed": key === preset, "data-preset": key,
+      onclick: ev => {
+        box.querySelectorAll(".pal").forEach(x => x.setAttribute("aria-pressed", x === ev.currentTarget));
+        fillParts(S.style_presets[key]); markDirty(); runPreview(false);
+      } }, presetMock(key), h("b", {}, name), h("div", { class: "desc" }, desc)));
+  }
+  fillParts(resolveStyle(style));
+  $("#style-d").open = Object.keys(style || {}).some(k => k !== "preset");
+}
+function fillParts(values) {
+  const box = $("#style-parts"); box.replaceChildren();
+  for (const [part, [label, names]] of Object.entries(PART_INFO))
+    box.append(h("label", { class: "f" }, label, h("select", { "data-part": part, onchange: markDirty },
+      (S.style_options[part] || []).map(v => h("option", { value: v, selected: v === values[part] }, names[v] || v)))));
+}
+function collectStyle() {
+  const el = $("#presets .pal[aria-pressed=true]");
+  const out = { preset: el ? el.dataset.preset : "handmade" };
+  document.querySelectorAll("#style-parts select").forEach(s => out[s.dataset.part] = s.value);
+  return out;
+}
+
+function selectedPalette() { const el = $("#palettes .pal[aria-pressed=true]"); return el ? el.dataset.key : "cream"; }
+function syncColors() {
+  const p = S.palettes[selectedPalette()];
+  for (const [on, inp, role] of [["#c-accent-on", "#c-accent", "accent"], ["#c-hl-on", "#c-hl", "highlight"]]) {
+    $(inp).disabled = !$(on).checked;
+    if (!$(on).checked || !$(inp).value || $(inp).value === "#000000") $(inp).value = p[role].toLowerCase();
+  }
+}
+["#c-accent-on", "#c-hl-on"].forEach(s => $(s).addEventListener("change", () => { syncColors(); markDirty(); }));
+
+function collect() {
+  const md = {};
+  document.querySelectorAll("[data-md]").forEach(el => md[el.dataset.md] = el.value);
+  const fontOpt = $("#b-font").selectedOptions[0];
+  return { dir: cur.dir, fields: md, brand: {
+    name: $("#b-name").value, tag: $("#b-tag").value,
+    palette: selectedPalette(), style: collectStyle(),
+    colors: { accent: $("#c-accent-on").checked ? $("#c-accent").value : null, highlight: $("#c-hl-on").checked ? $("#c-hl").value : null },
+    font: fontOpt && fontOpt.value ? fontOpt.value : cur.brand.font,
+    font_weight: $("#b-weight").value || null,
+    end_card: { icon: (document.querySelector("input[name=icon]:checked") || {}).value || "play",
+      badge: $("#e-badge").value, cta: $("#e-cta").value, sub: $("#e-sub").value, guest_prefix: $("#e-guest").value } } };
+}
+
+function setDirty(v) { dirty = v; $("#dirty-msg").replaceChildren(v ? h("span", { class: "dirty" }, "● 有還沒儲存的修改") : ""); }
+function markDirty() { setDirty(true); }
+$("#tab-brand").addEventListener("input", e => { if (e.target.id !== "brandpick") markDirty(); });
+window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+function showPreview(src, caption) {
+  const pv = $("#pv"); pv.replaceChildren();
+  if (src) pv.append(h("a", { href: src, target: "_blank", title: "點一下看大圖" }, h("img", { src, alt: "樣張" })),
+    caption ? h("div", { class: "muted small", style: "margin-top:4px" }, caption) : "");
+  else pv.append(h("div", { class: "empty" }, "選好配色和字型後，按「看樣張」就會出現標題卡、字幕和結尾卡的樣子。"));
+}
+
+async function runPreview(save) {
+  if (save && !$("#b-name").value.trim()) { toast("請先填頻道名稱"); $("#b-name").focus(); return; }
+  const btns = [$("#btn-preview"), $("#btn-save")]; btns.forEach(b => b.disabled = true);
+  const msg = $("#pv-msg"); msg.replaceChildren(h("p", { class: "muted small" }, save ? "儲存並產生樣張中，大約 5–15 秒⋯⋯" : "產生樣張中，大約 5–15 秒⋯⋯"));
+  try {
+    const r = await api(save ? "/api/save" : "/api/preview", collect());
+    msg.replaceChildren();
+    if (!r.ok) msg.append(h("div", { class: "note" }, h("b", {}, "樣張產生失敗"), h("pre", { class: "small", style: "white-space:pre-wrap" }, r.error || "")));
+    else showPreview(r.image, save ? "已儲存的樣張" : "預覽（還沒儲存）");
+    const ADVICE = {
+      font: "請在「字型」重新選一次。如果是剛安裝的字型，按右上角「關閉」，再點桌面的 Reels Studio 重新打開，字型清單才會更新。",
+      glyph: "頻道名稱或結尾卡的文字裡，有這個字型沒有的字（常見是 emoji），畫面上會變成空白或方框。請拿掉那個字，或換一個字型。",
+      other: "" };
+    for (const w of r.warnings || [])
+      msg.append(h("div", { class: "note" }, h("b", { class: "t" }, w.kind === "font" ? "找不到字型" : w.kind === "glyph" ? "有字顯示不出來" : "注意"),
+        h("div", { class: "small", style: "white-space:pre-line" }, w.text), ADVICE[w.kind] ? h("div", { class: "small", style: "margin-top:4px" }, ADVICE[w.kind]) : ""));
+    if (save) {
+      setDirty(false);
+      const i = S.brands.findIndex(b => b.dir === r.brand.dir); S.brands[i] = r.brand; cur = r.brand;
+      renderHome(); renderBrandPicker();
+      msg.prepend(h("div", { class: "note ok" }, h("b", {}, "已儲存 ✓"), h("div", { class: "small" }, "之後 Claude 剪片、寫文案都會用這個設定。")));
+    }
+  } catch (err) { msg.replaceChildren(h("div", { class: "note" }, err.message)); }
+  btns.forEach(b => b.disabled = false);
+}
+$("#btn-preview").addEventListener("click", () => runPreview(false));
+$("#btn-save").addEventListener("click", () => runPreview(true));
+
+// ---------------- fonts ----------------
+let FONTS = null, fontsLoading = null;
+function loadFonts() {
+  if (FONTS || fontsLoading) return;
+  fontsLoading = api("/api/fonts").then(r => { FONTS = r; fillFonts(); renderFontExtras(); })
+    .catch(err => { $("#fontsheet").textContent = "字型清單載入失敗：" + err.message; })
+    .finally(() => fontsLoading = null);
+}
+const DEFAULT_FONT = "jf-openhuninn-1.1.ttf";
+const isDefault = f => !f || f === DEFAULT_FONT || /粉圓|huninn/i.test(f);
+function fillFonts() {
+  const sel = $("#b-font"); if (!cur) return;
+  const curFont = cur.brand.font || DEFAULT_FONT;
+  const opts = [h("option", { value: DEFAULT_FONT }, "jf open 粉圓（預設：圓潤、字幕最好讀）")];
+  const list = FONTS ? FONTS.fonts.filter(f => !isDefault(f.name)) : [];
+  const GROUPS = [["台灣字形", "台灣字形"], ["香港字形", "香港字形（少數字的寫法跟台灣不同）"], ["其他", "其他字形（日文或簡體字型，部分字是日本或簡體寫法）"]];
+  for (const [region, label] of GROUPS) {
+    const fs = list.filter(f => f.region === region);
+    if (fs.length) opts.push(h("optgroup", { label }, fs.map(f => h("option", { value: f.name }, f.name))));
+  }
+  if (!isDefault(curFont) && !list.some(f => f.name === curFont)) opts.push(h("option", { value: curFont }, `${curFont}（目前使用）`));
+  if (!FONTS) opts.push(h("option", { value: "", disabled: true }, "其他字型載入中⋯⋯"));
+  sel.replaceChildren(...opts);
+  sel.value = isDefault(curFont) ? DEFAULT_FONT : curFont;
+  fillWeights(cur.brand.font_weight);
+}
+function fillWeights(selected) {
+  const sel = $("#b-weight"), name = $("#b-font").value;
+  const f = FONTS && FONTS.fonts.find(x => x.name === name);
+  const label = w => ({ 100: "極細", 200: "特細", 300: "細", 350: "細", 400: "一般", 500: "中等", 600: "半粗", 700: "粗", 800: "特粗", 900: "極粗" }[w] || "") + ` ${w}`;
+  const ws = isDefault(name) ? [] : (f ? f.weights : []);
+  sel.replaceChildren(h("option", { value: "" }, isDefault(name) ? "自動（粉圓會自動加粗描邊）" : "自動"),
+    ...ws.map(w => h("option", { value: w, selected: String(w) === String(selected) }, label(w))));
+  sel.disabled = isDefault(name);
+}
+$("#b-font").addEventListener("change", () => { fillWeights(null); markDirty(); });
+function renderFontExtras() {
+  const fs = $("#fontsheet"); fs.replaceChildren();
+  if (FONTS.sheet) fs.append(h("p", { class: "small muted", style: "margin:6px 0 0" }, "左邊是一般粗細，右邊是最粗（700 以內）。編號和上面的清單一樣。"),
+    h("img", { class: "sheet", src: FONTS.sheet, alt: "字型樣本" }));
+  else fs.textContent = FONTS.error || "沒有樣本";
+  const ff = $("#freefonts"); ff.replaceChildren(h("ul", {}, FONTS.free.map(f =>
+    h("li", {}, h("a", { href: f.url, target: "_blank", rel: "noopener" }, f.name), "：", f.look))));
+}
+
+// ---------------- works ----------------
+function renderRecent() {
+  const box = $("#w-recent"); box.replaceChildren();
+  if (S.recent.length) box.append(h("span", { class: "muted small" }, "最近："),
+    ...S.recent.map(p => h("button", { class: "chip", title: p, onclick: () => loadProject(p) }, p.split("\\").pop())));
+}
+$("#w-pick").addEventListener("click", async () => {
+  toast("已打開選擇視窗（如果沒看到，可能在其他視窗後面）");
+  try { const r = await api("/api/pick-folder"); if (r.path) loadProject(r.path); } catch (err) { toast(err.message); }
+});
+$("#w-load").addEventListener("click", () => loadProject($("#w-path").value));
+$("#w-path").addEventListener("keydown", e => { if (e.key === "Enter") loadProject(e.target.value); });
+
+const CUT_PICKED = "幫我剪我在控制台選好的片段";
+function nextStep(r) {
+  // [what is going on (may be ""), what to tell Claude]
+  const p = r.project || {}, step = k => r.steps.find(s => s.key === k);
+  const confirmed = p.picks && p.picks.confirmed ? p.picks.items : [];
+  const cut = new Set(r.clips.map(c => c.n));
+  if (!step("source").done) return ["這個資料夾還沒有錄音或影片。有的話放進來，再按「重新讀取」；還沒錄的話，先請 Claude 幫你寫稿：", "幫我寫一支 reels 口播稿，主題是：（在這裡寫你想講的事）"];
+  if (!step("transcript").done) return p.updated
+    ? ["這個資料夾的設定好了，可以開工。", "照控制台的設定幫我做 reels"]
+    : ["想指定頻道、支數或風格要求的話，先在下面「這個資料夾的設定」選好並儲存（不選就用預設）。", `幫我把這個檔案做成 ${p.count || 3} 支 reels`];
+  if (r.picks.length && !confirmed.length && !r.clips.length)
+    return ["精華片段挑好了！先在下面「選要剪的片段」勾選、按「確定要剪這幾段」。", CUT_PICKED];
+  const left = confirmed.filter(x => !cut.has(x.n));
+  if (left.length) return [`還有 ${left.length} 段選好了但還沒剪。`, CUT_PICKED];
+  if (!r.clips.length) return ["", "幫我剪 reels"];
+  if (!step("captions").done) return ["影片好了！接著寫貼文文案。", "幫我寫文案"];
+  if (!step("pack").done) return ["最後一步：整理成發文包（封面、文案、發文清單）。", "幫我整理發文包"];
+  return null;
+}
+
+function projectBrand(r) {           // the channel this folder uses: its saved choice, else the default
+  const p = r.project || {}, brands = S.brands.filter(b => b.exists);
+  return (p.brand && S.brands.find(b => b.exists && (b.folder === p.brand || b.dir === p.brand)))
+    || S.brands.find(b => b.folder === "my-brand" && b.exists) || brands[0];
+}
+// the copied sentence carries the folder and channel, so it works however the Claude chat was opened
+const withContext = (say, r) => { const b = projectBrand(r); return `${say}（素材資料夾：${r.folder}${b ? `；頻道：${b.brand.name}` : ""}）`; };
+
+function howToBox(r, next) {
+  const say = withContext(next[1], r);
+  return h("div", { class: "note ok" }, h("b", { class: "t" }, "下一步"), next[0] ? h("div", {}, next[0]) : "",
+    h("ol", { class: "howto" },
+      h("li", {}, "打開 Claude 桌面 App，開一個新的對話。如果要你選資料夾，就選這個：",
+        h("div", { class: "pathrow" }, h("span", { class: "file" }, r.folder), " ", copyBtn(r.folder, "複製路徑"))),
+      h("li", {}, "把這句話貼上、送出：", h("div", { class: "saybox" }, say), copyBtn(say, "複製這句話"))),
+    h("div", { class: "muted small" }, "句子裡已經寫好資料夾和頻道，Claude 會直接照著做，你不用再另外說明。"));
+}
+
+function projectCard(r) {
+  const p = r.project || {};
+  const brands = S.brands.filter(b => b.exists);
+  const card = h("div", { class: "card" }, h("h2", {}, "這個資料夾的設定"));
+  if (!brands.length) { card.append(h("div", { class: "note" }, "還沒有任何頻道設定。先到「頻道設定」建立一個。")); return card; }
+  const cur = projectBrand(r);
+  const selB = h("select", {}, brands.map(b => h("option", { value: b.dir, selected: b.dir === cur.dir }, brandLabel(b))));
+  const selS = h("select", {}, h("option", { value: "" }, r.sources.length ? "（交給 Claude 判斷）" : "（資料夾裡還沒有錄音或影片）"),
+    r.sources.map(s => h("option", { value: s, selected: s === p.source }, s)));
+  const selC = h("select", {}, [1, 2, 3, 4, 5].map(n => h("option", { value: n, selected: n === (p.count || 3) }, `${n} 支`)));
+  const face = h("div", { class: "icons" }, [["auto", "依素材判斷（影片有拍到人就保留畫面）"], ["no", "不要露臉，只用插圖"]].map(([v, l]) =>
+    h("label", {}, h("input", { type: "radio", name: "pj-face", value: v, checked: (p.face || "auto") === v }), l)));
+  const notes = h("textarea", { rows: 3, placeholder: "這次想要的風格或特別要求，例如：節奏快一點、第 2 段想多用實拍照片" });
+  notes.value = p.notes || "";
+  const chips = ["節奏快一點", "字幕大一點", "多用實拍照片", "不用實拍照片，全部用插圖", "影片短一點（30 秒內）"].map(c =>
+    h("button", { type: "button", class: "chip", onclick: () => { const v = notes.value.trim(); if (!v.includes(c)) notes.value = v ? v + "、" + c : c; } }, c));
+  const status = h("p", { class: "muted small", style: "margin:8px 0 0" },
+    p.updated ? `上次儲存：${p.updated}。Claude 在這個資料夾開工時會照這裡的設定。` : "還沒儲存。不存也可以，Claude 會用預設頻道、做 3 支。");
+  const save = h("button", { class: "btn", onclick: async () => {
+    try {
+      await api("/api/project-save", { folder: r.folder, brand: selB.value, source: selS.value, count: +selC.value,
+        face: (card.querySelector("input[name=pj-face]:checked") || {}).value, notes: notes.value });
+      toast("已儲存這個資料夾的設定"); loadProject(r.folder);
+    } catch (err) { toast(err.message); } } }, "儲存設定");
+  card.append(
+    h("div", { class: "row2" }, h("label", { class: "f", style: "margin-top:0" }, "用哪個頻道的設定", selB),
+      h("label", { class: "f", style: "margin-top:0" }, "要做幾支", selC)),
+    h("label", { class: "f" }, "素材檔", selS),
+    h("label", { class: "f" }, "畫面"), face,
+    h("label", { class: "f" }, "這次的要求", notes), h("div", { class: "chiplist", style: "margin-top:6px" }, chips),
+    h("div", { class: "actions" }, save), status);
+  return card;
+}
+
+function picksCard(r) {
+  if (!r.picks.length) return null;
+  const p = r.project || {}, conf = p.picks && p.picks.confirmed ? p.picks.items : null;
+  const cut = new Set(r.clips.map(c => c.n));
+  const rows = r.picks.map(k => {
+    const mine = conf && conf.find(x => x.n === k.n);
+    const cb = h("input", { type: "checkbox", checked: !!mine, "data-n": k.n });
+    const title = h("input", { type: "text", value: mine ? mine.title : k.title, maxlength: 80 });
+    return { k, cb, title, el: h("div", { class: "pick" },
+      h("label", { class: "pickhead" }, cb, h("b", {}, `片段 ${k.n}｜${k.topic}`),
+        cut.has(k.n) ? h("span", { class: "chip", style: "cursor:default" }, "✓ 已剪好") : ""),
+      k.time ? h("div", { class: "muted small" }, k.time) : "",
+      h("label", { class: "f", style: "margin-top:6px;font-weight:400" }, "標題卡的問句", title),
+      h("details", {}, h("summary", { class: "small" }, "看內容和選片理由"),
+        h("pre", { class: "small" }, k.text), k.why.length ? h("ul", { class: "small" }, k.why.map(w => h("li", {}, w))) : "")) };
+  });
+  const confirmBtn = h("button", { class: "btn", onclick: async () => {
+    const picks = rows.filter(x => x.cb.checked).map(x => ({ n: x.k.n, title: x.title.value }));
+    if (!picks.length) { toast("至少勾一段"); return; }
+    try { await api("/api/project-save", { folder: r.folder, picks }); toast(`已確定 ${picks.length} 段`); loadProject(r.folder); }
+    catch (err) { toast(err.message); } } }, "確定要剪這幾段");
+  return h("div", { class: "card" }, h("h2", {}, "選要剪的片段"),
+    h("p", { class: "muted small", style: "margin:0 0 6px" }, conf
+      ? `已確定 ${conf.length} 段（${p.picks.updated}）。想改的話重新勾選再按確定。`
+      : `Claude 從 ${r.picks_file} 挑了 ${r.picks.length} 段。勾選要剪的，標題可以直接改。`),
+    rows.map(x => x.el), h("div", { class: "actions" }, confirmBtn,
+      h("span", { class: "muted small", style: "align-self:center" }, "確定後，照上面「接下來」的步驟貼給 Claude。")));
+}
+
+async function loadProject(path) {
+  if (!path || !path.trim()) { toast("請先選資料夾"); return; }
+  $("#w-path").value = path.trim().replace(/^"|"$/g, "");
+  const body = $("#w-body"); body.replaceChildren(h("p", { class: "muted" }, "讀取中⋯⋯"));
+  let r;
+  try { r = await api("/api/project", { path: $("#w-path").value }); }
+  catch (err) { body.replaceChildren(h("div", { class: "note" }, err.message)); return; }
+  $("#w-path").value = r.folder; S.recent = r.recent; renderRecent(); renderHome();
+  body.replaceChildren();
+  if (r.problems && r.problems.length)
+    body.append(h("div", { class: "note" }, h("b", { class: "t" }, "有些檔案讀不到"), r.problems.map(p => h("div", {}, p)),
+      h("button", { class: "btn ghost small", style: "margin-top:8px", onclick: () => loadProject(r.folder) }, "重新讀取")));
+  // progress
+  const next = nextStep(r);
+  const steps = h("ol", { class: "steps" }, r.steps.map(s => h("li", { class: s.done ? "done" : "" },
+    h("span", { class: "mark" }, s.done ? "✓" : "·"),
+    h("div", {}, h("div", {}, s.label, s.optional && !s.done ? h("span", { class: "muted small" }, "（可略過）") : ""),
+      s.files.length ? h("div", { class: "files" }, s.files.slice(0, 4).join("、") + (s.files.length > 4 ? ` 等 ${s.files.length} 個` : "")) : ""))));
+  const nextBox = r.problems && r.problems.length ? h("div", { class: "note" }, h("b", { class: "t" }, "下一步"),
+      "先讓電腦重新讀到這些檔案（見上方說明），再按「重新讀取」。檔案讀不到的時候，Claude 也沒辦法處理它們。")
+    : next ? howToBox(r, next)
+    : h("div", { class: "note ok" }, h("b", {}, "都準備好了！"), " 看完影片、複製文案，就可以到 IG／TikTok 發文了。發文清單在 ",
+      h("span", { class: "file" }, "發文包\\發文清單.md"), "。");
+  body.append(h("div", { class: "grid2" },
+    h("div", { class: "card" }, h("h2", {}, "做到哪一步"), steps),
+    h("div", { class: "card" }, h("h2", {}, "接下來"), nextBox,
+      h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: r.folder }).catch(e => toast(e.message)) }, "打開這個資料夾"))));
+  body.append(h("div", { class: "grid2" }, projectCard(r), picksCard(r) || ""));
+  // clips
+  if (!r.clips.length) return;
+  body.append(h("h2", { style: "margin-top:8px" }, `剪好的影片（${r.clips.length} 支）`));
+  body.append(h("div", { class: "clips" }, r.clips.map(c => {
+    const title = c.caption ? c.caption.split("\n").find(l => l.trim()) : null;
+    const video = h("video", { src: c.cover ? c.video : c.video + "#t=0.5", controls: true, preload: "metadata", poster: c.cover || null, playsinline: true });
+    video.addEventListener("error", () => video.replaceWith(h("div", { class: "note", style: "aspect-ratio:9/16;margin:0;display:flex;align-items:center" },
+      "這支影片現在讀不到。如果放在外接硬碟上，請確認硬碟有接好，再按上面的「重新讀取」。")), { once: true });
+    return h("div", { class: "card clip" },
+      video,
+      h("h3", {}, title || `片段 ${c.n}`),
+      h("div", { class: "muted small" }, c.size_mb === null ? c.name : `${c.name}・${c.size_mb} MB`),
+      c.caption ? [h("pre", {}, c.caption), h("div", { class: "actions" }, h("button", { class: "btn small", onclick: () => copy(c.caption) }, "複製文案"),
+          h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: c.path, reveal: true }).catch(e => toast(e.message)) }, "在資料夾中顯示"))]
+        : [h("p", { class: "muted small" }, "還沒有文案。跟 Claude 說「幫我寫文案」。"),
+           h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: c.path, reveal: true }).catch(e => toast(e.message)) }, "在資料夾中顯示")]);
+  })));
+}
+
+// ---------------- lifecycle ----------------
+$("#quit").addEventListener("click", async () => {
+  if (dirty && !confirm("頻道設定還沒儲存，確定要關閉嗎？")) return;
+  dirty = false;
+  try { await api("/api/quit"); } catch {}
+  $("#app").style.display = "none"; $("header.top").style.display = "none"; $("#closed").style.display = "block";
+});
+setInterval(() => api("/api/ping").catch(() => {}), 60000);
+
+refresh().then(() => {
+  let tab = "home";
+  try { tab = localStorage.getItem("rs-tab") || "home"; } catch {}
+  if (!S.brands.some(b => b.exists)) tab = "home";
+  const hash = location.hash.slice(1);
+  if (["home", "brand", "works"].includes(hash)) tab = hash;
+  showTab(tab);
+}).catch(err => { $("#app").replaceChildren(h("div", { class: "note" }, "控制台載入失敗：" + err.message)); });
+</script>
+</body>
+</html>
