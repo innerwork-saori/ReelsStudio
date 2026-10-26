@@ -215,6 +215,27 @@ STYLE_OPTION_NAMES = {
     "motion": {"bouncy": "活潑彈跳", "snappy": "俐落", "gentle": "柔和"},
     "end": {"classic": "經典", "minimal": "極簡", "card": "名片卡"}}
 
+NOTES_SECTION = "其他補充（控制台填寫）"   # the panel's 「其他」 box owns this section; Claude's 其他偏好 is left alone
+
+def md_section(md, title):
+    """body of '## title' (until the next '## '), or None"""
+    m = re.search(r"^## " + re.escape(title) + r"[ \t]*\n", md, re.M)
+    if not m: return None
+    nxt = re.search(r"^## ", md[m.end():], re.M)
+    return md[m.end(): m.end() + nxt.start() if nxt else len(md)].strip()
+
+def md_set_section(md, title, body):
+    """replace the body of '## title', add the section at the end, or drop it when body is empty"""
+    m = re.search(r"^## " + re.escape(title) + r"[ \t]*\n", md, re.M)
+    block = f"## {title}\n{body.strip()}\n\n" if body.strip() else ""
+    if m:
+        nxt = re.search(r"^## ", md[m.end():], re.M)
+        end = m.end() + nxt.start() if nxt else len(md)
+        out = md[:m.start()] + block + md[end:]
+        if not block and not md[end:].strip(): out = out.rstrip("\n") + "\n"   # removed the last section: no stray blank line
+        return out
+    return md.rstrip("\n") + "\n\n" + block if block else md
+
 def brand_summary(b):
     pal = b.get("palette", "cream")
     over = "、".join(f"{k} {v}" for k, v in (b.get("colors") or {}).items())
@@ -246,6 +267,7 @@ def load_brand(d):
     fields = {}
     for sec, lab, al in MD_FIELDS:
         fields[lab] = md_get(md, lab, al)[1]
+    fields["其他補充"] = md_section(md, NOTES_SECTION) or ""
     known = {lab for _, lab, al in MD_FIELDS for lab in (lab, *al)} | {lab for _, lab in AUTO_FIELDS}
     extra = [m.group(1) for m in re.finditer(r"^- ([^：\n]{1,20})：", md, re.M) if m.group(1) not in known]
     return {"dir": d, "folder": os.path.basename(d), "exists": exists, "brand": b, "fields": fields,
@@ -318,6 +340,10 @@ def save_brand(form):
         used, cur = md_get(md, lab, al)
         if new == cur or (not new and not cur): continue
         md = md_set(md, sec, used or lab, new or "未設定")
+    notes = (form.get("fields") or {}).get("其他補充")
+    if notes is not None:
+        notes = "\n".join(l.rstrip() for l in notes.strip().splitlines())
+        if notes != (md_section(md, NOTES_SECTION) or ""): md = md_set_section(md, NOTES_SECTION, notes)
     write_text(md_p, md)
     return b
 

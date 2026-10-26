@@ -114,6 +114,9 @@
   ol.howto { margin: 6px 0 6px; padding-left: 22px; }
   ol.howto li { margin: 6px 0; }
   .pathrow { margin-top: 4px; }
+  textarea.sayedit { font-weight: 700; margin: 6px 0 0; min-height: 64px; }
+  .ctxline { margin-top: 4px; overflow-wrap: anywhere; }
+  .ctxline span { color: var(--ink); }
   .saybox { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 6px 0; font-weight: 700; overflow-wrap: anywhere; }
   .pick { padding: 10px 0; border-bottom: 1px dashed var(--line); }
   .pick:last-of-type { border-bottom: none; }
@@ -271,6 +274,12 @@
         <p class="muted small" style="margin:0">寫文案、選片段時會照這裡。點灰色的小按鈕可以快速填入，也可以自己打字。</p>
         <div id="mdfields"></div>
         <p class="muted small" id="md-extra" hidden></p>
+      </div>
+
+      <div class="card">
+        <h2>其他</h2>
+        <p class="muted small" style="margin:0">上面沒有的設定或習慣，都可以寫在這裡。Claude 寫文案、選片段、剪片時都會照著做。一行寫一件事最清楚。</p>
+        <textarea id="b-notes" rows="5" style="margin-top:8px" placeholder="例如：&#10;每支影片結尾都要提到我的 Podcast 名稱&#10;來賓的名字一律用暱稱，不寫全名&#10;字幕不要用驚嘆號&#10;不要出現紅色"></textarea>
       </div>
     </div>
 
@@ -551,6 +560,7 @@ function fillBrand(b) {
     box.append(h("div", { class: "field" }, h("label", { class: "f" }, label, input), chipEls.length ? h("div", { class: "chiplist" }, chipEls) : "",
       note ? h("p", { class: "muted small", style: "margin:4px 0 0" }, note) : ""));
   }
+  $("#b-notes").value = b.fields["其他補充"] || "";
   const ex = $("#md-extra");
   ex.hidden = !b.md_exists;
   ex.replaceChildren("說明檔裡還有 Claude 依你的要求寫下的其他規則，這裡不會動到它們。想看全部：",
@@ -637,6 +647,7 @@ function syncColors() {
 function collect() {
   const md = {};
   document.querySelectorAll("[data-md]").forEach(el => md[el.dataset.md] = el.value);
+  md["其他補充"] = $("#b-notes").value;
   const fontOpt = $("#b-font").selectedOptions[0];
   return { dir: cur.dir, fields: md, brand: {
     name: $("#b-name").value, tag: $("#b-tag").value,
@@ -773,16 +784,30 @@ function projectBrand(r) {           // the channel this folder uses: its saved 
     || S.brands.find(b => b.folder === "my-brand" && b.exists) || brands[0];
 }
 // the copied sentence carries the folder and channel, so it works however the Claude chat was opened
-const withContext = (say, r) => { const b = projectBrand(r); return `${say}（素材資料夾：${r.folder}${b ? `；頻道：${b.brand.name}` : ""}）`; };
+const contextOf = r => { const b = projectBrand(r); return `（素材資料夾：${r.folder}${b ? `；頻道：${b.brand.name}` : ""}）`; };
 
 function howToBox(r, next) {
-  const say = withContext(next[1], r);
+  // the suggested sentence is only a start: people can write what they want, the folder + channel part stays fixed
+  const ctx = contextOf(r);
+  const ta = h("textarea", { class: "sayedit", rows: 2, "aria-label": "要跟 Claude 說的話",
+    placeholder: "寫下你想跟 Claude 說的話，例如：幫我做 3 支 reels，第一支想講休息這件事，節奏快一點" });
+  ta.value = next[1];
+  const reset = h("button", { class: "btn ghost small", onclick: () => { ta.value = next[1]; ta.focus(); } }, "還原建議句");
+  const copyIt = h("button", { class: "btn small", onclick: () => {
+    const say = ta.value.trim();
+    if (!say) { toast("請先寫下要跟 Claude 說的話"); ta.focus(); return; }
+    copy(say + ctx);
+  } }, "複製這句話");
   return h("div", { class: "note ok" }, h("b", { class: "t" }, "下一步"), next[0] ? h("div", {}, next[0]) : "",
     h("ol", { class: "howto" },
       h("li", {}, "打開 Claude 桌面 App，開一個新的對話。如果要你選資料夾，就選這個：",
         h("div", { class: "pathrow" }, h("span", { class: "file" }, r.folder), " ", copyBtn(r.folder, "複製路徑"))),
-      h("li", {}, "把這句話貼上、送出：", h("div", { class: "saybox" }, say), copyBtn(say, "複製這句話"))),
-    h("div", { class: "muted small" }, "句子裡已經寫好資料夾和頻道，Claude 會直接照著做，你不用再另外說明。"));
+      h("li", {}, "把要跟 Claude 說的話貼上、送出。",
+        h("div", { class: "muted small" }, "下面這句可以直接用，也可以改成你自己的話，例如加上想要的風格、想講的重點，或哪一段不要剪。"),
+        ta,
+        h("div", { class: "muted small ctxline" }, "複製時會自動加在後面：", h("span", {}, ctx)),
+        h("div", { class: "actions", style: "margin-top:6px" }, copyIt, reset))),
+    h("div", { class: "muted small" }, "資料夾和頻道會自動帶上，Claude 會直接照著做，你不用再另外說明。"));
 }
 
 function projectCard(r) {
