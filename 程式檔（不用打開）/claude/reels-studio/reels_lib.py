@@ -64,7 +64,8 @@ BRAND_DEFAULTS = {
     "font": "jf-openhuninn-1.1.ttf", # installed font: family name as `fonts.py list` prints it, file name, or path
     "font_weight": 400,              # used with a family name: 400 regular, 500 medium, 700 bold ...
     "speaker_label": "主持人",       # chip on who="h" subtitles
-    "end_card": {"icon": "play",     # mic | play | heart | star | none
+    "end_card": {"icon": "play",     # mic | play | heart | star | logo (the channel folder's logo.png) | none
+                 "logo_shape": "original",   # for icon "logo": original | circle | rounded
                  "badge": "",        # short sticker above the name, e.g. 「嗨！」 ('' = none)
                  "cta": "看完整版", "sub": "連結在個人檔案", "guest_prefix": "本集來賓"},
     "style": {},                     # layout look: {"preset": <STYLE_PRESETS key>, <STYLE_OPTIONS key>: <option>, ...}
@@ -694,8 +695,34 @@ def play_button(c):
     tri = skia.Path(); tri.moveTo(-50, -80); tri.lineTo(-50, 80); tri.lineTo(85, 0); tri.close()
     c.drawPath(tri, P(WHITE)); c.drawPath(tri, P(INK, stroke=6))
 
+LOGO_PATH = os.path.join(BRAND_DIR, "logo.png")   # uploaded in the panel (結尾卡 → 圖示 → 我的 logo)
+
+def brand_logo(c, size=360):
+    """the channel's own logo, centred on the origin like the other end-card icons.
+    end_card.logo_shape: circle (cropped to a circle) | rounded (rounded square) | original (as is, keeps transparency)"""
+    img = load_image(LOGO_PATH) if os.path.exists(LOGO_PATH) else None
+    if img is None:
+        print("[reels_lib] end_card.icon is 'logo' but there is no logo.png in the channel folder; using the play icon")
+        return play_button(c)
+    shape = BRAND["end_card"].get("logo_shape", "original")
+    w, h = img.width(), img.height()
+    if shape == "original":                  # fit inside the box, keep its own outline
+        k = size / max(w, h); dw, dh = w * k, h * k
+        c.drawImageRect(img, skia.Rect.MakeXYWH(-dw / 2, -dh / 2, dw, dh), skia.SamplingOptions(skia.FilterMode.kLinear))
+        return
+    k = size / min(w, h); dw, dh = w * k, h * k  # fill the shape, crop the overflow
+    clip = skia.Path()
+    if shape == "circle": clip.addCircle(0, 0, size / 2)
+    else: clip.addRRect(skia.RRect.MakeRectXY(skia.Rect.MakeXYWH(-size / 2, -size / 2, size, size), size * 0.22, size * 0.22))
+    shadow(c, -size / 2, -size / 2, size, size, size / 2 if shape == "circle" else size * 0.22, 0.18)
+    c.save(); c.clipPath(clip, skia.ClipOp.kIntersect, True)
+    c.drawColor(hx(WHITE))
+    c.drawImageRect(img, skia.Rect.MakeXYWH(-dw / 2, -dh / 2, dw, dh), skia.SamplingOptions(skia.FilterMode.kLinear))
+    c.restore()
+    c.drawPath(clip, P(INK, stroke=6))
+
 END_ICONS = {"mic": mic, "play": play_button, "heart": lambda c: heart(c, 150, ACC),
-             "star": lambda c: star5(c, 0, 0, 190, SUN), "none": None}
+             "star": lambda c: star5(c, 0, 0, 190, SUN), "logo": brand_logo, "none": None}
 
 def end_card(c, t, lt, show=None, guest=None, cta=None, sub=None, ep=None, icon=None, badge=None):
     """Brand end card; every argument left as None comes from brand.json → end_card.
@@ -747,8 +774,8 @@ def _end_styled(c, t, lt, show, line, is_ep, cta, sub, badge, draw_icon, style):
     k = eback(prog(lt, 0, 0.5), 1.6)
     kt2 = eo(prog(lt, 0.35, 0.4))
     if style == "minimal":                   # small icon, big name, a thin rule, outlined button
-        if draw_icon:
-            with Xf(c, 540, 700, 0.55 * k): draw_icon(c)
+        if draw_icon:                        # a logo is the point of the card, a stock icon is decoration
+            with Xf(c, 540, 700, (0.85 if draw_icon is brand_logo else 0.55) * k): draw_icon(c)
         if badge:
             with Xf(c, 540, 930, 1, 0, eo(prog(lt, 0.2, 0.4))): text(c, badge, 0, 0, fit(badge, 64, 700), ACC, bold=2)
         with Xf(c, 540, 1090 + (1 - kt2) * 30, 1, 0, kt2):

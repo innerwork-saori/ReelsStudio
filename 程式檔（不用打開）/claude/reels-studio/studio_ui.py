@@ -241,7 +241,7 @@ def brand_summary(b):
     over = "、".join(f"{k} {v}" for k, v in (b.get("colors") or {}).items())
     font = b.get("font", "")
     e = b.get("end_card", {})
-    icon = {"mic": "麥克風", "play": "播放", "heart": "愛心", "star": "星星", "none": "無"}.get(e.get("icon"), e.get("icon"))
+    icon = {"mic": "麥克風", "play": "播放", "heart": "愛心", "star": "星星", "logo": "自己的 logo ", "none": "無"}.get(e.get("icon"), e.get("icon"))
     st = resolved_style(b.get("style"))
     preset = (b.get("style") or {}).get("preset", "handmade")
     return {
@@ -272,7 +272,8 @@ def load_brand(d):
     extra = [m.group(1) for m in re.finditer(r"^- ([^：\n]{1,20})：", md, re.M) if m.group(1) not in known]
     return {"dir": d, "folder": os.path.basename(d), "exists": exists, "brand": b, "fields": fields,
             "md_exists": bool(md), "md_extra": len(extra) + len(re.findall(r"^```", md, re.M)) // 2,
-            "preview": file_url(os.path.join(d, "brand_preview.png")) if os.path.exists(os.path.join(d, "brand_preview.png")) else None}
+            "preview": file_url(os.path.join(d, "brand_preview.png")) if os.path.exists(os.path.join(d, "brand_preview.png")) else None,
+            "logo": logo_url(d)}
 
 
 def merge_brand(d, form):
@@ -295,9 +296,10 @@ def merge_brand(d, form):
     if "speaker_label" in f:                       # not on the page any more (BRAND.md says who gets which label)
         b["speaker_label"] = f["speaker_label"].strip() or "主持人"
     e = dict(old.get("end_card") or BRAND_DEFAULTS["end_card"])
-    for k in ("icon", "badge", "cta", "sub", "guest_prefix"):
+    for k in ("icon", "badge", "cta", "sub", "guest_prefix", "logo_shape"):
         if k in (f.get("end_card") or {}): e[k] = f["end_card"][k].strip()
-    if e.get("icon") not in ("mic", "play", "heart", "star", "none"): e["icon"] = "play"
+    if e.get("icon") not in ("mic", "play", "heart", "star", "logo", "none"): e["icon"] = "play"
+    if e.get("logo_shape") not in ("original", "circle", "rounded"): e.pop("logo_shape", None)
     b["end_card"] = e
     if isinstance(f.get("style"), dict):         # store the preset + only the elements changed from it
         st = f["style"]
@@ -357,6 +359,7 @@ def preview(form, real=False):
         src = os.path.join(TMP, "brand_" + secrets.token_hex(4)); os.makedirs(src)
         _, b = merge_brand(d, form)
         write_text(os.path.join(src, "brand.json"), json.dumps(b, ensure_ascii=False, indent=2))
+        if os.path.exists(os.path.join(d, "logo.png")): shutil.copy2(os.path.join(d, "logo.png"), os.path.join(src, "logo.png"))
         out = os.path.join(src, "brand_preview.png")
     code, text = run_py(["brand_preview.py", out], env={"REELS_BRAND": src})
     if code != 0 or not os.path.exists(out):
@@ -371,6 +374,8 @@ def preview_warnings(text):
         m = re.search(r"\[reels_lib\] font (.+?) not found", line)
         if m:
             out.append({"kind": "font", "text": f"這台電腦找不到字型「{m.group(1).strip()}」，樣張先用預設的 jf open 粉圓代替。"})
+        elif "no logo.png" in line:
+            out.append({"kind": "other", "text": "結尾卡選了「我的 logo」，但還沒有上傳 logo，樣張先用播放圖示代替。請在「結尾卡」上傳一張 logo。"})
         elif "variable font" in line:
             out.append({"kind": "other", "text": "這個字型用檔名載入會變得很細，請在「字型」改選它的字型名稱。"})
         elif "缺字" in line and "⚠" in line:
@@ -577,6 +582,33 @@ def delete_brand(body):
     return {"ok": True, "where": where, "projects": used}
 
 
+def logo_url(d):
+    p = os.path.join(d, "logo.png")
+    return file_url(p) + f"&v={int(os.path.getmtime(p))}" if os.path.exists(p) else None
+
+
+def save_logo(body):
+    """an uploaded image (data URL; PNG / JPG / WEBP / GIF) -> <channel>/logo.png, at most 1000 px on its long side"""
+    import base64, io
+    d = check_brand_dir(body["dir"])
+    data = body.get("data") or ""
+    if "," not in data: raise ValueError("沒有收到圖片")
+    raw = base64.b64decode(data.split(",", 1)[1])
+    if len(raw) > 20e6: raise ValueError("圖片太大了（超過 20 MB），請換一張小一點的")
+    try:
+        from PIL import Image
+        im = Image.open(io.BytesIO(raw)); im.load()
+    except Exception:
+        raise ValueError("讀不到這張圖片，請用 PNG、JPG 或 WEBP 檔")
+    im = im.convert("RGBA")
+    im.thumbnail((1000, 1000))
+    alpha = im.getchannel("A")
+    transparent = sum(alpha.resize((40, 40)).histogram()[:20]) > 40   # more than 2.5% of it is see-through
+    os.makedirs(d, exist_ok=True)
+    im.save(os.path.join(d, "logo.png"))
+    return {"logo": logo_url(d), "transparent": transparent, "size": im.size}
+
+
 def new_brand(body):
     """make my-brand-<name>; blank, or reusing another channel's look (brand.json only — BRAND.md starts blank)"""
     name = " ".join((body.get("name") or "").split())
@@ -590,9 +622,10 @@ def new_brand(body):
     form = {"dir": d, "fields": {}, "brand": {
         "name": name, "tag": "", "palette": look.get("palette", "cream"), "colors": look.get("colors") or {},
         "font": look.get("font"), "font_weight": look.get("font_weight"), "speaker_label": look.get("speaker_label", "主持人"),
-        "end_card": {k: e.get(k, "") for k in ("icon", "badge", "cta", "sub", "guest_prefix")},
+        "end_card": {k: e.get(k, "") for k in ("icon", "badge", "cta", "sub", "guest_prefix", "logo_shape")},
         "style": resolved_style(look.get("style")) | {"preset": (look.get("style") or {}).get("preset", "handmade")}}}
-    if body.get("copy_from"):                     # keep every colour override, not only accent/highlight
+    if body.get("copy_from"):                     # keep every colour override, not only accent/highlight, and the logo
+        if os.path.exists(os.path.join(body["copy_from"], "logo.png")): shutil.copy2(os.path.join(body["copy_from"], "logo.png"), os.path.join(d, "logo.png"))
         write_text(os.path.join(d, "brand.json"), json.dumps({"colors": look.get("colors") or {}}, ensure_ascii=False))
     save_brand(form)
     for fn in ("brand.json.bak", "BRAND.md.bak"):
@@ -732,6 +765,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/project-save": out = save_project(body)
             elif path == "/api/brand-usage": out = {"projects": projects_using(check_brand_dir(body["dir"]))}
             elif path == "/api/delete-brand": out = delete_brand(body)
+            elif path == "/api/logo": out = save_logo(body)
             elif path == "/api/new-brand":
                 d = new_brand(body); save_state(brand=d)
                 out = dict(preview({"dir": d}, real=True), brand=load_brand(d))

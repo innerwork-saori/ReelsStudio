@@ -59,7 +59,7 @@ description: Reels Studio 短影音製作流程：錄音／影片／想法 → �
    選定後寫入 brand.json：`font` 填 `fonts.py list` 印出的名稱（預設粉圓保留 `jf-openhuninn-1.1.ttf`）；`font_weight` 字幕用 500–700 比較清楚（字型只有 400／700 就用 700；粉圓維持 400，引擎會自動加粗描邊）。
    同一個 AskUserQuestion 再加一題**版面風格**（單選）：手作便條 `handmade`（膠帶便條卡、手繪色塊、粗線條，預設）、俐落簡約 `clean`（細框卡、純色、膠囊字幕）、雜誌感 `magazine`（色塊斜帶、柔和漸層、深色字幕框）、筆記本 `notebook`（方格紙、便條紙標題、淡細線）。第五種街頭活力 `street`（滿版大字、描邊字幕）放在說明裡，使用者可以選 Other。寫入 brand.json 的 `style`：`{"preset": "<key>"}`；使用者想單獨換某一項（例如「字幕改深色框」），加上那個元素的 key（`subtitle`、`title`、`background`、`line`、`motion`、`end`，選項見 STYLE.md 第 1 節）。也可以告訴使用者：控制台的「頻道設定」能點選比較每一種風格。
 5. 依回答寫兩個檔（UTF-8，資料夾不存在就建立）：
-   - `my-brand\brand.json`：照 `{{STUDIO}}\brand_template\brand.json` 的格式。`end_card.icon`：Podcast 用 `mic`，其他用 `play`（使用者喜歡也可以 `heart` / `star` / `none`）；`end_card.cta` 依結尾行動寫 4–6 字（例如「完整收聽」「追蹤看更多」「看完整版」）；`speaker_label` 是第二位講者的標籤。
+   - `my-brand\brand.json`：照 `{{STUDIO}}\brand_template\brand.json` 的格式。`end_card.icon`：Podcast 用 `mic`，其他用 `play`（使用者喜歡也可以 `heart` / `star` / `none`；想用自己的 logo 就設 `logo`，圖片存成頻道資料夾的 `logo.png`，`logo_shape` 是 `original`（去背圖）、`circle` 或 `rounded`。最簡單是請使用者在控制台的「結尾卡 → 我的 logo」上傳）；`end_card.cta` 依結尾行動寫 4–6 字（例如「完整收聽」「追蹤看更多」「看完整版」）；`speaker_label` 是第二位講者的標籤。
    - `my-brand\BRAND.md`：照 `{{STUDIO}}\brand_template\BRAND.md` 的章節填，把使用者的原話放進去，沒回答的寫「未設定」。
 6. 產生樣張：`python "{{STUDIO}}\brand_preview.py"`，用 Read 看 `my-brand\brand_preview.png` 確認沒有問題，把圖的路徑給使用者，問「這個配色、字型和結尾卡可以嗎？」。要改就改 brand.json 重跑，直到使用者滿意。
    - 輸出若出現「⚠ 樣張缺字」：頻道名稱或結尾文字裡有這個字型沒有的字（常見是 emoji），請使用者決定拿掉那個字或換字型，處理完再重跑，不要帶著缺字結束設定。

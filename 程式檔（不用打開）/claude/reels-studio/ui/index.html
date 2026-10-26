@@ -118,6 +118,11 @@
   .ctxline { margin-top: 4px; overflow-wrap: anywhere; }
   .ctxline span { color: var(--ink); }
   .saybox { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 6px 0; font-weight: 700; overflow-wrap: anywhere; }
+  .logobox { margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+  .logodrop { display: flex; gap: 14px; align-items: center; border: 2px dashed var(--line); border-radius: 12px; padding: 12px; }
+  .logodrop.over { border-color: var(--accent); background: var(--accent-soft); }
+  .logodrop img { width: 96px; height: 96px; object-fit: contain; border-radius: 10px;
+    background: repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 0 0 / 16px 16px; }   /* checkerboard shows transparency */
   .pick { padding: 10px 0; border-bottom: 1px dashed var(--line); }
   .pick:last-of-type { border-bottom: none; }
   .pickhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; cursor: pointer; }
@@ -259,6 +264,20 @@
         <h2>結尾卡</h2>
         <label class="f" style="margin-top:0">圖示</label>
         <div class="icons" id="icons"></div>
+        <div id="logo-box" class="logobox" hidden>
+          <div class="logodrop" id="logo-drop">
+            <img id="logo-thumb" alt="目前的 logo" hidden>
+            <div>
+              <div id="logo-status">還沒有上傳 logo</div>
+              <button type="button" class="btn ghost small" id="logo-pick" style="margin-top:6px">選擇圖片⋯</button>
+              <input type="file" id="logo-file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+              <div class="muted small" style="margin-top:4px">也可以直接把圖片拖到這個框裡。PNG、JPG、WEBP 都可以。</div>
+            </div>
+          </div>
+          <label class="f">形狀</label>
+          <div class="icons" id="logo-shapes"></div>
+          <p class="muted small" style="margin:6px 0 0">建議用 500×500 以上的圖片。去背的 logo（背景透明）選「原本的形狀」最好看；照片或方形圖選「圓形」或「圓角方形」。</p>
+        </div>
         <div class="row2">
           <label class="f">名稱上面的小貼紙<span class="hint">例如「嗨！」，可空白</span><input type="text" id="e-badge" maxlength="6"></label>
           <label class="f">按鈕文字<span class="hint">4–6 字</span><input type="text" id="e-cta" maxlength="10"></label>
@@ -385,7 +404,8 @@ let S = null;          // /api/state
 let cur = null;        // current brand object from the server
 let dirty = false;
 const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色" };
-const ICONS = [["mic", "🎙 麥克風"], ["play", "▶ 播放"], ["heart", "♥ 愛心"], ["star", "★ 星星"], ["none", "不要圖示"]];
+const ICONS = [["mic", "🎙 麥克風"], ["play", "▶ 播放"], ["heart", "♥ 愛心"], ["star", "★ 星星"], ["logo", "🖼 我的 logo"], ["none", "不要圖示"]];
+const LOGO_SHAPES = [["original", "原本的形狀"], ["circle", "圓形"], ["rounded", "圓角方形"]];
 const MD = [
   ["內容類型", "multi", ["Podcast／訪談錄音", "自己拍的口播或 vlog（露臉）", "講座或課程錄音", "從想法或文章寫稿"], ""],
   ["主要講者", "text", [], "名字或稱呼，例如：Saori（主持人）"],
@@ -545,7 +565,14 @@ function fillBrand(b) {
   // icons
   const ic = $("#icons"); ic.replaceChildren();
   for (const [k, label] of ICONS)
-    ic.append(h("label", {}, h("input", { type: "radio", name: "icon", value: k, checked: (e.icon || "play") === k }), label));
+    ic.append(h("label", {}, h("input", { type: "radio", name: "icon", value: k, checked: (e.icon || "play") === k,
+      onchange: () => { showLogoBox(); if (k === "logo" && cur.logo) runPreview(false); } }), label));
+  const ls = $("#logo-shapes"); ls.replaceChildren();
+  for (const [k, label] of LOGO_SHAPES)
+    ls.append(h("label", {}, h("input", { type: "radio", name: "logo-shape", value: k, checked: (e.logo_shape || "original") === k,
+      onchange: () => { markDirty(); if (cur.logo) runPreview(false); } }), label));
+  setLogoThumb(b.logo);
+  showLogoBox();
   $("#e-badge").value = e.badge || ""; $("#e-cta").value = e.cta || ""; $("#e-sub").value = e.sub || ""; $("#e-guest").value = e.guest_prefix || "";
   // BRAND.md fields
   const box = $("#mdfields"); box.replaceChildren();
@@ -634,6 +661,38 @@ function collectStyle() {
   return out;
 }
 
+// ---------------- end-card logo ----------------
+function showLogoBox() {
+  const on = (document.querySelector("input[name=icon]:checked") || {}).value === "logo";
+  $("#logo-box").hidden = !on;
+}
+function setLogoThumb(url) {
+  const img = $("#logo-thumb");
+  img.hidden = !url; if (url) img.src = url;
+  $("#logo-status").textContent = url ? "目前的 logo（要換的話再選一張）" : "還沒有上傳 logo";
+}
+async function uploadLogo(file) {
+  if (!file) return;
+  if (!/^image\//.test(file.type)) { toast("請選一張圖片（PNG、JPG 或 WEBP）"); return; }
+  $("#logo-status").textContent = "上傳中⋯⋯";
+  const data = await new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = bad; r.readAsDataURL(file); });
+  try {
+    const r = await api("/api/logo", { dir: cur.dir, data });
+    cur.logo = r.logo; setLogoThumb(r.logo);
+    // a cut-out logo looks best as it is; a photo or a square picture fits a shape
+    const shape = r.transparent ? "original" : "circle";
+    document.querySelectorAll("input[name=logo-shape]").forEach(x => x.checked = x.value === shape);
+    toast(r.transparent ? "logo 上傳好了（背景是透明的，用「原本的形狀」）" : "logo 上傳好了（先用「圓形」，可以換）");
+    markDirty(); runPreview(false);
+  } catch (err) { $("#logo-status").textContent = err.message; }
+}
+$("#logo-pick").addEventListener("click", () => $("#logo-file").click());
+$("#logo-file").addEventListener("change", e => { uploadLogo(e.target.files[0]); e.target.value = ""; });
+const drop = $("#logo-drop");
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => uploadLogo(e.dataTransfer.files[0]));
+
 function selectedPalette() { const el = $("#palettes .pal[aria-pressed=true]"); return el ? el.dataset.key : "cream"; }
 function syncColors() {
   const p = S.palettes[selectedPalette()];
@@ -656,6 +715,7 @@ function collect() {
     font: fontOpt && fontOpt.value ? fontOpt.value : cur.brand.font,
     font_weight: $("#b-weight").value || null,
     end_card: { icon: (document.querySelector("input[name=icon]:checked") || {}).value || "play",
+      logo_shape: (document.querySelector("input[name=logo-shape]:checked") || {}).value || "original",
       badge: $("#e-badge").value, cta: $("#e-cta").value, sub: $("#e-sub").value, guest_prefix: $("#e-guest").value } } };
 }
 

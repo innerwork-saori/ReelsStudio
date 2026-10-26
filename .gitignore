@@ -10,3 +10,10 @@ my-brand*/
 
 # original screenshots (not masked) — never publish
 _原始截圖/
+
+# images dropped into the top folder (logos, screenshots) are working files, not part of the package
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
+/*.gif
