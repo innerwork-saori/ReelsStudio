@@ -4,7 +4,7 @@
 
 | 檔案 | 用途 |
 |---|---|
-| `STYLE.md` | 共通製作規則：版面、固定要求、剪接／字幕／品管／文案底線、Pexels、露臉模式。**所有 agent 必讀。** |
+| `STYLE.md` | 共通製作規則：版面、固定要求、剪接／字幕／品管／文案底線、實拍素材（Pexels／Unsplash）、露臉模式。**所有 agent 必讀。** |
 | `my-brand\brand.json` | 這個頻道的程式設定：名稱、配色、字型（名稱＋粗細）、結尾卡、版面風格 `style`（整體風格 `preset`＋逐項調整，選項在 `reels_lib.py` 的 `STYLE_OPTIONS`／`STYLE_PRESETS`；沒寫就是原本的手作便條）。第一次使用時由問答或控制台產生，重裝不會被覆蓋 |
 | `my-brand\BRAND.md` | 這個頻道給 agent 的說明：講者、受眾、文案語氣、hashtag、長期偏好 |
 | `brand_template\` | 上面兩個檔的空白範本 |
@@ -15,6 +15,7 @@
 | `transcribe.py` | 整段逐字稿（Whisper large-v3-turbo，本機 CPU，台灣繁體；音檔或影片都可以） |
 | `words.py` | 切出片段音訊＋字級時間碼＋安靜區地圖（選剪接點用；`0 end` = 整支） |
 | `pexels.py` | Pexels 照片／影片搜尋、預覽、下載，自動記錄攝影師標註（key 讀環境變數 `PEXELS_API_KEY`） |
+| `unsplash.py` | Unsplash 照片搜尋、預覽、下載，通知 Unsplash 下載並記錄必要標註（key 讀環境變數 `UNSPLASH_ACCESS_KEY`） |
 | `reels_lib.py` | 繪圖與輸出引擎：品牌載入、色票、圖形、字幕、標題卡、結尾卡、轉場、實拍素材、露臉 `Reel.face()`、音訊組裝、H.264 輸出、驗證 |
 | `props.py` | 60 個現成物件（天氣、情緒、醫療、居家、工作目標），全部不畫人 |
 | `TEMPLATE_clip.py` | 插圖模式的片段腳本範本（素材只有聲音） |
@@ -36,7 +37,7 @@
 ## 環境需求（安裝程式會處理）
 Python 3.10 以上：faster-whisper、opencc、av（含 libx264/aac）、skia-python、numpy、soundfile、Pillow。
 字體：預設 `jf-openhuninn-1.1.ttf`（jf open 粉圓），裝在使用者字型資料夾。brand.json 可改成其他已安裝、有繁體中文的字型（`python fonts.py list` 查詢）；片段腳本與樣張在輸出前會自動檢查缺字。
-Pexels（選用）：Windows 使用者環境變數 `PEXELS_API_KEY`。
+Pexels（選用）：Windows 使用者環境變數 `PEXELS_API_KEY`。Unsplash（選用）：`UNSPLASH_ACCESS_KEY`。
 
 ## 多個頻道
 每個頻道一個資料夾：預設 `my-brand\`，其他是 `my-brand-<名稱>\`（控制台「頻道設定」→「＋ 新增頻道」會建立，可以沿用現有頻道的 brand.json）。

@@ -163,23 +163,25 @@ else {
     if ($LASTEXITCODE -ne 0) { Say "  pip 安裝失敗，請看上面的錯誤訊息" Red; $Problems += 'Python 套件安裝失敗' }
 }
 
-# ---------- 5. Pexels 金鑰 ----------
-Say "`n[5/6] Pexels 金鑰（選用：剪片時找免費實拍照片／影片）" Cyan
-$HasKey = [Environment]::GetEnvironmentVariable('PEXELS_API_KEY', 'User')
-if ($HasKey) { Say "  已設定，略過" Green }
-elseif ($SkipKey) { Say "  略過（-SkipKey）" Yellow }
-else {
-    Say "  沒有也可以用，影片會全部用插圖。想要的話到 https://www.pexels.com/api/ 免費申請。"
-    Say "  請貼上 Pexels API 金鑰（輸入時不會顯示；直接按 Enter 跳過）："
+# ---------- 5. 素材庫金鑰（Pexels、Unsplash，都可略過） ----------
+Say "`n[5/6] 素材庫金鑰（選用：剪片時找免費實拍素材，兩個都沒有也可以用，影片會全部用插圖）" Cyan
+function Ask-Key($label, $var, $note) {
+    $HasKey = [Environment]::GetEnvironmentVariable($var, 'User')
+    if ($HasKey) { Say "  $label：已設定，略過" Green; return }
+    if ($SkipKey) { Say "  $label：略過（-SkipKey）" Yellow; return }
+    Say "  $note"
+    Say "  請貼上 $label 金鑰（輸入時不會顯示；直接按 Enter 跳過）："
     $sec = Read-Host -AsSecureString
     $key = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
     if ($key.Trim()) {
-        [Environment]::SetEnvironmentVariable('PEXELS_API_KEY', $key.Trim(), 'User')
-        Say "  OK  已存成使用者環境變數 PEXELS_API_KEY" Green
+        [Environment]::SetEnvironmentVariable($var, $key.Trim(), 'User')
+        Say "  OK  已存成使用者環境變數 $var" Green
     } else {
-        Say "  跳過。之後想用時在 PowerShell 執行：setx PEXELS_API_KEY ""你的金鑰""" Yellow
+        Say "  跳過。之後想用時在 PowerShell 執行：setx $var ""你的金鑰""" Yellow
     }
 }
+Ask-Key 'Pexels API' 'PEXELS_API_KEY' 'Pexels：免費實拍照片和影片，不強制標註。到 https://www.pexels.com/api/ 免費申請。'
+Ask-Key 'Unsplash Access Key' 'UNSPLASH_ACCESS_KEY' 'Unsplash：只有照片，發文時必須標註攝影師。到 https://unsplash.com/developers 建立 App 後複製「Access Key」。'
 
 # ---------- 6. 使用說明＋控制台捷徑 ----------
 Say "`n[6/6] 控制台與桌面捷徑" Cyan

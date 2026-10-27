@@ -20,7 +20,7 @@ effort: xhigh
 - `props.py`：60 個現成物件（馬克杯、天秤、種子發芽、警示燈、日曆、窗簾、鍋子、橡皮筋⋯⋯），檔頭有分類清單。先找現成的，沒有再自己畫。
 - `TEMPLATE_clip.py`：插圖模式範本（素材只有聲音）。
 - `TEMPLATE_face_clip.py`：露臉模式範本（素材是主講人自己拍的影片，可以混插圖）。
-- `pexels.py`：Pexels 照片／影片搜尋與下載（用法見檔頭；規則見 STYLE.md 第 9 節）。沒有設定 `PEXELS_API_KEY` 就跳過，只用插圖。
+- `pexels.py`：Pexels 照片／影片搜尋與下載；`unsplash.py`：Unsplash 照片搜尋與下載（用法見各檔檔頭；規則見 STYLE.md 第 9 節）。沒有設定 `PEXELS_API_KEY` 就不用 Pexels，沒有設定 `UNSPLASH_ACCESS_KEY` 就不用 Unsplash；兩個都沒有就只用插圖。
 
 ## 先決定模式
 - 素材是音檔，或影片裡沒有主講人（螢幕錄影、純風景）→ **插圖模式**。
@@ -36,9 +36,10 @@ effort: xhigh
 4. **寫 `clip.py`**（從對應的 TEMPLATE 複製）：
    - 標題卡用精華片段 md 或口播稿的問句標題（3 行內＋一句加大的強調短句）。
    - 字幕 SUBS：每行 ≤12 字，關鍵字【】，第二位講者用 `"h"` 或名字。
-   - 場景規劃：先列出「這句話在講什麼 → 用什麼畫面（露臉／props 物件／自己畫／Pexels 實拍）→ 元素之間怎麼互動」，每 2–3 秒要有新場景或新節拍（露臉段落見第 10 節），用 `R.L(scene, 原始秒數)` 讓動作對齊說話的字。抽象概念一律做**滿版 B-roll**。**自己畫的插圖絕不畫人、臉、手、剪影、火柴人**。
+   - 場景規劃：先列出「這句話在講什麼 → 用什麼畫面（露臉／props 物件／自己畫／實拍素材）→ 元素之間怎麼互動」，每 2–3 秒要有新場景或新節拍（露臉段落見第 10 節），用 `R.L(scene, 原始秒數)` 讓動作對齊說話的字。抽象概念一律做**滿版 B-roll**。**自己畫的插圖絕不畫人、臉、手、剪影、火柴人**。
    - 露臉模式：`Reel(..., source_video=<素材>)`，用 `R.face(c, t, focus=..., punch=1.12)`；先用 `python clip.py preview 4` 看臉在畫面哪裡，再設 `FOCUS`。
    - 要用 Pexels 時：`python "{{STUDIO}}\pexels.py" search photos|videos "<英文關鍵字>" "<clipdir>"` → 用 Read 看 `assets\_previews\` 的預覽挑選 → `pexels.py get photo|video <id> "<clipdir>"`。
+   - 要用 Unsplash 時（只有照片）：`python "{{STUDIO}}\unsplash.py" search "<英文關鍵字>" "<clipdir>"` → 看預覽挑選 → `unsplash.py get <id> "<clipdir>"`。兩個金鑰都有時，找照片可以兩邊都搜再挑；影片只能用 Pexels。
    - 用色傳情緒（冷色＝低潮，暖色＝轉念／希望），但整體以淺色為主。
    - 轉場輪流用 circle / slide / zoom，衝擊點與臉接臉用 cut。
 5. `python clip.py audio` → 所有剪接點 OK，而且沒有「⚠ 字型缺字」警告（有的話依警告指出的字幕或行數修正，常見是 emoji 和少見字）。
@@ -51,5 +52,5 @@ effort: xhigh
 - 需要使用者確認的字幕（`[?]`、推測的講者、聽寫可疑字），以及因為字型缺字而改掉的字（原字 → 改成什麼）。
 - 一張「時間｜講到的內容｜畫面」表格。
 - 新增的顏色（如果有）附色碼。
-- 用了 Pexels 素材的話：列出每個素材用在哪一段，並附上 `assets\credits.txt` 的內容。
+- 用了實拍素材的話：列出每個素材用在哪一段（標明來自 Pexels 或 Unsplash），並附上 `assets\credits.txt` 的內容。用了 Unsplash 照片時，提醒使用者發文時**必須**標註。
 - 誠實聲明：你無法真正聽音檔，請使用者完整看過一遍；畫面是抽查每場代表影格。

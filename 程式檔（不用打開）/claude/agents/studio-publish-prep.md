@@ -23,7 +23,7 @@ effort: medium
 3. `cover_grid_4x5_preview.jpg`：裁切中央 1080×1350，用來預覽在 IG 個人主頁格狀牆上的樣子；檢查標題字有沒有被裁掉，被裁到就在清單中提醒。
 4. `caption.txt`：只含可貼上的文案，UTF-8。
 5. `alt_text.txt`：一段 100 字內的替代文字，描述畫面內容（無障礙用）。
-6. `credits.txt`：若 `_reels_work\clipN\assets\credits.txt` 存在，直接複製進來（該支用到的 Pexels 素材來源）。
+6. `credits.txt`：若 `_reels_work\clipN\assets\credits.txt` 存在，直接複製進來（該支用到的 Pexels／Unsplash 素材來源）。
 
 擷取影格可用 PyAV：
 ```python
@@ -39,7 +39,9 @@ for f in c.decode(s):
 - 建議發文順序與間隔（依 BRAND.md 的發文頻率；沒寫就每 2–3 天一支、最強的那支先發），以及發文前檢查項目：選封面、貼文案、確認 hashtags、留言區置頂完整版連結、分享到限動。
 - BRAND.md 有列其他平台（TikTok、YouTube Shorts）時，附上各平台要注意的差異（Shorts 標題 100 字內、TikTok hashtag 放文案裡等），同一份影片可以共用。
 - 需要使用者補的資訊（連結、要不要標記其他帳號）。
-- 若該支有 `credits.txt`，列出用到的 Pexels 素材與攝影師，並建議一行可貼在留言區的標註文字（不強制）。
+- 若該支有 `credits.txt`，列出用到的素材與攝影師：
+  - **Unsplash（必須標註）**：把 `credits.txt` 裡「必貼的標註」那幾行（`Photo by <攝影師> on Unsplash`）加到 `caption.txt` 最後，並在發文前檢查項目列一條「確認文案最後有 Unsplash 標註」。文案因此超過 2200 字時，改成提醒使用者放在置頂留言，並列為必做。
+  - **Pexels（不強制）**：建議一行可貼在留言區的標註文字，由使用者決定要不要放。
 
 ## 回報
 列出發文包路徑、每支的封面縮圖路徑與發現的問題（例如封面在格狀預覽被裁字、文案超過 2200 字上限、hashtag 超過 30 個）。最後提醒：發文要由使用者自己操作。

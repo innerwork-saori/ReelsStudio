@@ -18,15 +18,20 @@ API = "https://api.pexels.com"
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # photographer names can be any script
 
 
-def api_key():
-    k = os.environ.get("PEXELS_API_KEY")
+def env_key(name):
+    k = os.environ.get(name)
     if not k and sys.platform == "win32":
         import winreg
         try:
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as h:
-                k = winreg.QueryValueEx(h, "PEXELS_API_KEY")[0]
+                k = winreg.QueryValueEx(h, name)[0]
         except OSError:
             k = None
+    return k
+
+
+def api_key():
+    k = env_key("PEXELS_API_KEY")
     if not k:
         sys.exit("PEXELS_API_KEY is not set. Ask the user to run: setx PEXELS_API_KEY \"<their key>\" (never paste it in chat).")
     return k
@@ -56,12 +61,25 @@ def assets(clipdir):
 def record_credit(clipdir, entry):
     d = assets(clipdir); p = os.path.join(d, "credits.json")
     data = json.load(open(p, encoding="utf-8")) if os.path.exists(p) else []
-    data = [e for e in data if not (e["type"] == entry["type"] and e["id"] == entry["id"])] + [entry]
+    src = lambda e: e.get("source", "pexels")              # entries from before Unsplash have no "source"
+    data = [e for e in data if not (src(e) == src(entry) and e["type"] == entry["type"] and e["id"] == entry["id"])] + [entry]
     json.dump(data, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    # one credits.txt for every stock source (unsplash.py records here too)
+    pexels = [e for e in data if src(e) == "pexels"]
+    unsplash = [e for e in data if src(e) == "unsplash"]
     with open(os.path.join(d, "credits.txt"), "w", encoding="utf-8") as f:
-        f.write("素材來源：Pexels（pexels.com）\n")
-        for e in data:
-            f.write(f"- {'照片' if e['type'] == 'photo' else '影片'} by {e['author']}：{e['url']}\n")
+        if pexels:
+            f.write("素材來源：Pexels（pexels.com），不強制標註\n")
+            for e in pexels:
+                f.write(f"- {'照片' if e['type'] == 'photo' else '影片'} by {e['author']}：{e['url']}\n")
+        if unsplash:
+            if pexels: f.write("\n")
+            f.write("素材來源：Unsplash（unsplash.com），必須標註攝影師和 Unsplash\n")
+            for e in unsplash:
+                f.write(f"- 照片 by {e['author']}：{e['author_url']}（照片頁：{e['url']}）\n")
+            f.write("\n必貼的標註（放在貼文文案最後，或置頂留言）：\n")
+            for name in dict.fromkeys(e["author"] for e in unsplash):
+                f.write(f"Photo by {name} on Unsplash\n")
 
 
 def search(kind, query, clipdir, n, orientation):
@@ -89,7 +107,7 @@ def get(kind, pid, clipdir):
         dim = "h=2000" if p["height"] >= p["width"] else "w=2000"
         src = p["src"]["original"].split("?")[0] + f"?auto=compress&cs=tinysrgb&{dim}"
         out = download(src, os.path.join(d, f"pexels_photo_{pid}.jpg"))
-        record_credit(clipdir, {"type": "photo", "id": pid, "author": p["photographer"], "url": p["url"]})
+        record_credit(clipdir, {"type": "photo", "id": pid, "source": "pexels", "author": p["photographer"], "url": p["url"]})
     else:
         v = call(f"/videos/videos/{pid}", {})
         files = [f for f in v["video_files"] if f.get("file_type") == "video/mp4" and f.get("width")]
@@ -97,7 +115,7 @@ def get(kind, pid, clipdir):
         good = sorted([f for f in files if min(f["width"], f["height"]) >= 1080], key=lambda f: f["width"] * f["height"])
         pick = good[0] if good else max(files, key=lambda f: f["width"] * f["height"])
         out = download(pick["link"], os.path.join(d, f"pexels_video_{pid}.mp4"))
-        record_credit(clipdir, {"type": "video", "id": pid, "author": v["user"]["name"], "url": v["url"]})
+        record_credit(clipdir, {"type": "video", "id": pid, "source": "pexels", "author": v["user"]["name"], "url": v["url"]})
     print("saved", out)
 
 

@@ -122,6 +122,9 @@
   footer .links { display: inline-block; margin-top: 12px; padding: 8px 18px; border-radius: 999px;
     background: var(--card); border: 1px solid var(--accent); text-decoration: none; font-weight: 700; }
   footer .links:hover { background: var(--accent); color: #fff; }
+  footer .links + .links { margin-left: 8px; }
+  footer .donate { border-color: var(--line); color: var(--muted); font-weight: 400; }
+  footer .author .thanks { margin-top: 10px; font-size: 13px; }
   a { color: var(--accent); }
   @media (max-width: 520px) {
     body { font-size: 17px; } h1 { font-size: 28px; }
@@ -134,7 +137,7 @@
 <main>
 
 <header>
-  <span class="badge">Reels Studio · 第一版 v1.1.1</span>
+  <span class="badge">Reels Studio · 第一版 v1.2.0</span>
   <h1>短影音小幫手 安裝說明</h1>
   <p>讓 Claude 幫你把錄音、影片，或一個還沒錄的想法，做成直式短影音（IG Reels／TikTok／YouTube Shorts），字幕、插圖、貼文文案一起準備好。</p>
   <div class="demos">
@@ -176,8 +179,12 @@
     安裝時要下載 Python 和套件，第一次聽打還會下載約 1.6 GB 的語音辨識模型。
   </div></li>
   <li class="todo optional"><label class="tick"><input type="checkbox" id="c-pre-pexels"><span></span></label><div>
-    <strong><label for="c-pre-pexels">Pexels 金鑰</label><span class="opt">可略過</span></strong>
-    讓影片穿插免費的實拍照片和影片。沒有也完全可以用，畫面會全部用插圖。想要的話到 <a href="https://www.pexels.com/api/" target="_blank" rel="noopener">pexels.com/api</a> 免費申請。
+    <strong><label for="c-pre-pexels">素材庫金鑰：Pexels 或 Unsplash</label><span class="opt">可略過</span></strong>
+    讓影片穿插免費的實拍素材。沒有也完全可以用，畫面會全部用插圖。兩個可以只申請一個，也可以都申請：
+    <ul>
+      <li><b>Pexels</b>：照片和影片都有，不強制標註。到 <a href="https://www.pexels.com/api/" target="_blank" rel="noopener">pexels.com/api</a> 免費申請。</li>
+      <li><b>Unsplash</b>：只有照片，用了的話<b>發文時必須標註攝影師</b>（發文包會幫你把標註寫進文案）。到 <a href="https://unsplash.com/developers" target="_blank" rel="noopener">unsplash.com/developers</a> 註冊、建立一個 App，複製「Access Key」。</li>
+    </ul>
   </div></li>
 </ol>
 
@@ -198,7 +205,7 @@
     <strong><label for="c-inst-answer">3. 照畫面回答問題</label></strong>
     <ul>
       <li><b>「要自動安裝 Python 嗎？(Y/n)」</b>：直接按 <kbd>Enter</kbd> 就是要。它會從 Python 官方網站下載，只裝給你自己，不需要管理員權限，約 1–3 分鐘。</li>
-      <li><b>「請貼上 Pexels API 金鑰」</b>：有金鑰就貼上（按右鍵就能貼上，畫面不會顯示是正常的），然後按 <kbd>Enter</kbd>；沒有就直接按 <kbd>Enter</kbd> 跳過。</li>
+      <li><b>「請貼上 Pexels API 金鑰」</b>、<b>「請貼上 Unsplash Access Key 金鑰」</b>：有金鑰就貼上（按右鍵就能貼上，畫面不會顯示是正常的），然後按 <kbd>Enter</kbd>；沒有就直接按 <kbd>Enter</kbd> 跳過。</li>
     </ul>
     安裝套件那一步會跑出很多英文字，那是正常的，等它跑完就好（約幾分鐘）。
   </div></li>
@@ -323,9 +330,12 @@
   <p>到 <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org/downloads</a> 下載 Python 3.13 自己安裝。安裝畫面第一頁<b>一定要勾選「Add python.exe to PATH」</b>，裝好之後再雙擊一次 <span class="file">② 雙擊安裝</span>。</p>
 </details>
 <details>
-  <summary>安裝時跳過了 Pexels 金鑰，之後想加</summary>
+  <summary>安裝時跳過了 Pexels 或 Unsplash 金鑰，之後想加</summary>
   <p>按鍵盤的 <kbd>Win</kbd>，搜尋「PowerShell」並打開，貼上下面這行（把「你的金鑰」換成真的金鑰），按 <kbd>Enter</kbd>，再重開 Claude。</p>
+  <p>Pexels：</p>
   <div class="copy"><code>setx PEXELS_API_KEY "你的金鑰"</code><button type="button" data-copy='setx PEXELS_API_KEY "你的金鑰"'>複製</button></div>
+  <p>Unsplash：</p>
+  <div class="copy"><code>setx UNSPLASH_ACCESS_KEY "你的金鑰"</code><button type="button" data-copy='setx UNSPLASH_ACCESS_KEY "你的金鑰"'>複製</button></div>
 </details>
 <details>
   <summary>輸入 /reels-studio 沒有反應</summary>
@@ -354,8 +364,8 @@
   <ul class="check">
     <li><b>成品請自己檢查</b>：逐字稿、字幕、精華片段和貼文文案都是 AI 產生的，可能有錯字、聽錯或斷句不對。發布前請完整看過影片、讀過文案。</li>
     <li><b>哪些資料會交給 Claude</b>：聽打在你自己的電腦上執行；但逐字稿、文案，以及剪片時用來檢查畫面的截圖，會在對話中交給 Claude（Anthropic）處理，適用 Anthropic 的使用條款與隱私政策。含有不公開內容的素材請自行斟酌。</li>
-    <li><b>素材的權利由你負責</b>：請確認你有權使用錄音、影片、照片與音樂，來賓或入鏡的人同意公開，並遵守 Pexels 素材授權和各社群平台的規範。</li>
-    <li><b>安裝會改動這台電腦</b>：會下載安裝 Python 與套件、安裝字型、寫入 <span class="file">.claude</span> 資料夾，選填的 Pexels 金鑰會存成使用者環境變數。</li>
+    <li><b>素材的權利由你負責</b>：請確認你有權使用錄音、影片、照片與音樂，來賓或入鏡的人同意公開，並遵守 Pexels／Unsplash 素材授權（Unsplash 照片發文時必須標註攝影師）和各社群平台的規範。</li>
+    <li><b>安裝會改動這台電腦</b>：會下載安裝 Python 與套件、安裝字型、寫入 <span class="file">.claude</span> 資料夾，選填的 Pexels、Unsplash 金鑰會存成使用者環境變數。</li>
     <li><b>請確認來源</b>：只有從 Saori 的 GitHub 頁面或作品頁下載的才是 Saori 本人提供的版本。從其他來源取得的檔案可能被修改過，使用前請注意來源；非 Saori 本人提供的版本，Saori 不負任何責任。</li>
     <li><b>非官方工具</b>：Reels Studio 是個人作品，與 Anthropic、Meta（Instagram）、TikTok、Google（YouTube）沒有關係。</li>
     <li><b>不提供任何保證</b>：本工具依「現狀」提供，作者不保證它沒有錯誤或適合特定用途；因使用本工具或其成品造成的任何損失，作者不負責任。</li>
@@ -368,6 +378,8 @@
     <p class="who">製作：<b>Saori</b></p>
     <p class="roles">軟體工程師・系統分析師・生涯諮詢師</p>
     <a class="links" href="https://lab.heysaori.com/links.html" target="_blank" rel="noopener">更多 Saori 的作品與聯絡方式 →</a>
+    <a class="links donate" href="https://lab.heysaori.com/donate.html" target="_blank" rel="noopener">☕ 請 Saori 喝杯咖啡</a>
+    <p class="thanks">這個工具免費提供，覺得有幫助的話，歡迎小額支持。</p>
   </div>
   影片字型使用 justfont 的 jf open 粉圓，以 SIL Open Font License 1.1 釋出（授權全文見 <span class="file">程式檔（不用打開）\font\OFL.txt</span>）。
 </footer>

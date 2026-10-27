@@ -137,6 +137,9 @@
   footer .links { display: inline-block; margin-top: 12px; padding: 8px 18px; border-radius: 999px;
     background: var(--card); border: 1px solid var(--accent); text-decoration: none; font-weight: 700; }
   footer .links:hover { background: var(--accent); color: #fff; }
+  footer .links + .links { margin-left: 8px; }
+  footer .donate { border-color: var(--line); color: var(--muted); font-weight: 400; }
+  footer .author .thanks { margin-top: 10px; font-size: 13px; }
 
   #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: #fff;
     padding: 8px 18px; border-radius: 999px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 10; }
@@ -337,6 +340,8 @@
     <p class="who">製作：<b>Saori</b></p>
     <p class="roles">軟體工程師・系統分析師・生涯諮詢師</p>
     <a class="links" href="https://lab.heysaori.com/links.html" target="_blank" rel="noopener">更多 Saori 的作品與聯絡方式 →</a>
+    <a class="links donate" href="https://lab.heysaori.com/donate.html" target="_blank" rel="noopener">☕ 請 Saori 喝杯咖啡</a>
+    <p class="thanks">這個工具免費提供，覺得有幫助的話，歡迎小額支持。</p>
   </div>
   影片字型使用 justfont 的 jf open 粉圓，以 SIL Open Font License 1.1 釋出（授權全文見 <span class="file">.claude\reels-studio\font\OFL.txt</span>）。
   <p id="appver" style="margin:8px 0 0"></p>
