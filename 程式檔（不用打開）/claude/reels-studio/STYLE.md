@@ -31,8 +31,8 @@
 
 - 字體：全片只用 brand.json 的 `font`＋`font_weight`（預設 jf open 粉圓）。`python fonts.py list` 列出可用的字型，`fonts.py check "<字型>" "<文字>"` 檢查缺字。字型沒有的字或符號（例如 ▶、emoji）不能直接打字，要換字或自己畫。
 - **版面風格**：brand.json 的 `style` 決定字幕、標題卡、背景與裝飾、插圖線條、動畫、結尾卡的樣子。`preset` 分兩類：
-  - **快速套版**：`handmade` 手作便條（預設）、`clean` 俐落簡約、`magazine` 雜誌感、`notebook` 筆記本、`street` 街頭活力；其他 key 是逐項改過的元素，選項見 `reels_lib.STYLE_OPTIONS`。照下面的規則用內建函式。
-  - **自由創作** `free`：不套版，剪輯師依 BRAND.md 的「自由創作方向」「參考帳號或影片」每支自己設計，規則見**第 12 節**；下面「不要自己重畫」那幾條不適用。
+  - **快速套版**：`handmade` 手作便條（brand.json 沒寫 `style` 的舊頻道就是這個）、`clean` 俐落簡約、`magazine` 雜誌感、`notebook` 筆記本、`street` 街頭活力；其他 key 是逐項改過的元素，選項見 `reels_lib.STYLE_OPTIONS`。照下面的規則用內建函式。
+  - **自由創作** `free`（新頻道的預設）：不套版，剪輯師依 BRAND.md 的「自由創作方向」「參考帳號或影片」每支自己設計，規則見**第 12 節**；下面「不要自己重畫」那幾條不適用。
   BRAND.md「影片」的「版面風格」那行是同一份設定的說明。快速套版時剪片引擎會自動套用，所以：
   - 背景用 `paper_bg()`、裝飾用 `deco()`、標題卡用 `title_card()`、字幕交給 `Reel`、結尾用 `end_card()`，不要自己重畫成固定的樣子，也不要另外發明新的裝飾風格。
   - 線條：自己畫的描邊照常寫 `P(INK, stroke=6)`，引擎會依風格調粗細和顏色；只有不是描邊的線（例如文字、圖表刻度）才用 `raw=True`。

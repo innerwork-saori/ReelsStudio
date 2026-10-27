@@ -90,7 +90,8 @@ LAYOUT_OPTIONS = {
 }
 
 # Layout looks (the panel's 版面風格). A preset fills every element; keys given next to it override that one element.
-# No "style" in brand.json = handmade, the original look. "free" = the editor designs each clip from BRAND.md's
+# New channels start as "free" (brand_template, the panel). No "style" in brand.json = handmade, the original look,
+# so channels made before free existed keep theirs. "free" = the editor designs each clip from BRAND.md's
 # 自由創作方向; its element values are only the fallback the built-in title_card / end_card / subtitles use.
 STYLE_OPTIONS = {
     "subtitle":   ["box", "outline", "pill", "dark"],        # white framed box / outlined text, no box / a pill per line / dark box
@@ -101,12 +102,12 @@ STYLE_OPTIONS = {
     "end":        ["classic", "minimal", "card"],            # end card layout
 }
 STYLE_PRESETS = {
+    "free":     {"subtitle": "pill", "title": "bold", "background": "plain", "line": "thin", "motion": "snappy", "end": "minimal"},
     "handmade": {"subtitle": "box", "title": "note", "background": "blobs", "line": "bold", "motion": "bouncy", "end": "classic"},
     "clean":    {"subtitle": "pill", "title": "line", "background": "plain", "line": "thin", "motion": "snappy", "end": "minimal"},
     "magazine": {"subtitle": "dark", "title": "magazine", "background": "gradient", "line": "thin", "motion": "gentle", "end": "card"},
     "notebook": {"subtitle": "pill", "title": "note", "background": "grid", "line": "soft", "motion": "gentle", "end": "card"},
     "street":   {"subtitle": "outline", "title": "bold", "background": "plain", "line": "bold", "motion": "bouncy", "end": "classic"},
-    "free":     {"subtitle": "pill", "title": "bold", "background": "plain", "line": "thin", "motion": "snappy", "end": "minimal"},
 }
 
 def load_brand():

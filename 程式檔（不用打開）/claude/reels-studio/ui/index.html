@@ -188,7 +188,7 @@
   <div class="card">
     <h2>③ 在 Claude 這樣說</h2>
     <div class="note ok" style="margin-top:0"><b class="t">建議先到「我的作品」選素材資料夾</b>那裡的「下一步」會把資料夾和頻道一起寫進要貼給 Claude 的句子，複製貼上就好。<button class="btn small" style="margin-left:8px" onclick="showTab('works')">去我的作品</button></div>
-    <p class="muted small">下面是通用的說法：在 Claude 桌面 App 開新對話時選素材所在的資料夾，再貼上句子。</p>
+    <p class="muted small">下面是通用的說法：在 Claude 桌面 App 開新對話時選素材所在的資料夾，再貼上句子。複製時會自動加上上面「① 頻道設定」顯示的頻道。</p>
     <table class="phrases" id="phrases"></table>
   </div>
 </section>
@@ -231,9 +231,9 @@
 
       <div class="card">
         <h2>版面風格</h2>
-        <p class="muted small" style="margin:0">字幕、標題卡、背景、插圖線條、動畫和結尾卡的整體樣子。前五種是<b>快速套版</b>：選了就固定是那個樣子，點一個就會出樣張。不想跟別人一樣，選最後一個<b>自由創作</b>：用文字描述你要的感覺，剪輯師每支自己設計。</p>
+        <p class="muted small" style="margin:0">字幕、標題卡、背景、插圖線條、動畫和結尾卡的整體樣子。預設是第一個<b>自由創作</b>：用文字描述你要的感覺，剪輯師每支自己設計，不會跟別人長得一樣。後面五種是<b>快速套版</b>：選了就固定是那個樣子，點一個就會出樣張，還可以在下面逐項調整。</p>
         <div class="palettes" id="presets"></div>
-        <details id="style-d"><summary>逐項調整</summary>
+        <details id="style-d" open><summary>逐項調整</summary>
           <p class="muted small" style="margin:6px 0 0">從上面選的風格出發，只換你想換的那幾項。</p>
           <div class="row2" id="style-parts"></div></details>
         <div id="free-box" hidden>
@@ -488,9 +488,11 @@ function renderHome() {
   else rc.append(h("div", { class: "chiplist" }, S.recent.slice(0, 5).map(p =>
     h("button", { class: "chip", title: p, onclick: () => { showTab("works"); loadProject(p); } }, p.split("\\").pop()))));
   const t = $("#phrases"); t.replaceChildren();
+  // no folder here, but the channel shown above goes along, the same way 我的作品 adds folder + channel
+  const ctx = b.exists ? `（頻道：${b.brand.name}）` : "";
   for (const [have, say, note] of PHRASES)
     t.append(h("tr", {}, h("td", { style: "width:34%" }, have),
-      h("td", {}, h("span", { class: "say" }, say), " ", copyBtn(say), h("div", { class: "muted small" }, note))));
+      h("td", {}, h("span", { class: "say" }, say), " ", copyBtn(say + ctx), h("div", { class: "muted small" }, note))));
 }
 
 // ---------------- brand form ----------------
@@ -685,7 +687,7 @@ function renderStyle(style) {
       } }, presetMock(key), h("b", {}, name), h("div", { class: "desc" }, desc)));
   }
   fillParts(resolveStyle(style));
-  $("#style-d").open = Object.keys(style || {}).some(k => k !== "preset");
+  $("#style-d").open = true;            // left open so people see the element-by-element choices exist
   showFreeBox();
 }
 function showFreeBox() {             // free style: the description fields instead of the element-by-element choices

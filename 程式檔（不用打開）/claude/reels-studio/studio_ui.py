@@ -286,6 +286,7 @@ def load_brand(d):
         if isinstance(v, dict) and isinstance(b.get(k), dict): b[k].update(v)
         else: b[k] = v
     if "font_weight" not in raw: b.pop("font_weight", None)   # "自動" in the form; saving must not add it
+    if not exists: b["style"] = {"preset": "free"}            # a channel not set up yet starts as 自由創作
     md_p = os.path.join(d, "BRAND.md")
     md = open(md_p, encoding="utf-8").read() if os.path.exists(md_p) else ""
     fields = {}
@@ -650,13 +651,14 @@ def new_brand(body):
     look = src["brand"] if src else json.loads(json.dumps(BRAND_DEFAULTS))
     os.makedirs(d)
     e = look.get("end_card") or {}
+    style = (look.get("style") or {}) if src else {"preset": "free"}   # a blank channel starts as 自由創作
     # the free style's direction belongs to the look, so it comes along; the rest of BRAND.md starts blank
     fields = {k: src["fields"][k] for k in ("自由創作方向", "參考帳號或影片") if src and src["fields"].get(k)}
     form = {"dir": d, "fields": fields, "brand": {
         "name": name, "tag": "", "palette": look.get("palette", "cream"), "colors": look.get("colors") or {},
         "font": look.get("font"), "font_weight": look.get("font_weight"), "speaker_label": look.get("speaker_label", "主持人"),
         "end_card": {k: e.get(k, "") for k in ("icon", "badge", "cta", "sub", "guest_prefix", "logo_shape")},
-        "style": resolved_style(look.get("style")) | {"preset": (look.get("style") or {}).get("preset", "handmade")},
+        "style": resolved_style(style) | {"preset": style.get("preset", "handmade")},
         "layout": resolved_layout(look.get("layout"))}}
     if body.get("copy_from"):                     # keep every colour override, not only accent/highlight, and the logo
         if os.path.exists(os.path.join(body["copy_from"], "logo.png")): shutil.copy2(os.path.join(body["copy_from"], "logo.png"), os.path.join(d, "logo.png"))
