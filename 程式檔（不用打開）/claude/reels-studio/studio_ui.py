@@ -49,11 +49,11 @@ def _lib_constants():
     out = {}
     for node in tree.body:
         if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and \
-                node.targets[0].id in ("PALETTES", "BRAND_DEFAULTS", "STYLE_OPTIONS", "STYLE_PRESETS"):
+                node.targets[0].id in ("PALETTES", "BRAND_DEFAULTS", "STYLE_OPTIONS", "STYLE_PRESETS", "LAYOUT_OPTIONS"):
             out[node.targets[0].id] = eval(compile(ast.Expression(node.value), "reels_lib", "eval"), {"dict": dict})
-    return out["PALETTES"], out["BRAND_DEFAULTS"], out["STYLE_OPTIONS"], out["STYLE_PRESETS"]
+    return out["PALETTES"], out["BRAND_DEFAULTS"], out["STYLE_OPTIONS"], out["STYLE_PRESETS"], out["LAYOUT_OPTIONS"]
 
-PALETTES, BRAND_DEFAULTS, STYLE_OPTIONS, STYLE_PRESETS = _lib_constants()
+PALETTES, BRAND_DEFAULTS, STYLE_OPTIONS, STYLE_PRESETS, LAYOUT_OPTIONS = _lib_constants()
 
 def resolved_style(s):
     """the look a brand.json "style" produces (same rule as reels_lib._style)"""
@@ -61,6 +61,14 @@ def resolved_style(s):
     out = dict(STYLE_PRESETS.get(s.get("preset"), STYLE_PRESETS["handmade"]))
     for k, opts in STYLE_OPTIONS.items():
         if s.get(k) in opts: out[k] = s[k]
+    return out
+
+def resolved_layout(l):
+    """the layout rules a brand.json "layout" produces (same rule as reels_lib._layout)"""
+    out = dict(BRAND_DEFAULTS["layout"])
+    for k, v in (l or {}).items():
+        if k in LAYOUT_OPTIONS: out[k] = v if v in LAYOUT_OPTIONS[k] else out[k]
+        elif k in out: out[k] = bool(v)
     return out
 
 
@@ -170,8 +178,11 @@ MD_FIELDS = [
     ("文案", "禁用的詞或 hashtag", ["禁用的 hashtag", "禁用的詞"]),
     ("文案", "Emoji", []),
     ("影片", "露臉", []),
+    ("影片", "自由創作方向", []),
+    ("影片", "參考帳號或影片", []),
 ]
-AUTO_FIELDS = [("頻道", "名稱"), ("影片", "版面風格"), ("影片", "配色"), ("影片", "字型"), ("影片", "結尾卡")]   # filled from brand.json
+AUTO_FIELDS = [("頻道", "名稱"), ("影片", "版面風格"), ("影片", "版面規則"), ("影片", "配色"), ("影片", "字型"),
+               ("影片", "結尾卡")]   # filled from brand.json
 
 def md_line_re(label):
     return re.compile(r"^- " + re.escape(label) + r"：(.*)$", re.M)
@@ -205,7 +216,10 @@ def md_set(md, section, label, value):
     body = md[sec.end():end].rstrip("\n")
     return md[:sec.end()] + body + f"\n- {label}：{value}\n\n" + md[end:].lstrip("\n")
 
-STYLE_NAMES = {"handmade": "手作便條", "clean": "俐落簡約", "magazine": "雜誌感", "notebook": "筆記本", "street": "街頭活力"}
+STYLE_NAMES = {"handmade": "手作便條", "clean": "俐落簡約", "magazine": "雜誌感", "notebook": "筆記本", "street": "街頭活力",
+               "free": "自由創作"}
+LAYOUT_NAMES = {"subtitle_pos": {"low": "下方", "middle": "畫面中間"}, "subtitle_size": {"s": "小", "m": "中", "l": "大"},
+                "pace": {"fast": "快（每 2–3 秒換畫面）", "medium": "中（每 3–4 秒）", "slow": "慢（每 4–6 秒，留白多）"}}
 STYLE_PART_NAMES = {"subtitle": "字幕", "title": "標題卡", "background": "背景", "line": "線條", "motion": "動畫", "end": "結尾卡"}
 STYLE_OPTION_NAMES = {
     "subtitle": {"box": "白框", "outline": "描邊字", "pill": "膠囊條", "dark": "深色框"},
@@ -244,9 +258,19 @@ def brand_summary(b):
     icon = {"mic": "麥克風", "play": "播放", "heart": "愛心", "star": "星星", "logo": "自己的 logo ", "none": "無"}.get(e.get("icon"), e.get("icon"))
     st = resolved_style(b.get("style"))
     preset = (b.get("style") or {}).get("preset", "handmade")
+    lay = resolved_layout(b.get("layout"))
+    onoff = lambda v: "有" if v else "不要"
+    if preset == "free":
+        look = ("`free`（自由創作）：剪輯師依下面的「自由創作方向」和「參考帳號或影片」每支自己設計標題、字幕、背景、"
+                "裝飾和轉場（STYLE.md 第 12 節）；引擎內建的樣子只當備用")
+    else:
+        look = f"`{preset}`（{STYLE_NAMES.get(preset, preset)}）：" + "、".join(
+            f"{STYLE_PART_NAMES[k]} {STYLE_OPTION_NAMES[k].get(v, v)}" for k, v in st.items()) + "。剪片引擎會自動套用，不要另外改畫成其他風格"
     return {
-        "版面風格": f"`{preset}`（{STYLE_NAMES.get(preset, preset)}）：" + "、".join(
-            f"{STYLE_PART_NAMES[k]} {STYLE_OPTION_NAMES[k].get(v, v)}" for k, v in st.items()) + "。剪片引擎會自動套用，不要另外改畫成其他風格",
+        "版面風格": look,
+        "版面規則": f"開頭標題卡 {onoff(lay['title_card'])}、結尾卡 {onoff(lay['end_card'])}、上方標籤 {onoff(lay['top_tag'])}、"
+                    f"字幕在{LAYOUT_NAMES['subtitle_pos'][lay['subtitle_pos']]}・{LAYOUT_NAMES['subtitle_size'][lay['subtitle_size']]}、"
+                    f"節奏 {LAYOUT_NAMES['pace'][lay['pace']]}",
         "配色": f"`{pal}`" + (f"，改色：{over}" if over else ""),
         "字型": f"{font}" + (f"，粗細 {b['font_weight']}" if b.get("font_weight") else ""),
         "結尾卡": f"{icon}圖示、貼紙「{e.get('badge') or '無'}」、按鈕「{e.get('cta', '')}」、小字「{e.get('sub', '')}」",
@@ -309,6 +333,10 @@ def merge_brand(d, form):
             if st.get(k) in opts and st[k] != STYLE_PRESETS[preset][k]: style[k] = st[k]
         if style == {"preset": "handmade"} and not old.get("style"): b.pop("style", None)   # untouched original look
         else: b["style"] = style
+    if isinstance(f.get("layout"), dict):        # store only the rules changed from the defaults
+        lay = {k: v for k, v in resolved_layout(f["layout"]).items() if v != BRAND_DEFAULTS["layout"][k]}
+        if lay: b["layout"] = lay
+        else: b.pop("layout", None)
     return old, b
 
 
@@ -332,7 +360,8 @@ def save_brand(form):
     changed = {"配色": (old.get("palette"), old.get("colors")) != (b["palette"], b["colors"]),
                "字型": (old.get("font"), old.get("font_weight")) != (b["font"], b.get("font_weight")),
                "結尾卡": old.get("end_card") != b["end_card"],
-               "版面風格": (old.get("style") or {}) != (b.get("style") or {})}
+               "版面風格": (old.get("style") or {}) != (b.get("style") or {}),
+               "版面規則": resolved_layout(old.get("layout")) != resolved_layout(b.get("layout"))}
     for lab, ch in changed.items():
         if new_md or ch: md = md_set(md, "影片", lab, summ[lab])
     for sec, lab, al in MD_FIELDS:                           # only lines the user actually changed
@@ -610,20 +639,25 @@ def save_logo(body):
 
 
 def new_brand(body):
-    """make my-brand-<name>; blank, or reusing another channel's look (brand.json only — BRAND.md starts blank)"""
+    """make my-brand-<name>; blank, or reusing another channel's look (brand.json + the free style's direction; the rest
+    of BRAND.md starts blank)"""
     name = " ".join((body.get("name") or "").split())
     if not name: raise ValueError("請輸入新頻道的名稱")
     slug = re.sub(r'[<>:"/\\|?*\s.]+', "-", name).strip("-") or "channel"
     d = os.path.join(HERE, "my-brand-" + slug); k = 2
     while os.path.exists(d): d = os.path.join(HERE, f"my-brand-{slug}-{k}"); k += 1
-    look = load_brand(check_brand_dir(body["copy_from"]))["brand"] if body.get("copy_from") else json.loads(json.dumps(BRAND_DEFAULTS))
+    src = load_brand(check_brand_dir(body["copy_from"])) if body.get("copy_from") else None
+    look = src["brand"] if src else json.loads(json.dumps(BRAND_DEFAULTS))
     os.makedirs(d)
     e = look.get("end_card") or {}
-    form = {"dir": d, "fields": {}, "brand": {
+    # the free style's direction belongs to the look, so it comes along; the rest of BRAND.md starts blank
+    fields = {k: src["fields"][k] for k in ("自由創作方向", "參考帳號或影片") if src and src["fields"].get(k)}
+    form = {"dir": d, "fields": fields, "brand": {
         "name": name, "tag": "", "palette": look.get("palette", "cream"), "colors": look.get("colors") or {},
         "font": look.get("font"), "font_weight": look.get("font_weight"), "speaker_label": look.get("speaker_label", "主持人"),
         "end_card": {k: e.get(k, "") for k in ("icon", "badge", "cta", "sub", "guest_prefix", "logo_shape")},
-        "style": resolved_style(look.get("style")) | {"preset": (look.get("style") or {}).get("preset", "handmade")}}}
+        "style": resolved_style(look.get("style")) | {"preset": (look.get("style") or {}).get("preset", "handmade")},
+        "layout": resolved_layout(look.get("layout"))}}
     if body.get("copy_from"):                     # keep every colour override, not only accent/highlight, and the logo
         if os.path.exists(os.path.join(body["copy_from"], "logo.png")): shutil.copy2(os.path.join(body["copy_from"], "logo.png"), os.path.join(d, "logo.png"))
         write_text(os.path.join(d, "brand.json"), json.dumps({"colors": look.get("colors") or {}}, ensure_ascii=False))
@@ -751,7 +785,8 @@ class Handler(BaseHTTPRequestHandler):
                 brands = [load_brand(d) for d in brand_dirs()]
                 cur = st.get("brand") if st.get("brand") in [b["dir"] for b in brands] else brands[0]["dir"]
                 out = {"brands": brands, "current": cur, "palettes": PALETTES, "recent": recent_projects(),
-                       "style_options": STYLE_OPTIONS, "style_presets": STYLE_PRESETS, "version": app_version(),
+                       "style_options": STYLE_OPTIONS, "style_presets": STYLE_PRESETS, "layout_options": LAYOUT_OPTIONS,
+                       "layout_defaults": BRAND_DEFAULTS["layout"], "version": app_version(),
                        "studio": HERE, "env_brand": os.environ.get("REELS_BRAND")}
             elif path == "/api/ping": out = {"ok": True}
             elif path == "/api/fonts": out = fonts()

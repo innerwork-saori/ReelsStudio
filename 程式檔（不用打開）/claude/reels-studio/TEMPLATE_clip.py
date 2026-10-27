@@ -1,6 +1,8 @@
 """Clip script template (illustrated mode: audio-only source, every picture drawn) —
 copy to <recording folder>/_reels_work/clipN/clip.py and fill in the 4 marked blocks.
 For a speaker who filmed themselves, start from TEMPLATE_face_clip.py instead.
+Check the channel's brand.json first: layout (title card / end card / subtitle size / pace) and style "free"
+(STYLE.md §12: then draw your own backgrounds, subtitles via Reel(..., subtitle=fn), opening and transitions).
 
   python clip.py audio    -> check every cut prints OK, else move it into a silence from words.py output
   python clip.py sheet    -> READ sheet_*.png and fix overlaps / empty frames before rendering
@@ -18,12 +20,14 @@ OUT = os.path.join(HERE, "..", "..", "RECORDING_Reels_片段N.mp4")    # <- fina
 TL = Timeline(
     keeps=[(100.00, 112.40), (112.90, 130.10)],
     seg_t0=95.0,            # = t0 given to words.py
-    end_hold=0.4,           # extra hold after the last word (longer if the last subtitle is a punch card)
+    # end_hold=0.4,         # extra hold after the last word (default: 0.4 with an end card, 0.9 without; longer if
+                            # the last subtitle is a punch card). The end card itself follows brand.json layout.end_card
 )
 o = TL.o
 
 # ---- 2. subtitles: (text, SOURCE second, who). who: 'r' main speaker / 'h' second speaker (brand label chip) /
-#         any name string = chip with that name. ≤12 chars per line, '|' = new line, 【】 = keyword,
+#         any name string = chip with that name. ≤SUB_MAX chars per line (12; 13 / 10 for small / large
+#         subtitles), '|' = new line, 【】 = keyword,
 #         leading '!' = punch card. Write what is said; dropping pure fillers is fine. ----
 SUBS = [
     ("第一句字幕|【關鍵字】在這裡", 100.05, "r"),
@@ -53,12 +57,13 @@ def sc_end(c, t, lt, dur):
     end_card(c, t, lt)                                       # name / CTA / icon from brand.json
     # podcast-style: end_card(c, t, lt, guest="來賓名", ep="EP80")  -> 「EP80｜來賓名」
 
+# layout.title_card false: no title card, the first scene starts at 0 and carries the hook itself
 SCENES = [
-    ("title", 0.0, sc_title),
+    ("title", 0.0, sc_title) if LAYOUT["title_card"] else ("example0", 0.0, sc_example),
     ("example", 3.0, sc_example),
-    ("end", TL.END_START, sc_end),
-]
-# ---- 4. transitions into each scene: circle / slide / zoom / cut (rotate them, 'cut' for hard hits like 「砰」) ----
+] + ([("end", TL.END_START, sc_end)] if LAYOUT["end_card"] else [])
+# ---- 4. transitions into each scene: circle / slide / zoom / fade / push / cut (rotate them, 'cut' for hard hits
+#         like 「砰」). Free style: a fn(c, k, prev, cur) of your own, k 0..1, prev() / cur() draw the two scenes ----
 TRANS = {"example": "circle", "end": "circle"}
 
 R = Reel(HERE, os.path.abspath(OUT), TL, SUBS, SCENES, TRANS)   # tag=... overrides the top label (default: brand)

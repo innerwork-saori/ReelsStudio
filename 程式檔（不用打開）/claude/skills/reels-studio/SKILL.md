@@ -51,17 +51,22 @@ description: Reels Studio 短影音製作流程：錄音／影片／想法 → �
    - 主要發布平台（IG Reels／TikTok／YouTube Shorts）
    - 每篇都要有的 hashtag、不想出現的詞或 hashtag
    - 結尾卡上要不要一個短短的招牌字（例如「嗨！」），結尾卡下面的小字（例如「每週三更新」「各大 Podcast 平台搜尋〇〇」）
+   - 你希望影片給人什麼感覺？有沒有喜歡、想參考的帳號或影片？（例如「深色、慢慢的、像深夜電台」「像 @某某 的大字排版」。這題決定影片會不會跟別人撞款，盡量用自己的話說）
 4. **字型**：執行 `python "{{STUDIO}}\fonts.py" list`（列出這台電腦上有台灣繁體字形的字型，並產生 `my-brand\fonts_sheet.png` 樣本），用 Read 看樣本，從裡面挑 2 個風格不同、適合字幕的（例如一個黑體、一個手寫或楷書；太細、太花的不要選），再用 **AskUserQuestion**（單選，可附 preview 寫字型特色）：
    - jf open 粉圓（預設：圓潤、字幕最好讀）(Recommended)
    - 你挑的已安裝字型 A、B（標出是黑體／明體／楷書／手寫）
    - 下載其他免費字型：執行 `python "{{STUDIO}}\fonts.py" free` 把清單給使用者，說明「下載後在字型檔上按右鍵 → 安裝」，裝好後重新執行 `fonts.py list` 再選。
    使用者也可以選 Other 直接說字型名稱。把 `fonts_sheet.png` 的路徑一起給使用者，讓他能自己看樣本。
    選定後寫入 brand.json：`font` 填 `fonts.py list` 印出的名稱（預設粉圓保留 `jf-openhuninn-1.1.ttf`）；`font_weight` 字幕用 500–700 比較清楚（字型只有 400／700 就用 700；粉圓維持 400，引擎會自動加粗描邊）。
-   同一個 AskUserQuestion 再加一題**版面風格**（單選）：手作便條 `handmade`（膠帶便條卡、手繪色塊、粗線條，預設）、俐落簡約 `clean`（細框卡、純色、膠囊字幕）、雜誌感 `magazine`（色塊斜帶、柔和漸層、深色字幕框）、筆記本 `notebook`（方格紙、便條紙標題、淡細線）。第五種街頭活力 `street`（滿版大字、描邊字幕）放在說明裡，使用者可以選 Other。寫入 brand.json 的 `style`：`{"preset": "<key>"}`；使用者想單獨換某一項（例如「字幕改深色框」），加上那個元素的 key（`subtitle`、`title`、`background`、`line`、`motion`、`end`，選項見 STYLE.md 第 1 節）。也可以告訴使用者：控制台的「頻道設定」能點選比較每一種風格。
+   同一個 AskUserQuestion 再加三題：
+   - **版面風格**（單選）：自由創作 `free`（不套版：照第 3 步描述的感覺，剪輯師每支自己設計標題、字幕、背景和轉場；最不容易跟別人撞款）、手作便條 `handmade`（快速套版：膠帶便條卡、手繪色塊、粗線條）、俐落簡約 `clean`（快速套版：細框卡、純色、膠囊字幕）、雜誌感 `magazine`（快速套版：色塊斜帶、柔和漸層、深色字幕框）。另外兩種快速套版筆記本 `notebook`（方格紙、便條紙標題、淡細線）和街頭活力 `street`（滿版大字、描邊字幕）放在說明裡，使用者可以選 Other。使用者在第 3 步描述了明確的感覺或參考帳號，而且不像任何一種套版時，在說明裡建議自由創作。寫入 brand.json 的 `style`：`{"preset": "<key>"}`；使用者想單獨換某一項（例如「字幕改深色框」），加上那個元素的 key（`subtitle`、`title`、`background`、`line`、`motion`、`end`，選項見 STYLE.md 第 1 節）。
+   - **影片結構**（multiSelect，問「每支影片要有哪些固定的部分？」）：開頭標題卡、結尾卡、上方頻道標籤。沒勾的寫進 brand.json 的 `layout`（`"title_card": false`、`"end_card": false`、`"top_tag": false`）；都勾就不用寫。
+   - **節奏**（單選）：中等（每 3–4 秒換畫面）(Recommended)、快（每 2–3 秒，資訊密集）、慢（每 4–6 秒，留白多、適合療癒或深夜感）。不是中等時寫 `layout.pace`：`fast` 或 `slow`。
+   告訴使用者：字幕位置（下方／畫面中間）和大小、深色背景（配色 `night` 深夜藍、`cocoa` 可可深棕）都能之後在控制台「頻道設定」調，那裡也能點選比較每一種風格。使用者想要深色背景時，第 2 步的配色改用 `night` 或 `cocoa`。
 5. 依回答寫兩個檔（UTF-8，資料夾不存在就建立）：
    - `my-brand\brand.json`：照 `{{STUDIO}}\brand_template\brand.json` 的格式。`end_card.icon`：Podcast 用 `mic`，其他用 `play`（使用者喜歡也可以 `heart` / `star` / `none`；想用自己的 logo 就設 `logo`，圖片存成頻道資料夾的 `logo.png`，`logo_shape` 是 `original`（去背圖）、`circle` 或 `rounded`。最簡單是請使用者在控制台的「結尾卡 → 我的 logo」上傳）；`end_card.cta` 依結尾行動寫 4–6 字（例如「完整收聽」「追蹤看更多」「看完整版」）；`speaker_label` 是第二位講者的標籤。
-   - `my-brand\BRAND.md`：照 `{{STUDIO}}\brand_template\BRAND.md` 的章節填，把使用者的原話放進去，沒回答的寫「未設定」。
-6. 產生樣張：`python "{{STUDIO}}\brand_preview.py"`，用 Read 看 `my-brand\brand_preview.png` 確認沒有問題，把圖的路徑給使用者，問「這個配色、字型和結尾卡可以嗎？」。要改就改 brand.json 重跑，直到使用者滿意。
+   - `my-brand\BRAND.md`：照 `{{STUDIO}}\brand_template\BRAND.md` 的章節填，把使用者的原話放進去，沒回答的寫「未設定」。第 3 步「影片的感覺、參考帳號」寫進「自由創作方向」和「參考帳號或影片」（快速套版時也寫，剪輯師在套版內挑插圖和節奏時會參考）；「版面規則」寫出 `layout` 的白話說明（例如「開頭標題卡 不要、結尾卡 有、上方標籤 有、字幕在下方・中、節奏 慢」）。
+6. 產生樣張：`python "{{STUDIO}}\brand_preview.py"`，用 Read 看 `my-brand\brand_preview.png` 確認沒有問題，把圖的路徑給使用者，問「這個配色、字型和結尾卡可以嗎？」。版面風格是自由創作時要說明：樣張只看得出配色、字型和字幕大小，標題和畫面的樣子要等剪第一支才知道，看完成品再一起調方向。要改就改 brand.json 重跑，直到使用者滿意。
    - 輸出若出現「⚠ 樣張缺字」：頻道名稱或結尾文字裡有這個字型沒有的字（常見是 emoji），請使用者決定拿掉那個字或換字型，處理完再重跑，不要帶著缺字結束設定。
 7. 告訴使用者：設定存在哪裡、之後說「重新設定品牌」「換字型」或直接說「把強調色換成 #xxxxxx」都可以改（換字型時重做第 4 步和第 6 步）。
 

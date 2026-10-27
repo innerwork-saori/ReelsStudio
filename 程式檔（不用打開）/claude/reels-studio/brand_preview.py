@@ -1,5 +1,7 @@
 """Render a one-page preview of the current brand (brand.json): palette swatches, title card, a subtitle scene
 with props, the second-speaker chip, and the end card — so the user can approve the look before any clip is made.
+Follows brand.json layout: no top label / no end card (a punch-card scene instead) when those are switched off.
+With the "free" style the tiles show the built-in fallback look; the editor designs each clip itself.
 
 usage: python brand_preview.py [out.png]        default: <brand dir>/brand_preview.png
 Uses the brand in REELS_BRAND if set, else <toolkit>/my-brand/.
@@ -11,6 +13,7 @@ import props
 from PIL import Image
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+MID = (ILLU_TOP + ILLU_BOTTOM) // 2 if LAYOUT["subtitle_pos"] == "low" else 620   # centre of the picture area
 
 
 def frame(fn):
@@ -26,21 +29,29 @@ def title(c):
 
 def scene(c):
     paper_bg(c, 1.0); deco(c, 1.0)
-    with Xf(c, 540, 860, 1.25): props.mug(c, crack=0.8, fill=0.6, leak=0.4, t=1.0)
-    with Xf(c, 830, 520, 1, -8): stamp(c, "撐住", ACC, 80)
-    top_tag(c, 1.0, BRAND["tag"] or BRAND["name"])
+    with Xf(c, 540, MID + 20, 1.25): props.mug(c, crack=0.8, fill=0.6, leak=0.4, t=1.0)
+    with Xf(c, 830, MID - 320, 1, -8): stamp(c, "撐住", ACC, 80)
+    tag(c, 1.0)
     draw_subtitle(c, 2.0, "明明已經【裂開】了|還是每天裝滿", 0.0, "r")
 
 
 def speaker(c):
     paper_bg(c, 1.5, SKY); deco(c, 1.5, 0.7)
-    with Xf(c, 540, 820, 1.3): props.sprout(c, 1.5, 0.9)
-    top_tag(c, 1.5, BRAND["tag"] or BRAND["name"])
+    with Xf(c, 540, MID - 20, 1.3): props.sprout(c, 1.5, 0.9)
+    tag(c, 1.5)
     draw_subtitle(c, 2.0, "那你後來|怎麼【轉念】的？", 0.0, "h")
 
 
+def tag(c, t):
+    if LAYOUT["top_tag"]: top_tag(c, t, BRAND["tag"] or BRAND["name"])
+
+
 def end(c):
-    end_card(c, 2.5, 2.5)
+    if LAYOUT["end_card"]: return end_card(c, 2.5, 2.5)
+    paper_bg(c, 2.0, PEACH); deco(c, 2.0, 0.7)              # no end card: the clip ends on its last line
+    with Xf(c, 540, MID - 20, 1.3): props.pillow(c)
+    tag(c, 2.0)
+    draw_subtitle(c, 2.0, "!【先停一下】", 0.0, "r")
 
 
 def swatches():

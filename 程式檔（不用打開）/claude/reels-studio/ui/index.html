@@ -231,11 +231,31 @@
 
       <div class="card">
         <h2>版面風格</h2>
-        <p class="muted small" style="margin:0">字幕、標題卡、背景、插圖線條、動畫和結尾卡的整體樣子。點一個就會出樣張；跟別人的影片撞款時，換一個風格最有感。</p>
+        <p class="muted small" style="margin:0">字幕、標題卡、背景、插圖線條、動畫和結尾卡的整體樣子。前五種是<b>快速套版</b>：選了就固定是那個樣子，點一個就會出樣張。不想跟別人一樣，選最後一個<b>自由創作</b>：用文字描述你要的感覺，剪輯師每支自己設計。</p>
         <div class="palettes" id="presets"></div>
         <details id="style-d"><summary>逐項調整</summary>
           <p class="muted small" style="margin:6px 0 0">從上面選的風格出發，只換你想換的那幾項。</p>
           <div class="row2" id="style-parts"></div></details>
+        <div id="free-box" hidden>
+          <p class="muted small" style="margin:12px 0 0">自由創作時，標題、字幕、背景、裝飾和轉場都由剪輯師照這裡設計，每支可以不一樣。配色、字型和下面的「版面規則」照樣會套用。樣張只是備用的樣子，不代表成品。</p>
+          <div id="free-fields"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>版面規則</h2>
+        <p class="muted small" style="margin:0">影片的固定結構。不想每支都有開頭標題卡或結尾卡，在這裡關掉就好。</p>
+        <div class="icons" style="margin-top:10px">
+          <label><input type="checkbox" id="l-title_card"> 開頭標題卡</label>
+          <label><input type="checkbox" id="l-end_card"> 結尾卡</label>
+          <label><input type="checkbox" id="l-top_tag"> 上方的頻道標籤</label>
+        </div>
+        <div class="row2">
+          <label class="f">字幕位置<select id="l-subtitle_pos"><option value="low">下方（原本）</option><option value="middle">畫面中間</option></select></label>
+          <label class="f">字幕大小<select id="l-subtitle_size"><option value="s">小（每行 13 字內）</option><option value="m">中（每行 12 字內，原本）</option><option value="l">大（每行 10 字內）</option></select></label>
+        </div>
+        <label class="f">節奏<select id="l-pace"><option value="fast">快：每 2–3 秒換畫面</option><option value="medium">中：每 3–4 秒（原本）</option><option value="slow">慢：每 4–6 秒，留白多</option></select></label>
+        <p class="muted small" style="margin:6px 0 0">關掉開頭標題卡時，開場會直接進畫面，鉤子改用第一句字幕或剪輯師設計的開場。關掉結尾卡時，影片在最後一句話說完後結束。</p>
       </div>
 
       <div class="card">
@@ -247,7 +267,7 @@
           <label style="margin-left:12px"><input type="checkbox" id="c-hl-on"> 自己選亮點色</label>
           <input type="color" id="c-hl">
         </div>
-        <p class="muted small" style="margin:6px 0 0">強調色用在標題重點字和按鈕；亮點色用在字幕的重點底色。背景一律是淺色，字幕才看得清楚。</p>
+        <p class="muted small" style="margin:6px 0 0">強調色用在標題重點字和按鈕；亮點色用在字幕的重點底色。深夜藍、可可深棕是深色背景，字幕框會維持清楚。</p>
       </div>
 
       <div class="card">
@@ -408,7 +428,7 @@ document.querySelectorAll("nav button").forEach(b => b.addEventListener("click",
 let S = null;          // /api/state
 let cur = null;        // current brand object from the server
 let dirty = false;
-const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色" };
+const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色", night: "深夜藍（深色）", cocoa: "可可深棕（深色）" };
 const ICONS = [["mic", "🎙 麥克風"], ["play", "▶ 播放"], ["heart", "♥ 愛心"], ["star", "★ 星星"], ["logo", "🖼 我的 logo"], ["none", "不要圖示"]];
 const LOGO_SHAPES = [["original", "原本的形狀"], ["circle", "圓形"], ["rounded", "圓角方形"]];
 const MD = [
@@ -426,7 +446,12 @@ const MD = [
   ["禁用的詞或 hashtag", "text", [], "不想出現的詞，例如：雞湯、#某某某"],
   ["Emoji", "one", ["多", "少", "不用"], ""],
   ["露臉", "one", ["依素材判斷", "一律不露臉，只用插圖"], ""],
+  ["自由創作方向", "multi", ["深色電影感", "極簡留白", "大字排版為主", "拼貼手帳", "復古底片", "實拍照片為主", "慢慢浮現、不彈跳", "不要可愛的插圖"],
+   "用自己的話描述也可以，例如：黑底白字、一句一句慢慢浮現，像深夜的獨白"],
+  ["參考帳號或影片", "text", [], "例如：@某某 的大字排版，或貼影片連結",
+   "剪輯師只參考感覺（節奏、排版、氣氛），不會照抄別人的設計。"],
 ];
+const FREE_MD = ["自由創作方向", "參考帳號或影片"];   // shown in the 版面風格 card, only for the free style
 
 async function refresh() {
   S = await api("/api/state");
@@ -567,6 +592,7 @@ function fillBrand(b) {
   $("#c-accent").value = colors.accent || ""; $("#c-hl").value = colors.highlight || "";
   syncColors();
   renderStyle(br.style);
+  fillLayout(br.layout);
   // icons
   const ic = $("#icons"); ic.replaceChildren();
   for (const [k, label] of ICONS)
@@ -581,15 +607,16 @@ function fillBrand(b) {
   $("#e-badge").value = e.badge || ""; $("#e-cta").value = e.cta || ""; $("#e-sub").value = e.sub || ""; $("#e-guest").value = e.guest_prefix || "";
   // BRAND.md fields
   const box = $("#mdfields"); box.replaceChildren();
+  const freeBox = $("#free-fields"); freeBox.replaceChildren();
   for (const [label, kind, chips, ph, note] of MD) {
-    const long = label === "語氣" || label === "結尾行動（CTA）";
+    const long = label === "語氣" || label === "結尾行動（CTA）" || label === "自由創作方向";
     const input = h(long ? "textarea" : "input", { type: long ? null : "text", "data-md": label, placeholder: ph || (chips.length ? "點下面的按鈕，或自己打字" : ""), rows: long ? 2 : null });
     input.value = b.fields[label] || "";
     const chipEls = chips.map(c => h("button", { type: "button", class: "chip", onclick: () => {
       if (kind === "multi") { const parts = input.value.split("、").map(s => s.trim()).filter(Boolean); if (!parts.includes(c)) parts.push(c); input.value = parts.join("、"); }
       else input.value = c;
       markDirty(); } }, c));
-    box.append(h("div", { class: "field" }, h("label", { class: "f" }, label, input), chipEls.length ? h("div", { class: "chiplist" }, chipEls) : "",
+    (FREE_MD.includes(label) ? freeBox : box).append(h("div", { class: "field" }, h("label", { class: "f" }, label, input), chipEls.length ? h("div", { class: "chiplist" }, chipEls) : "",
       note ? h("p", { class: "muted small", style: "margin:4px 0 0" }, note) : ""));
   }
   $("#b-notes").value = b.fields["其他補充"] || "";
@@ -612,6 +639,7 @@ const PRESET_INFO = {
   magazine: ["雜誌感", "色塊斜帶標題、柔和漸層、深色字幕框、名片卡結尾"],
   notebook: ["筆記本", "方格紙背景、便條紙標題、淡淡的細線插圖、柔和動畫"],
   street:   ["街頭活力", "滿版大字標題、描邊字幕、純色背景、彈跳感"],
+  free:     ["自由創作", "不套版：你描述想要的感覺，剪輯師每支自己設計標題、字幕、背景和轉場"],
 };
 const PART_INFO = {
   subtitle: ["字幕", { box: "白色框（原本）", outline: "描邊大字、沒有框", pill: "每行一條白色膠囊", dark: "深色半透明框" }],
@@ -629,6 +657,12 @@ function resolveStyle(s) {
 }
 function presetMock(key) {           // a tiny drawing of the look in the current palette
   const p = S.palettes[selectedPalette()] || S.palettes.cream, st = S.style_presets[key];
+  if (key === "free")                // no fixed look to draw: a few loose shapes in the palette
+    return h("div", { class: "mock", style: `background:${p.bg}` },
+      h("i", { style: `position:absolute;left:12%;top:18%;width:26px;height:26px;border-radius:50%;background:${p.accent}` }),
+      h("i", { style: `position:absolute;right:14%;top:12%;width:34px;height:12px;transform:rotate(-12deg);background:${p.highlight}` }),
+      h("i", { style: `position:absolute;left:42%;top:30%;width:18px;height:18px;transform:rotate(45deg);border:2px dashed ${p.fg || p.ink}` }),
+      h("span", { style: `position:absolute;left:50%;bottom:7px;transform:translateX(-50%);font-size:11px;white-space:nowrap;font-weight:700;color:${p.fg || p.ink}` }, "你描述，Claude 設計"));
   const bg = { blobs: `radial-gradient(circle at 10% 20%, ${p.peach} 0 26%, transparent 27%), radial-gradient(circle at 95% 90%, ${p.highlight}66 0 30%, transparent 31%), ${p.bg}`,
                plain: p.bg, grid: `repeating-linear-gradient(0deg, ${p.ink}14 0 1px, transparent 1px 9px), repeating-linear-gradient(90deg, ${p.ink}14 0 1px, transparent 1px 9px), ${p.bg}`,
                gradient: `radial-gradient(circle at 80% 20%, ${p.highlight}66, transparent 55%), linear-gradient(${p.bg}, ${p.peach})` }[st.background];
@@ -647,12 +681,32 @@ function renderStyle(style) {
     box.append(h("button", { type: "button", class: "pal", "aria-pressed": key === preset, "data-preset": key,
       onclick: ev => {
         box.querySelectorAll(".pal").forEach(x => x.setAttribute("aria-pressed", x === ev.currentTarget));
-        fillParts(S.style_presets[key]); markDirty(); runPreview(false);
+        fillParts(S.style_presets[key]); showFreeBox(); markDirty(); runPreview(false);
       } }, presetMock(key), h("b", {}, name), h("div", { class: "desc" }, desc)));
   }
   fillParts(resolveStyle(style));
   $("#style-d").open = Object.keys(style || {}).some(k => k !== "preset");
+  showFreeBox();
 }
+function showFreeBox() {             // free style: the description fields instead of the element-by-element choices
+  const free = collectStyle().preset === "free";
+  $("#free-box").hidden = !free; $("#style-d").hidden = free;
+}
+const LAYOUT_BOOL = ["title_card", "end_card", "top_tag"], LAYOUT_SEL = ["subtitle_pos", "subtitle_size", "pace"];
+function fillLayout(l) {
+  l = Object.assign({}, S.layout_defaults, l || {});
+  for (const k of LAYOUT_BOOL) $("#l-" + k).checked = !!l[k];
+  for (const k of LAYOUT_SEL) $("#l-" + k).value = l[k];
+}
+function collectLayout() {
+  const out = {};
+  for (const k of LAYOUT_BOOL) out[k] = $("#l-" + k).checked;
+  for (const k of LAYOUT_SEL) out[k] = $("#l-" + k).value;
+  return out;
+}
+// the preview shows the tag, subtitle and end card, so redraw it when those change (pace is not visible)
+["title_card", "end_card", "top_tag", "subtitle_pos", "subtitle_size"].forEach(k =>
+  $("#l-" + k).addEventListener("change", () => { markDirty(); runPreview(false); }));
 function fillParts(values) {
   const box = $("#style-parts"); box.replaceChildren();
   for (const [part, [label, names]] of Object.entries(PART_INFO))
@@ -715,7 +769,7 @@ function collect() {
   const fontOpt = $("#b-font").selectedOptions[0];
   return { dir: cur.dir, fields: md, brand: {
     name: $("#b-name").value, tag: $("#b-tag").value,
-    palette: selectedPalette(), style: collectStyle(),
+    palette: selectedPalette(), style: collectStyle(), layout: collectLayout(),
     colors: { accent: $("#c-accent-on").checked ? $("#c-accent").value : null, highlight: $("#c-hl-on").checked ? $("#c-hl").value : null },
     font: fontOpt && fontOpt.value ? fontOpt.value : cur.brand.font,
     font_weight: $("#b-weight").value || null,

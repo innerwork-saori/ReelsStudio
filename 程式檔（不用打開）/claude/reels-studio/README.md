@@ -4,9 +4,9 @@
 
 | 檔案 | 用途 |
 |---|---|
-| `STYLE.md` | 共通製作規則：版面、固定要求、剪接／字幕／品管／文案底線、實拍素材（Pexels／Unsplash）、露臉模式。**所有 agent 必讀。** |
-| `my-brand\brand.json` | 這個頻道的程式設定：名稱、配色、字型（名稱＋粗細）、結尾卡、版面風格 `style`（整體風格 `preset`＋逐項調整，選項在 `reels_lib.py` 的 `STYLE_OPTIONS`／`STYLE_PRESETS`；沒寫就是原本的手作便條）。第一次使用時由問答或控制台產生，重裝不會被覆蓋 |
-| `my-brand\BRAND.md` | 這個頻道給 agent 的說明：講者、受眾、文案語氣、hashtag、長期偏好 |
+| `STYLE.md` | 共通製作規則：版面、固定要求、剪接／字幕／品管／文案底線、實拍素材（Pexels／Unsplash）、露臉模式、自由創作模式。**所有 agent 必讀。** |
+| `my-brand\brand.json` | 這個頻道的程式設定：名稱、配色、字型（名稱＋粗細）、結尾卡、版面風格 `style`（整體風格 `preset`＋逐項調整，選項在 `reels_lib.py` 的 `STYLE_OPTIONS`／`STYLE_PRESETS`；沒寫就是原本的手作便條；`free` 是自由創作，見 STYLE.md 第 12 節）、版面規則 `layout`（標題卡、結尾卡、上方標籤開關，字幕位置大小、節奏；選項在 `LAYOUT_OPTIONS`，沒寫就是預設）。第一次使用時由問答或控制台產生，重裝不會被覆蓋 |
+| `my-brand\BRAND.md` | 這個頻道給 agent 的說明：講者、受眾、文案語氣、hashtag、自由創作方向與參考帳號、長期偏好 |
 | `brand_template\` | 上面兩個檔的空白範本 |
 | `studio_ui.py` | 本機控制台（網頁）：用點選的方式改 brand.json／BRAND.md 並出樣張；看素材資料夾做到哪一步、播放成品、複製文案。只聽 127.0.0.1；桌面捷徑「Reels Studio」用 pythonw 開它。改 BRAND.md 時只動使用者改過的 `- 欄位：值` 那一行，其他內容保留 |
 | `ui\` | 控制台的頁面（`index.html`）與圖示 |

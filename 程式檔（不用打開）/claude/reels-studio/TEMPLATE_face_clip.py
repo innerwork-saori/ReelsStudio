@@ -4,6 +4,7 @@ copy to <video folder>/_reels_work/clipN/clip.py and fill in the 4 marked blocks
 The picture follows the audio edit automatically: R.face(c, t) shows the source frame for the SOURCE second
 being heard, so every cut in KEEPS becomes a jump cut. Mix freely with illustrated / Pexels scenes for the
 abstract parts (STYLE.md §10 has the rhythm rules).
+Check the channel's brand.json first: layout (title card / end card / pace) and style "free" (STYLE.md §12).
 
   python clip.py audio    -> check every cut prints OK, else move it into a silence from words.py output
   python clip.py sheet    -> READ sheet_*.png: face in frame? not sideways? subtitle not on the mouth?
@@ -23,7 +24,7 @@ OUT = os.path.join(HERE, "..", "..", "RECORDING_Reels_片段N.mp4")
 TL = Timeline(
     keeps=[(2.10, 9.80), (10.40, 21.30), (22.00, 34.60)],
     seg_t0=0.0,
-    end_hold=0.4,
+    # end_hold / end_card follow brand.json layout.end_card (0.4 s + 3.6 s card, or 0.9 s and no card)
 )
 
 # ---- 2. subtitles: same rules as TEMPLATE_clip.py ----
@@ -60,16 +61,17 @@ def sc_pip(c, t, lt, dur):                                    # illustration wit
 def sc_end(c, t, lt, dur):
     end_card(c, t, lt)
 
+# layout.title_card false: no title card, the first scene starts at 0 and carries the hook itself
 SCENES = [
-    ("title", 0.0, sc_title),
+    ("title", 0.0, sc_title) if LAYOUT["title_card"] else ("talk0", 0.0, sc_talk),
     ("talk", 3.0, sc_talk),
     ("talk_prop", 9.0, sc_talk_prop),
     ("broll", 16.0, sc_broll),
     ("pip", 20.0, sc_pip),
     ("talk2", 25.0, sc_talk),
-    ("end", TL.END_START, sc_end),
-]
-# ---- 4. transitions: face -> face uses 'cut'; into / out of illustrations rotate circle / slide / zoom ----
+] + ([("end", TL.END_START, sc_end)] if LAYOUT["end_card"] else [])
+# ---- 4. transitions: face -> face uses 'cut'; into / out of illustrations rotate circle / slide / zoom / fade / push
+#         (free style: a fn(c, k, prev, cur) of your own) ----
 TRANS = {"talk": "cut", "talk_prop": "cut", "broll": "circle", "pip": "slide", "talk2": "zoom", "end": "circle"}
 
 R = Reel(HERE, os.path.abspath(OUT), TL, SUBS, SCENES, TRANS, source_video=SRC)   # rotate=90 if the file is tagged wrong

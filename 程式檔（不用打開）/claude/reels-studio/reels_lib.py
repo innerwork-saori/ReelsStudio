@@ -3,9 +3,12 @@
 A clip script (see TEMPLATE_clip.py) only defines: the edit (KEEPS), subtitles, scene functions and the
 scene list, then calls Reel(...).cli().  Everything shared lives here so every Reel looks like one series:
 palette, font, decorations, subtitle box, top tag, title card, transitions, end card, audio build, encode.
+With style preset "free" these built-ins are only a fallback: the clip script may draw its own title, subtitles
+(Reel(..., subtitle=fn)), backgrounds and transitions (TRANS value = fn) following the channel's BRAND.md.
 
 The channel's look comes from brand.json (see BRAND_DIR below; written by the reels-studio setup interview):
-name, palette preset + colour overrides, font, end card. Without a brand.json the defaults below are used.
+name, palette preset + colour overrides, font, end card, layout look (style) and layout rules (layout).
+Without a brand.json the defaults below are used.
 
 Two picture modes, freely mixed inside one clip:
   illustrated  scenes drawn with shapes / props.py / Pexels media (audio-only sources)
@@ -44,7 +47,7 @@ def _project_brand():
     return None
 
 BRAND_DIR = os.environ.get("REELS_BRAND") or _project_brand() or os.path.join(HERE, "my-brand")
-PALETTES = {   # light backgrounds only: subtitles, ink outlines and decorations assume a pale paper
+PALETTES = {   # bg may be light or dark; text straight on the background uses FG (INK on light, fg on dark)
     "cream": dict(bg="#FFF6EC", ink="#3D2C29", accent="#EF6F3C", highlight="#F7B538", peach="#F9C9B0", rose="#E98A7E",
                   sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CBC2BA"),
     "mint":  dict(bg="#F3FAF6", ink="#23413A", accent="#2E9E83", highlight="#F6C445", peach="#FBD3B9", rose="#EE8F84",
@@ -55,6 +58,11 @@ PALETTES = {   # light backgrounds only: subtitles, ink outlines and decorations
                   sage="#A8CFA8", sky="#AAD4E4", lilac="#D8C6EE", alert="#D9433B", ok="#6FB28A", gray="#D2C3C8"),
     "mono":  dict(bg="#F7F6F3", ink="#222222", accent="#FF5A36", highlight="#FFD23F", peach="#EDE6DF", rose="#F2B5A7",
                   sage="#C8D5C0", sky="#CFDDE6", lilac="#DAD5EA", alert="#E0412F", ok="#5FA777", gray="#CCCAC5"),
+    # dark paper: props keep their light fills + dark outlines (sticker-like), FG is the text colour on the background
+    "night": dict(bg="#1C2233", ink="#141824", fg="#F3EFE7", accent="#FF8A5B", highlight="#FFD166", peach="#F6C3A8",
+                  rose="#F08FA0", sage="#9FD3B4", sky="#8EC5F0", lilac="#C3B8F2", alert="#FF6B57", ok="#6CCB8E", gray="#5A6378"),
+    "cocoa": dict(bg="#2B211D", ink="#1A1311", fg="#F7EDE2", accent="#F2A541", highlight="#F6D06F", peach="#F1C2A2",
+                  rose="#E79A8C", sage="#B5CFA0", sky="#A7CBE0", lilac="#CDBBE6", alert="#F06A4F", ok="#8CC98F", gray="#6B5A52"),
 }
 BRAND_DEFAULTS = {
     "name": "我的頻道",              # top tag + end card title
@@ -69,10 +77,21 @@ BRAND_DEFAULTS = {
                  "badge": "",        # short sticker above the name, e.g. 「嗨！」 ('' = none)
                  "cta": "看完整版", "sub": "連結在個人檔案", "guest_prefix": "本集來賓"},
     "style": {},                     # layout look: {"preset": <STYLE_PRESETS key>, <STYLE_OPTIONS key>: <option>, ...}
+    "layout": {"title_card": True,   # hook card in the first seconds (False: the clip opens straight on a scene)
+               "end_card": True,     # brand end card (False: the clip ends after the last word)
+               "top_tag": True,      # channel label at the top of every scene
+               "subtitle_pos": "low", "subtitle_size": "m", "pace": "medium"},   # options: LAYOUT_OPTIONS
+}
+# layout rules the channel can change (the panel's 版面規則); pace is read by the editor agent, not the engine
+LAYOUT_OPTIONS = {
+    "subtitle_pos":  ["low", "middle"],              # centre y 1500 (under the picture) / 1180 (over the middle)
+    "subtitle_size": ["s", "m", "l"],                # 70 / 82 / 96 px, max 13 / 12 / 10 chars per line
+    "pace":          ["fast", "medium", "slow"],     # a new picture or beat every 2-3 / 3-4 / 4-6 s
 }
 
 # Layout looks (the panel's 版面風格). A preset fills every element; keys given next to it override that one element.
-# No "style" in brand.json = handmade, the original look.
+# No "style" in brand.json = handmade, the original look. "free" = the editor designs each clip from BRAND.md's
+# 自由創作方向; its element values are only the fallback the built-in title_card / end_card / subtitles use.
 STYLE_OPTIONS = {
     "subtitle":   ["box", "outline", "pill", "dark"],        # white framed box / outlined text, no box / a pill per line / dark box
     "title":      ["note", "bold", "line", "magazine"],      # taped note card / big text, no card / thin-frame card / colour slab
@@ -87,6 +106,7 @@ STYLE_PRESETS = {
     "magazine": {"subtitle": "dark", "title": "magazine", "background": "gradient", "line": "thin", "motion": "gentle", "end": "card"},
     "notebook": {"subtitle": "pill", "title": "note", "background": "grid", "line": "soft", "motion": "gentle", "end": "card"},
     "street":   {"subtitle": "outline", "title": "bold", "background": "plain", "line": "bold", "motion": "bouncy", "end": "classic"},
+    "free":     {"subtitle": "pill", "title": "bold", "background": "plain", "line": "thin", "motion": "snappy", "end": "minimal"},
 }
 
 def load_brand():
@@ -109,6 +129,16 @@ def _style():
     return out
 
 STYLE = _style()
+FREE = (BRAND.get("style") or {}).get("preset") == "free"
+
+def _layout():
+    out = dict(BRAND_DEFAULTS["layout"])
+    for k, v in (BRAND.get("layout") or {}).items():
+        if k in LAYOUT_OPTIONS: out[k] = v if v in LAYOUT_OPTIONS[k] else out[k]
+        elif k in out: out[k] = bool(v)
+    return out
+
+LAYOUT = _layout()
 if os.path.normcase(os.path.abspath(BRAND_DIR)) != os.path.normcase(os.path.join(HERE, "my-brand")):
     try: print(f"[reels_lib] channel: {BRAND['name']}  ({BRAND_DIR})")
     except UnicodeEncodeError: print(f"[reels_lib] channel: {BRAND_DIR!a}")
@@ -157,6 +187,12 @@ BG = _pal["bg"]; INK = _pal["ink"]; ACC = _pal["accent"]; SUN = _pal["highlight"
 SAGE = _pal["sage"]; SKY = _pal["sky"]; LILAC = _pal["lilac"]; WHITE = "#FFFFFF"; GRAY = _pal["gray"]
 RED = _pal["alert"]; GREEN = _pal["ok"]; COOL = "#E7ECEF"; MINT = "#CFE8E2"; STEEL = "#9AA9B5"
 
+def _lum(h):
+    h = h.lstrip("#"); r, g, b = (int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+DARK = _lum(BG) < 0.45                       # dark paper (palette night / cocoa, or a dark bg override)
+FG = _pal.get("fg") or ("#F5F1EA" if DARK else INK)   # text / thin marks drawn straight on the background
+
 def mix(a, b, k):
     """hex colour k (0..1) of the way from a to b"""
     a, b = a.lstrip("#"), b.lstrip("#")
@@ -169,8 +205,10 @@ LINE_INK = mix(INK, BG, 0.42) if STYLE["line"] == "soft" else INK
 MOTION_S = {"bouncy": 1.0, "snappy": 0.35, "gentle": 0.0}[STYLE["motion"]]
 
 SAFE_TOP, SAFE_BOTTOM = 250, H - 250        # IG UI covers these; nothing important outside
-SUB_Y = 1500                                 # subtitle box centre
-ILLU_TOP, ILLU_BOTTOM = 380, 1300            # main illustration band
+SUB_Y = {"low": 1500, "middle": 1180}[LAYOUT["subtitle_pos"]]          # subtitle box centre
+SUB_SZ, SUB_LH, SUB_MAX = {"s": (70, 94, 13), "m": (82, 108, 12), "l": (96, 124, 10)}[LAYOUT["subtitle_size"]]
+# main illustration band: above the subtitles (low), or above them with a little room below (middle: 1340-1640)
+ILLU_TOP, ILLU_BOTTOM = (380, 1300) if LAYOUT["subtitle_pos"] == "low" else (380, 1020)
 
 # ---------------- maths / easing ----------------
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
@@ -391,11 +429,11 @@ def deco(c, t, a=1.0):
         for i, (x, y, r, col) in enumerate(SPARKS):
             star4(c, x, y + 6 * math.sin(t * 1.4 + i), r * (0.65 + 0.35 * math.sin(t * 2.6 + i * 1.3)), col, a)
         for i, (x, y) in enumerate([(110, 1010), (980, 980), (930, 420)]):
-            c.drawCircle(x, y + 5 * math.sin(t * 2 + i), 9, P(INK, 0.25 * a, stroke=4))
+            c.drawCircle(x, y + 5 * math.sin(t * 2 + i), 9, P(FG, 0.25 * a, stroke=4))
     elif bgs == "grid":                      # doodles in the notebook margin
         for i, (x, y) in enumerate([(48, 470), (48, 1080)]):
             star4(c, x, y + 4 * math.sin(t * 1.4 + i), 15, ACC, 0.55 * a)
-        c.drawCircle(1000, 430 + 4 * math.sin(t * 2), 12, P(INK, 0.22 * a, stroke=3))
+        c.drawCircle(1000, 430 + 4 * math.sin(t * 2), 12, P(FG, 0.22 * a, stroke=3))
     else:                                    # gradient: a few faint glints
         for i, (x, y, r) in enumerate([(130, 460, 16), (960, 820, 20), (900, 1210, 12)]):
             star4(c, x, y + 5 * math.sin(t * 1.4 + i), r * (0.7 + 0.3 * math.sin(t * 2.6 + i)), WHITE, 0.85 * a)
@@ -408,12 +446,13 @@ def paper_bg(c, t, base=BG):
         blob(c, -40, 300, 300, PEACH, 0.45, t, 1); blob(c, 1120, 1500, 340, SUN, 0.22, t, 2)
         blob(c, 1100, 250, 180, SAGE, 0.25, t, 3); blob(c, -60, 1650, 220, ROSE, 0.2, t, 4)
     elif bgs == "grid":
-        line = P(INK, 0.07, stroke=2, raw=True)
+        line = P(FG, 0.07, stroke=2, raw=True)
         for x in range(30, W, 60): c.drawLine(x, 0, x, H, line)
         for y in range(30, H, 60): c.drawLine(0, y, W, y, line)
         c.drawLine(96, 0, 96, H, P(ROSE, 0.45, stroke=3, raw=True))           # margin line
     elif bgs == "gradient":
-        c.drawPaint(P(base, shader=lin(0, 0, 0, H, [mix(base, WHITE, 0.5), mix(base, PEACH, 0.4)])))
+        top, bot = (mix(base, WHITE, 0.08), mix(base, ACC, 0.12)) if DARK else (mix(base, WHITE, 0.5), mix(base, PEACH, 0.4))
+        c.drawPaint(P(base, shader=lin(0, 0, 0, H, [top, bot])))
         for x, y, r, col, a in ((860 + 30 * math.sin(t * 0.4), 520, 520, SUN, 0.30), (180, 1450 + 30 * math.cos(t * 0.35), 560, SKY, 0.26)):
             c.drawCircle(x, y, r, P(col, shader=skia.GradientShader.MakeRadial(skia.Point(x, y), r, [hx(col, a), hx(col, 0)])))
 
@@ -520,7 +559,11 @@ def video_scene(c, path, lt, dur, offset=0.0, grade=None, **kw):
 # ---------------- edit decision list ----------------
 class Timeline:
     """KEEPS = [(src_start, src_end), ...] in EPISODE seconds.  o(src) -> output second."""
-    def __init__(s, keeps, seg_t0, lead=0.35, end_hold=0.4, end_card=3.6):
+    def __init__(s, keeps, seg_t0, lead=0.35, end_hold=None, end_card=None):
+        """end_card / end_hold default from brand.json layout: a 3.6 s card after a 0.4 s hold, or no card and a
+        0.9 s hold so the clip does not stop on the last syllable"""
+        if end_card is None: end_card = 3.6 if LAYOUT["end_card"] else 0.0
+        if end_hold is None: end_hold = 0.4 if end_card else 0.9
         s.KEEPS, s.SEG_T0, s.LEAD = keeps, seg_t0, lead
         s.SPEECH_END = s.o(keeps[-1][1])
         s.END_START = s.SPEECH_END + end_hold
@@ -575,7 +618,7 @@ def draw_subtitle(c, t, s, t0, who="r"):
     big = s.startswith("!"); s = s.lstrip("!")
     k = eback(prog(t, t0, 0.3 if big else 0.22), 3.0 if big else 2.2)
     lines = s.split("|")
-    sz, lh = (130, 150) if big else (82, 108)
+    sz, lh = (130, 150) if big else (SUB_SZ, SUB_LH)
     f = font(sz)
     wmax = max(f.measureText(l.replace("【", "").replace("】", "")) for l in lines)
     bw, bh = wmax + 90, lh * len(lines) + 46
@@ -617,14 +660,16 @@ def top_tag(c, t, label):
         c.drawCircle(-w / 2 - 6, -6, 8, P(ACC, 0.6 + 0.4 * math.sin(t * 5)))
         text(c, label, 8, 6, sz, INK)
 
-def title_card(c, t, lt, rows, punch, punch_bg=SUN, y=790, bg=None):
+def title_card(c, t, lt, rows, punch, punch_bg=SUN, y=None, bg=None):
     """Hook card for 0-3 s. rows: ≤3 rich-text lines (92px); punch: big accent line (≤6 chars ideal).
+    y: card centre; default 790, or 640 with middle subtitles so the first subtitle does not sit on the card.
     bg: optional fn(c) drawn instead of the paper background — e.g. lambda c: R.face(c, t) so the speaker is
     already on screen behind the card (a light wash keeps the card readable)."""
     if bg:
         bg(c); c.drawRect(skia.Rect.MakeXYWH(0, 0, W, H), P(BG, 0.35))
     else:
         paper_bg(c, t); deco(c, t)
+    if y is None: y = 790 if LAYOUT["subtitle_pos"] == "low" else 640
     k = eback(prog(lt, 0.0, 0.45), 1.4)
     style = STYLE["title"]
     if style != "note": return _title_styled(c, t, lt, rows, punch, punch_bg, y, k, style)
@@ -744,8 +789,8 @@ def end_card(c, t, lt, show=None, guest=None, cta=None, sub=None, ep=None, icon=
             rrect(c, -bw / 2, -90, bw, 120, 30, P(SUN, 0.55)); text(c, badge, 0, 5, 130, ACC, bold=4)
     kt2 = eo(prog(lt, 0.35, 0.4))
     with Xf(c, 540, 1180 + (1 - kt2) * 40, 1, 0, kt2):
-        text(c, show, 0, 0, fit(show, 96, 940), INK, bold=2.5)
-        if line: text(c, line, 0, 80, fit(line, 48 if ep else 44, 900), INK, a=0.8 if ep else 0.7, bold=1 if ep else 0)
+        text(c, show, 0, 0, fit(show, 96, 940), FG, bold=2.5)
+        if line: text(c, line, 0, 80, fit(line, 48 if ep else 44, 900), FG, a=0.8 if ep else 0.7, bold=1 if ep else 0)
     with Xf(c, 540, 1440, eback(prog(lt, 0.6, 0.45), 2.2) * (1 + 0.04 * math.sin(t * 6))):
         sz = fit(cta, 76, 400); tw = font(sz).measureText(cta); bw = max(560, tw + 220)
         shadow(c, -bw / 2, -70, bw, 140, 70, 0.22)
@@ -754,7 +799,7 @@ def end_card(c, t, lt, show=None, guest=None, cta=None, sub=None, ep=None, icon=
         c.drawPath(tri, P(WHITE))
         text(c, cta, max(-bw / 2 + 320, -bw / 2 + 160 + tw / 2), 26, sz, WHITE, bold=2.5)   # clear of the ▶
     if sub:
-        with Xf(c, 540, 1590, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 44, 900), INK, a=0.75)
+        with Xf(c, 540, 1590, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 44, 900), FG, a=0.75)
 
 def _cta(c, cta, filled=True, width=560):
     """the call-to-action button: filled accent pill with a ▶, or an accent outline"""
@@ -779,13 +824,13 @@ def _end_styled(c, t, lt, show, line, is_ep, cta, sub, badge, draw_icon, style):
         if badge:
             with Xf(c, 540, 930, 1, 0, eo(prog(lt, 0.2, 0.4))): text(c, badge, 0, 0, fit(badge, 64, 700), ACC, bold=2)
         with Xf(c, 540, 1090 + (1 - kt2) * 30, 1, 0, kt2):
-            text(c, show, 0, 0, fit(show, 104, 940), INK, bold=2.5)
-            if line: text(c, line, 0, 76, fit(line, 44, 900), INK, a=0.75)
+            text(c, show, 0, 0, fit(show, 104, 940), FG, bold=2.5)
+            if line: text(c, line, 0, 76, fit(line, 44, 900), FG, a=0.75)
         rw = 300 * eo(prog(lt, 0.5, 0.4))
-        c.drawLine(540 - rw, 1215, 540 + rw, 1215, P(INK, 0.35, stroke=3, raw=True))
+        c.drawLine(540 - rw, 1215, 540 + rw, 1215, P(FG, 0.35, stroke=3, raw=True))
         with Xf(c, 540, 1370, lerp(0.85, 1, eback(prog(lt, 0.6, 0.4))), 0, eo(prog(lt, 0.6, 0.3))): _cta(c, cta, filled=False)
         if sub:
-            with Xf(c, 540, 1530, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 42, 900), INK, a=0.7)
+            with Xf(c, 540, 1530, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 42, 900), FG, a=0.7)
     else:                                    # card: everything on one profile-style card
         with Xf(c, 540, 985, lerp(0.85, 1, k), 0, clamp(k * 1.5)):
             shadow(c, -390, -470, 780, 880, 48, 0.16)
@@ -802,21 +847,29 @@ def _end_styled(c, t, lt, show, line, is_ep, cta, sub, badge, draw_icon, style):
                 if line: text(c, line, 0, 72, fit(line, 44 if is_ep else 40, 700), INK, a=0.75)
             with Xf(c, 0, 262, eback(prog(lt, 0.6, 0.45), 2.0)): _cta(c, cta, width=520)
         if sub:
-            with Xf(c, 540, 1475, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 42, 900), INK, a=0.75)
+            with Xf(c, 540, 1475, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 42, 900), FG, a=0.75)
 
 # ---------------- the reel ----------------
 class Reel:
-    """scenes: [(name, out_start_sec, fn(c, t, lt, dur))], first must start at 0 (title card), last = end card.
+    """scenes: [(name, out_start_sec, fn(c, t, lt, dur))], first must start at 0 (the title card, or the opening
+            scene when brand.json layout.title_card is false), last = end card (when layout.end_card is true).
     subs:   [(text, SOURCE second, who)]  — converted with timeline.o().
-    trans:  {scene_name: 'circle' | 'slide' | 'zoom' | 'cut'}  transition INTO that scene.
+    trans:  {scene_name: 'circle' | 'slide' | 'zoom' | 'fade' | 'push' | 'cut' | fn}  transition INTO that scene.
+            fade = cross-dissolve, push = the new scene pushes the old one up. fn(c, k, prev, cur): your own,
+            k 0..1 eased, prev() / cur() draw the outgoing / incoming scene.
+    subtitle: optional fn(c, t, text, t0, who) drawn instead of draw_subtitle (free style: your own subtitle look;
+            keep it inside 250..1670 px and readable).
+    tag=False hides the top label (as does brand.json layout.top_tag false).
     source_video: the speaker's own recording (same file words.py read, so its clock = SOURCE seconds) for R.face().
     rotate: force the source footage rotation if the file's tag is wrong (see VideoSource)."""
     TR = {"bouncy": 0.32, "snappy": 0.24, "gentle": 0.45}[STYLE["motion"]]
 
     def __init__(s, clipdir, out_mp4, timeline, subs, scenes, trans, tag=None, hide_tag=("title", "end"),
-                 source_video=None, rotate=None):
+                 source_video=None, rotate=None, subtitle=None):
         s.dir, s.out, s.tl, s.trans, s.hide_tag = clipdir, out_mp4, timeline, trans, hide_tag
-        s.tag = tag or BRAND["tag"] or BRAND["name"]
+        s.show_tag = tag is not False and LAYOUT["top_tag"]
+        s.tag = (tag if isinstance(tag, str) else None) or BRAND["tag"] or BRAND["name"]
+        s.draw_sub = subtitle or draw_subtitle
         s.src_video, s.rotate = source_video, rotate
         s.scenes = scenes
         s.start = {n: st for n, st, _ in scenes}
@@ -824,7 +877,7 @@ class Reel:
         for txt, _, _ in subs:
             for line in txt.lstrip("!").split("|"):
                 n = len(line.replace("【", "").replace("】", ""))
-                assert n <= 12, f"subtitle line over 12 chars ({n}): {line}"
+                assert n <= SUB_MAX, f"subtitle line over {SUB_MAX} chars ({n}): {line}"
         assert scenes[0][1] == 0.0
         s.reported = s.check_glyphs(subs)
 
@@ -883,7 +936,17 @@ class Reel:
         lt = t - st; kind = s.trans.get(n, "cut")
         if i > 0 and lt < s.TR and kind != "cut":
             k = eio(lt / s.TR)
-            if kind == "slide":   # clip each half: drawColor/drawPaint backgrounds ignore translate
+            if callable(kind):
+                kind(c, k, lambda: s._draw(c, i - 1, t), lambda: s._draw(c, i, t))
+            elif kind == "fade":
+                s._draw(c, i - 1, t)
+                c.saveLayerAlpha(skia.Rect.MakeWH(W, H), int(255 * k)); s._draw(c, i, t); c.restore()
+            elif kind == "push":   # vertical: the new scene comes up from below
+                with Xf(c, 0, -H * k):
+                    c.clipRect(skia.Rect.MakeXYWH(0, 0, W, H)); s._draw(c, i - 1, t)
+                with Xf(c, 0, H * (1 - k)):
+                    c.clipRect(skia.Rect.MakeXYWH(0, 0, W, H)); s._draw(c, i, t)
+            elif kind == "slide":   # clip each half: drawColor/drawPaint backgrounds ignore translate
                 with Xf(c, -W * k, 0):
                     c.clipRect(skia.Rect.MakeXYWH(0, 0, W, H)); s._draw(c, i - 1, t)
                 with Xf(c, W * (1 - k), 0):
@@ -898,12 +961,12 @@ class Reel:
                 s._draw(c, i, t); c.restore()
         else:
             s._draw(c, i, t)
-        if n not in s.hide_tag: top_tag(c, t, s.tag)
+        if s.show_tag and n not in s.hide_tag: top_tag(c, t, s.tag)
         if t < s.tl.END_START:
             cur = None
             for txt, t0, who in s.subs:
                 if t >= t0 - 0.03: cur = (txt, t0, who)
-            if cur: draw_subtitle(c, t, cur[0], cur[1], cur[2])
+            if cur: s.draw_sub(c, t, cur[0], cur[1], cur[2])
 
     def snapshot(s, t, path):
         surf = skia.Surface(W, H)
