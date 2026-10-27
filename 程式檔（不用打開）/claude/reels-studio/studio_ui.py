@@ -1,4 +1,4 @@
-"""Reels Studio 控制台：本機網頁面板（頻道設定、我的作品），給不想打字的使用者用。只聽 127.0.0.1，不需要網路。
+"""Reels Studio 控制台：本機網頁面板（做影片、頻道風格），給不想打字的使用者用。只聽 127.0.0.1，不需要網路。
 
 usage: python studio_ui.py [--port 8765] [--no-browser]
 The desktop shortcut runs it with pythonw (no console window), so output goes to studio_ui.log next to this file.
@@ -464,9 +464,16 @@ def scan_project(folder):
     problems = []
     rec = [folder] + [p for p in recent_projects() if os.path.normcase(p) != os.path.normcase(folder)]
     save_state(recent=rec[:8])
-    def has(suffix): return [n for n in names if n.endswith(suffix)]
-    captions = [n for n in names if re.search(r"_Reels_\w*文案\.md$", n)]   # _Reels_文案.md, older _Reels_IG文案.md
-    sources = [n for n in names if n.lower().endswith(SOURCE_EXT) and "_Reels_" not in n]
+    # people often keep the recording in a subfolder (e.g. 原始素材\), so material, transcripts, scripts, picks and
+    # captions are also looked up one level down, as relative paths; the toolkit's own folders are not material
+    deep = list(names)
+    for d in names:
+        if d in ("_reels_work", "發文包") or d.startswith((".", "_")) or not os.path.isdir(os.path.join(folder, d)): continue
+        try: deep += [os.path.join(d, n) for n in sorted(os.listdir(os.path.join(folder, d)))]
+        except OSError: pass
+    def has(suffix): return [n for n in deep if n.endswith(suffix)]
+    captions = [n for n in deep if re.search(r"_Reels_\w*文案\.md$", n)]   # _Reels_文案.md, older _Reels_IG文案.md
+    sources = [n for n in deep if n.lower().endswith(SOURCE_EXT) and "_Reels_" not in os.path.basename(n)]
     clips = []
     for n in names:
         m = re.match(r"(.+)_Reels_片段(\d+)\.mp4$", n)
@@ -479,7 +486,8 @@ def scan_project(folder):
             cap = try_read(read_text, txt, "utf-8-sig", problems=problems)
             cap_src = "發文包" if cap else None
         if not cap:
-            for c in sorted((c for c in captions if c.startswith(prefix + "_Reels_")), key=lambda c: c != f"{prefix}_Reels_文案.md"):
+            for c in sorted((c for c in captions if os.path.basename(c).startswith(prefix + "_Reels_")),
+                            key=lambda c: os.path.basename(c) != f"{prefix}_Reels_文案.md"):
                 md = try_read(read_text, os.path.join(folder, c), problems=problems)
                 cap = caption_from_md(md, k) if md else None
                 if cap: break
@@ -492,7 +500,9 @@ def scan_project(folder):
                       "size_mb": round(size / 1e6, 1) if size is not None else None})
     clips.sort(key=lambda c: (c["prefix"], c["n"]))
     steps = [
-        {"key": "source", "label": "素材（錄音、影片或口播稿）", "done": bool(sources or has("_口播稿.md")),
+        # a transcript or a finished clip means the material exists, even if it sits deeper than we look
+        {"key": "source", "label": "素材（錄音、影片或口播稿）",
+         "done": bool(sources or has("_口播稿.md") or has("_逐字稿.txt") or clips),
          "files": sources + has("_口播稿.md")},
         {"key": "transcript", "label": "逐字稿", "done": bool(has("_逐字稿.txt")), "files": has("_逐字稿.txt")},
         {"key": "picks", "label": "精華片段（長素材才需要）", "done": bool(has("_Reels精華片段.md")), "files": has("_Reels精華片段.md"),
@@ -517,7 +527,7 @@ PROJECT_FILE = "_reels_studio.json"
 def check_project(folder):
     folder = os.path.abspath(clean_path(folder))
     if not any(os.path.normcase(folder) == os.path.normcase(p) for p in recent_projects()):
-        raise ValueError("請先在「我的作品」開啟這個資料夾")
+        raise ValueError("請先在「做影片」開啟這個資料夾")
     return folder
 
 def read_project(folder):
@@ -533,8 +543,9 @@ def save_project(body):
     if "brand" in body:
         p["brand"] = brand_ref(check_brand_dir(body["brand"]))
     if "source" in body:
-        src = os.path.basename(body["source"] or "")
-        if src and not os.path.exists(os.path.join(folder, src)): raise ValueError("找不到這個素材檔")
+        src = os.path.normpath(body["source"]) if body["source"] else ""      # a file name, or 子資料夾\檔名
+        if src and (os.path.isabs(src) or src.startswith("..") or not os.path.isfile(os.path.join(folder, src))):
+            raise ValueError("找不到這個素材檔")
         p["source"] = src or None
     if "count" in body:
         p["count"] = max(1, min(10, int(body["count"] or 3)))
@@ -677,15 +688,57 @@ def pick_folder():
     return os.path.normpath(p.stdout.decode("utf-8", "replace").strip()) if p.stdout.strip() else ""
 
 
+def _top_windows():
+    """visible titled top-level windows: {hwnd: title}"""
+    import ctypes
+    from ctypes import wintypes
+    u = ctypes.windll.user32
+    out = {}
+    def cb(hwnd, _):
+        if u.IsWindowVisible(hwnd):
+            n = u.GetWindowTextLengthW(hwnd)
+            if n:
+                buf = ctypes.create_unicode_buffer(n + 1); u.GetWindowTextW(hwnd, buf, n + 1); out[hwnd] = buf.value
+        return True
+    u.EnumWindows(ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)(cb), 0)
+    return out
+
+def _launch_in_front(launch, title_hint):
+    """Run launch() and bring the window it opens to the front. The panel runs in the background (pythonw, no window),
+    so Windows opens Explorer / Notepad *behind* the browser and the click looks like it did nothing. Find the new
+    window (or one whose title has title_hint, e.g. an Explorer window that was already open) and raise it; a
+    synthetic key press first makes Windows accept SetForegroundWindow from this process."""
+    try:
+        before = _top_windows()
+    except Exception:
+        return launch()
+    launch()
+    try:
+        import ctypes
+        u = ctypes.windll.user32
+        for _ in range(30):                     # up to ~3 s for the window to appear
+            time.sleep(0.1)
+            now = _top_windows()
+            new = [h for h in now if h not in before]
+            hit = new or [h for h, t in now.items() if title_hint and title_hint in t]
+            if hit:
+                hwnd = hit[0]
+                if u.IsIconic(hwnd): u.ShowWindow(hwnd, 9)          # SW_RESTORE
+                u.keybd_event(0x87, 0, 0, 0); u.keybd_event(0x87, 0, 2, 0)   # F24 down / up: no app reacts to it
+                u.SetForegroundWindow(hwnd)
+                return
+    except Exception as e:                      # opening worked; only raising it failed
+        print("could not bring the window to the front:", repr(e))
+
 def open_path(p, reveal=False):
     """open a folder in Explorer, show a file in its folder, or open a channel's BRAND.md — nothing else"""
     p = os.path.abspath(clean_path(p))
     if reveal and os.path.isfile(p) and under(p, recent_projects()):
-        subprocess.Popen(["explorer", "/select,", p]); return
+        return _launch_in_front(lambda: subprocess.Popen(["explorer", "/select,", p]), os.path.basename(os.path.dirname(p)))
     if os.path.isdir(p) and (under(p, recent_projects()) or under(p, brand_dirs())):
-        os.startfile(p); return
+        return _launch_in_front(lambda: os.startfile(p), os.path.basename(p))
     if os.path.basename(p) in ("BRAND.md", "brand.json") and under(p, brand_dirs()) and os.path.exists(p):
-        subprocess.Popen(["notepad", p]); return
+        return _launch_in_front(lambda: subprocess.Popen(["notepad", p]), os.path.basename(p))
     raise ValueError("這個位置不能從控制台打開")
 
 
@@ -789,6 +842,7 @@ class Handler(BaseHTTPRequestHandler):
                 out = {"brands": brands, "current": cur, "palettes": PALETTES, "recent": recent_projects(),
                        "style_options": STYLE_OPTIONS, "style_presets": STYLE_PRESETS, "layout_options": LAYOUT_OPTIONS,
                        "layout_defaults": BRAND_DEFAULTS["layout"], "version": app_version(),
+                       "welcomed": bool(st.get("welcomed")),     # the first-open welcome screen was seen
                        "studio": HERE, "env_brand": os.environ.get("REELS_BRAND")}
             elif path == "/api/ping": out = {"ok": True}
             elif path == "/api/fonts": out = fonts()
@@ -796,6 +850,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/save":
                 save_brand(body); save_state(brand=body["dir"])
                 out = dict(preview(body, real=True), saved=True, brand=load_brand(body["dir"]))
+            elif path == "/api/welcomed": save_state(welcomed=True); out = {"ok": True}
             elif path == "/api/select-brand": check_brand_dir(body["dir"]); save_state(brand=body["dir"]); out = {"ok": True}
             elif path == "/api/pick-folder": out = {"path": pick_folder()}
             elif path == "/api/project": out = scan_project(body["path"])

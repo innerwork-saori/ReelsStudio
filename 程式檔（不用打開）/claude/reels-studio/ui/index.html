@@ -99,12 +99,38 @@
   .folderbar { display: flex; gap: 8px; flex-wrap: wrap; }
   .folderbar input { flex: 1; min-width: 240px; margin: 0; }
   ol.steps { list-style: none; padding: 0; margin: 0; }
-  ol.steps li { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
-  ol.steps li:last-child { border-bottom: none; }
-  ol.steps .mark { flex: none; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center;
+  ol.steps > li { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  ol.steps > li:last-child { border-bottom: none; }
+  ol.steps > li > .mark { flex: none; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center;
     justify-content: center; font-size: 14px; background: var(--code); color: var(--muted); margin-top: 2px; }
-  ol.steps li.done .mark { background: var(--ok); color: #fff; }
+  ol.steps > li.done > .mark { background: var(--ok); color: #fff; }
   ol.steps .files { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+  ol.steps > li > div { flex: 1; min-width: 0; }
+  ol.steps > li.current { border-bottom: none; }
+  ol.steps > li.current .mark { background: var(--accent); color: #fff; }
+  ol.steps > li.current .label { font-weight: 700; color: var(--accent); }
+  ol.steps .stepbody { margin: 8px 0 4px; }
+  ol.steps .stepbody .note { margin-top: 0; }
+
+  /* header channel picker */
+  .chpick { display: flex; align-items: center; gap: 6px; font-size: 15px; color: var(--muted); font-weight: 700; }
+  .chpick select { width: auto; max-width: 220px; margin: 0; padding: 3px 10px; font-weight: 700; color: var(--accent); }
+
+  /* welcome (first open only) */
+  .welcome { max-width: 760px; margin: 24px auto 0; }
+  .welcome-steps { list-style: none; padding: 0; margin: 8px 0 20px; counter-reset: w; }
+  .welcome-steps li { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px 18px; margin: 0 0 10px; }
+  .welcome-steps li b { display: block; font-size: 19px; }
+  .welcome-steps li span { color: var(--muted); }
+
+  /* recent folders as cards */
+  .recentgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .recent { text-align: left; border: 1px solid var(--line); background: #fff; border-radius: 14px; padding: 10px 14px; cursor: pointer; }
+  .recent:hover { border-color: var(--accent); }
+  .recent b { display: block; overflow-wrap: anywhere; }
+  .recent .muted { font-size: 13px; overflow-wrap: anywhere; }
+  .folderhead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .folderhead h2 { margin: 0; overflow-wrap: anywhere; }
   .clips { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
   .clip video { width: 100%; aspect-ratio: 9 / 16; background: #222; border-radius: 12px; display: block; }
   .clip h3 { margin: 10px 0 2px; overflow-wrap: anywhere; }
@@ -141,6 +167,17 @@
   footer .donate { border-color: var(--line); color: var(--muted); font-weight: 400; }
   footer .author .thanks { margin-top: 10px; font-size: 13px; }
 
+  /* unsaved channel edits: a bar pinned to the bottom of the window, on every tab, until saved or dropped */
+  #savebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; background: var(--accent); color: #fff;
+    box-shadow: 0 -4px 18px rgba(75,70,67,.25); }
+  #savebar .in { max-width: 1160px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  #savebar .msg { flex: 1; min-width: 220px; font-weight: 700; font-size: 18px; }
+  #savebar .btn { background: #fff; color: var(--accent); border-color: #fff; }
+  #savebar .btn.ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.7); }
+  body.has-savebar main { padding-bottom: 140px; }
+  body.has-savebar #toast { bottom: 96px; }
+  nav button .unsaved { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #D9433B; margin-left: 6px; vertical-align: 2px; }
+  .dirty { display: block; background: var(--warn-soft); border: 1px solid var(--warn); border-radius: 10px; padding: 6px 10px; }
   #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: #fff;
     padding: 8px 18px; border-radius: 999px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 10; }
   #toast.show { opacity: .95; }
@@ -158,11 +195,11 @@
   <div class="bar">
     <div class="logo"><span class="dot">▶</span>Reels Studio 控制台</div>
     <nav role="tablist">
-      <button role="tab" data-tab="home" aria-selected="true">開始</button>
-      <button role="tab" data-tab="brand">頻道設定</button>
-      <button role="tab" data-tab="works">我的作品</button>
+      <button role="tab" data-tab="make" aria-selected="true">🎬 做影片</button>
+      <button role="tab" data-tab="brand">🎨 頻道風格</button>
     </nav>
     <div class="right">
+      <label class="chpick" title="做影片和頻道風格都用這個頻道">目前頻道<select id="chpick"></select></label>
       <a class="btn ghost small" href="/guide" target="_blank" rel="noopener">使用說明</a>
       <button class="btn ghost small" id="quit" title="關掉這個控制台（之後可以從桌面捷徑再打開）">關閉</button>
     </div>
@@ -171,37 +208,49 @@
 
 <main id="app">
 
-<!-- ============ 開始 ============ -->
-<section id="tab-home">
-  <h1>嗨，今天想做什麼？</h1>
-  <p class="lead">這個控制台讓你用點選的方式設定頻道、看做好的影片和文案。實際的聽打、剪片、寫文案，還是交給 Claude。</p>
-  <div class="grid2">
-    <div class="card">
-      <h2>① 頻道設定</h2>
-      <div id="home-brand" class="status"></div>
-    </div>
-    <div class="card">
-      <h2>② 最近的作品資料夾</h2>
-      <div id="home-recent"></div>
-    </div>
-  </div>
-  <div class="card">
-    <h2>③ 在 Claude 這樣說</h2>
-    <div class="note ok" style="margin-top:0"><b class="t">建議先到「我的作品」選素材資料夾</b>那裡的「下一步」會把資料夾和頻道一起寫進要貼給 Claude 的句子，複製貼上就好。<button class="btn small" style="margin-left:8px" onclick="showTab('works')">去我的作品</button></div>
-    <p class="muted small">下面是通用的說法：在 Claude 桌面 App 開新對話時選素材所在的資料夾，再貼上句子。複製時會自動加上上面「① 頻道設定」顯示的頻道。</p>
-    <table class="phrases" id="phrases"></table>
+<!-- ============ 歡迎（只有第一次） ============ -->
+<section id="tab-welcome" hidden>
+  <div class="welcome">
+    <h1>嗨，歡迎使用 Reels Studio 👋</h1>
+    <p class="lead">把錄音、影片或一個想法，做成有字幕和插圖的直式短影音。聽打、剪片、寫文案交給 Claude；這個控制台幫你設定風格、選片段、看成品。</p>
+    <ol class="welcome-steps">
+      <li><b>🎨 設定頻道風格</b><span>選配色、字型，描述你想要的影片感覺。設定一次，之後每支都套用。</span></li>
+      <li><b>🎬 選素材資料夾</b><span>放錄音或影片的資料夾。控制台會告訴你做到哪一步。</span></li>
+      <li><b>💬 複製一句話給 Claude</b><span>貼到 Claude 桌面 App，它就會接著做。做好的影片和文案回到這裡看。</span></li>
+    </ol>
+    <div class="actions" id="welcome-actions"></div>
   </div>
 </section>
 
-<!-- ============ 頻道設定 ============ -->
+<!-- ============ 做影片 ============ -->
+<section id="tab-make" hidden>
+  <h1>做影片</h1>
+  <p class="lead">選放錄音或影片的資料夾，照著一步一步走。每一步都是複製一句話貼給 Claude。</p>
+  <div class="card" id="m-pick">
+    <h2 id="m-pick-title">選素材資料夾</h2>
+    <div class="folderbar">
+      <button class="btn" id="w-pick">📁 選擇資料夾⋯</button>
+      <input type="text" id="w-path" placeholder="或貼上資料夾路徑，例如 C:\Users\你\Desktop\EP80">
+      <button class="btn ghost" id="w-load">開啟</button>
+    </div>
+    <div id="w-recent" style="margin-top:12px"></div>
+  </div>
+  <div id="w-body"></div>
+  <div class="card">
+    <details id="m-generic"><summary>還沒有素材，或想直接跟 Claude 說？</summary>
+      <p class="muted small">在 Claude 桌面 App 開新對話時選素材所在的資料夾，再貼上句子。複製時會自動加上右上角的目前頻道。只有想法、還沒錄音的話，先開一個空資料夾，用第三句請 Claude 寫稿。</p>
+      <table class="phrases" id="phrases"></table>
+    </details>
+  </div>
+</section>
+
+<!-- ============ 頻道風格 ============ -->
 <section id="tab-brand" hidden>
-  <h1>頻道設定</h1>
-  <p class="lead">影片的配色、字型、結尾卡，以及 Claude 寫文案時要遵守的語氣。設定一次，之後每支影片都會套用。</p>
+  <h1>頻道風格</h1>
+  <p class="lead">影片的版面風格、配色、字型、結尾卡，以及 Claude 寫文案時要遵守的語氣。設定一次，之後每支影片都會套用。</p>
   <div class="card" id="brandpick-card">
-    <div class="folderbar" style="align-items:end" id="brandpick-row">
-      <label class="f" style="margin:0;flex:1;min-width:240px">要設定哪個頻道？
-        <select id="brandpick"></select>
-      </label>
+    <div class="folderbar" style="align-items:center" id="brandpick-row">
+      <div style="flex:1;min-width:240px">正在設定：<b id="brandpick-name"></b><div class="muted small">要設定別的頻道，用右上角的「目前頻道」切換。</div></div>
       <button class="btn ghost" id="nb-open">＋ 新增頻道</button>
       <button class="btn ghost" id="db-open">刪除這個頻道</button>
     </div>
@@ -315,13 +364,18 @@
         <h2>給 Claude 看的頻道說明</h2>
         <p class="muted small" style="margin:0">寫文案、選片段時會照這裡。點灰色的小按鈕可以快速填入，也可以自己打字。</p>
         <div id="mdfields"></div>
-        <p class="muted small" id="md-extra" hidden></p>
       </div>
 
       <div class="card">
         <h2>其他</h2>
         <p class="muted small" style="margin:0">上面沒有的設定或習慣，都可以寫在這裡。Claude 寫文案、選片段、剪片時都會照著做。一行寫一件事最清楚。</p>
         <textarea id="b-notes" rows="5" style="margin-top:8px" placeholder="例如：&#10;每支影片結尾都要提到我的 Podcast 名稱&#10;來賓的名字一律用暱稱，不寫全名&#10;字幕不要用驚嘆號&#10;不要出現紅色"></textarea>
+      </div>
+
+      <div class="card" id="md-extra" hidden>
+        <h2>進階：完整的說明檔</h2>
+        <p class="muted small" id="md-extra-text" style="margin:0"></p>
+        <div class="actions"><button class="btn ghost small" id="md-open">用記事本打開說明檔（BRAND.md）</button></div>
       </div>
     </div>
 
@@ -340,20 +394,6 @@
   </div>
 </section>
 
-<!-- ============ 我的作品 ============ -->
-<section id="tab-works" hidden>
-  <h1>我的作品</h1>
-  <p class="lead">選素材所在的資料夾，看看做到哪一步、播放剪好的影片、複製文案。</p>
-  <div class="card">
-    <div class="folderbar">
-      <input type="text" id="w-path" placeholder="資料夾路徑，例如 C:\Users\你\Desktop\EP80">
-      <button class="btn ghost" id="w-pick">選擇資料夾⋯</button>
-      <button class="btn" id="w-load">開啟</button>
-    </div>
-    <div class="chiplist" id="w-recent" style="margin-top:10px"></div>
-  </div>
-  <div id="w-body"></div>
-</section>
 
 <footer>
   <div class="author">
@@ -369,6 +409,12 @@
 
 </main>
 <div id="closed"><h1>控制台已關閉</h1><p class="muted">可以關掉這個分頁了。要再打開，點桌面上的「Reels Studio」。</p></div>
+<div id="savebar" hidden><div class="in">
+  <div class="msg">⚠ 「<span id="savebar-name"></span>」的頻道風格有還沒儲存的修改</div>
+  <button class="btn" id="sb-save">儲存設定</button>
+  <button class="btn ghost" id="sb-back">回到頻道風格</button>
+  <button class="btn ghost" id="sb-drop">放棄修改</button>
+</div></div>
 <div id="toast"></div>
 
 <script>
@@ -416,10 +462,13 @@ const copyBtn = (text, label = "複製") => h("button", { class: "btn ghost smal
 
 // ---------------- tabs ----------------
 function showTab(name) {
+  if (name === "home" || name === "works") name = "make";          // old links / bookmarks
+  if (name !== "welcome" && S && !S.welcomed) { S.welcomed = true; api("/api/welcomed").catch(() => {}); }
   document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
   document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "tab-" + name);
   if (name === "brand") loadFonts();
-  if (name === "works" && !$("#w-body").childElementCount && S && S.recent.length) loadProject(S.recent[0]);
+  syncSavebar();
+  if (name === "make" && !$("#w-body").childElementCount && S && S.recent.length) loadProject(S.recent[0]);
   window.scrollTo(0, 0);
 }
 document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
@@ -457,38 +506,30 @@ async function refresh() {
   S = await api("/api/state");
   $("#appver").textContent = S.version ? `Reels Studio v${S.version}` : "";
   const b = S.brands.find(x => x.dir === S.current) || S.brands[0];
-  renderHome();
   renderBrandPicker();
   fillBrand(b);
   renderRecent();
+  renderPhrases();
 }
 
-// ---------------- home ----------------
+// ---------------- welcome + generic phrases ----------------
+function renderWelcome() {
+  const hasBrand = S.brands.some(b => b.exists);
+  $("#welcome-actions").replaceChildren(
+    hasBrand ? h("button", { class: "btn", onclick: () => showTab("make") }, "開始做影片")
+             : h("button", { class: "btn", onclick: () => showTab("brand") }, "先設定頻道風格（約 2 分鐘）"),
+    h("button", { class: "btn ghost", onclick: () => showTab(hasBrand ? "brand" : "make") }, hasBrand ? "看頻道風格" : "先看看做影片"));
+}
 const PHRASES = [
   ["一段很長的錄音或影片（Podcast、訪談、講座、直播）", "幫我把這個檔案做成 3 支 reels", "會先聽打、挑精華讓你選，再開始剪"],
   ["一支自己拍的口播或 vlog", "幫我剪這支", "保留你的畫面，自動剪掉停頓，加上字幕和插圖"],
   ["一篇文章或一個想法", "幫我把這篇寫成 reels 口播稿", "寫好稿你照著錄，錄好再說「錄好了，幫我剪」"],
   ["已經剪好的影片", "幫我寫文案", "寫好之後可以再說「幫我整理發文包」"],
 ];
-function renderHome() {
+function renderPhrases() {
   const b = S.brands.find(x => x.dir === S.current) || S.brands[0];
-  const box = $("#home-brand"); box.replaceChildren();
-  if (b.exists) {
-    box.append(b.preview ? h("img", { src: b.preview, alt: "目前的樣張" }) : "",
-      h("div", {}, h("div", {}, "已設定：", h("b", {}, b.brand.name)),
-        h("div", { class: "muted small" }, `配色 ${PAL_NAMES[b.brand.palette] || b.brand.palette}`),
-        h("button", { class: "btn ghost small", style: "margin-top:8px", onclick: () => showTab("brand") }, "修改設定")));
-  } else {
-    box.append(h("div", {}, h("p", { style: "margin:0 0 8px" }, "還沒設定。先花 2 分鐘選配色、字型和結尾卡，之後每支影片都會套用。"),
-      h("button", { class: "btn", onclick: () => showTab("brand") }, "開始設定")));
-  }
-  const rc = $("#home-recent"); rc.replaceChildren();
-  if (!S.recent.length) rc.append(h("p", { class: "muted", style: "margin:0 0 8px" }, "還沒有。到「我的作品」選素材所在的資料夾。"),
-    h("button", { class: "btn ghost small", onclick: () => showTab("works") }, "去我的作品"));
-  else rc.append(h("div", { class: "chiplist" }, S.recent.slice(0, 5).map(p =>
-    h("button", { class: "chip", title: p, onclick: () => { showTab("works"); loadProject(p); } }, p.split("\\").pop()))));
   const t = $("#phrases"); t.replaceChildren();
-  // no folder here, but the channel shown above goes along, the same way 我的作品 adds folder + channel
+  // no folder here, but the header's channel goes along, the same way a folder's sentence carries folder + channel
   const ctx = b.exists ? `（頻道：${b.brand.name}）` : "";
   for (const [have, say, note] of PHRASES)
     t.append(h("tr", {}, h("td", { style: "width:34%" }, have),
@@ -497,11 +538,12 @@ function renderHome() {
 
 // ---------------- brand form ----------------
 const brandLabel = b => `${b.exists ? b.brand.name : "（還沒設定）"}${b.folder === "my-brand" ? "（預設）" : ""}`;
-function renderBrandPicker() {
-  const sel = $("#brandpick");
-  sel.replaceChildren(...S.brands.map(b => h("option", { value: b.dir, selected: b.dir === S.current }, `${brandLabel(b)}　—　${b.folder}`)));
+function renderBrandPicker() {       // the header's 目前頻道 is the only channel picker on the page
+  const sel = $("#chpick");
+  sel.replaceChildren(...S.brands.map(b => h("option", { value: b.dir, selected: b.dir === S.current, title: b.folder }, brandLabel(b))));
   $("#nb-copy").replaceChildren(...S.brands.filter(b => b.exists).map(b => h("option", { value: b.dir, selected: b.dir === S.current }, b.brand.name)));
   const cur = S.brands.find(b => b.dir === S.current);
+  $("#brandpick-name").textContent = cur ? brandLabel(cur) : "";
   const isDefault = !cur || cur.folder === "my-brand";
   $("#db-open").disabled = isDefault;
   $("#db-open").title = isDefault ? "預設頻道不能刪除：沒有選頻道的資料夾都會用它" : "";
@@ -528,7 +570,8 @@ $("#db-open").addEventListener("click", async () => {
           const r = await api("/api/delete-brand", { dir: b.dir });
           setDirty(false);
           S = await api("/api/state");
-          renderBrandPicker(); renderHome(); fillBrand(S.brands.find(x => x.dir === S.current) || S.brands[0]);
+          renderBrandPicker(); renderPhrases(); fillBrand(S.brands.find(x => x.dir === S.current) || S.brands[0]);
+          if (openFolder) loadProject(openFolder);
           $("#pv-msg").replaceChildren(h("div", { class: "note ok" }, h("b", { class: "t" }, `已刪除「${name}」`),
             r.where === "資源回收筒" ? "已移到資源回收筒，需要的話可以從那裡還原。" : ["已移到 ", h("span", { class: "file" }, r.where), "，需要的話可以搬回來。"]));
           toast("頻道已刪除");
@@ -557,21 +600,33 @@ $("#nb-create").addEventListener("click", async () => {
   try {
     const r = await api("/api/new-brand", { name, copy_from: copy ? $("#nb-copy").value : null });
     S = await api("/api/state");
+    await api("/api/select-brand", { dir: r.brand.dir });
     S.current = r.brand.dir;
-    renderBrandPicker(); renderHome();
+    renderBrandPicker(); renderPhrases();
     fillBrand(S.brands.find(b => b.dir === r.brand.dir));
     newChannelMode(false);
     $("#pv-msg").replaceChildren(h("div", { class: "note ok" }, h("b", { class: "t" }, `已建立「${name}」✓`),
-      "接著在下面選配色、字型，填寫給 Claude 看的說明，最後按「儲存設定」。要用這個頻道剪片時，在「我的作品」選它就好。"));
+      "接著在下面選版面風格、配色、字型，填寫給 Claude 看的說明，最後按「儲存設定」。要用這個頻道剪片時，在右上角的「目前頻道」選它就好。"));
     toast("新頻道建立好了");
   } catch (err) { toast(err.message); }
   btn.disabled = false; btn.textContent = "建立";
 });
-$("#brandpick").addEventListener("change", async e => {
-  if (dirty && !confirm(`「${cur.exists ? cur.brand.name : cur.folder}」有還沒儲存的修改，換到別的頻道後這些修改會不見。要繼續嗎？`)) { e.target.value = cur.dir; return; }
-  await api("/api/select-brand", { dir: e.target.value });
-  S.current = e.target.value;
-  renderBrandPicker(); fillBrand(S.brands.find(b => b.dir === S.current)); renderHome();
+async function switchChannel(dir) {   // header picker, or a folder that already chose its channel
+  await api("/api/select-brand", { dir });
+  S.current = dir;
+  renderBrandPicker(); fillBrand(S.brands.find(b => b.dir === S.current)); renderPhrases();
+}
+$("#chpick").addEventListener("change", async e => {
+  if (dirty && !confirm(`「${cur.exists ? cur.brand.name : cur.folder}」的頻道風格有還沒儲存的修改，換到別的頻道後這些修改會不見。要繼續嗎？`)) { e.target.value = cur.dir; return; }
+  try {
+    await switchChannel(e.target.value);
+    const b = S.brands.find(x => x.dir === S.current);
+    if (openFolder && b.exists) {             // the open folder follows the header: one place to pick the channel
+      await api("/api/project-save", { folder: openFolder, brand: b.dir });
+      toast(`這個資料夾改用「${b.brand.name}」頻道`);
+      loadProject(openFolder);
+    }
+  } catch (err) { toast(err.message); }
 });
 
 function fillBrand(b) {
@@ -624,8 +679,7 @@ function fillBrand(b) {
   $("#b-notes").value = b.fields["其他補充"] || "";
   const ex = $("#md-extra");
   ex.hidden = !b.md_exists;
-  ex.replaceChildren("說明檔裡還有 Claude 依你的要求寫下的其他規則，這裡不會動到它們。想看全部：",
-    h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: b.dir + "\\BRAND.md" }).catch(err => toast(err.message)) }, "用記事本打開"));
+  $("#md-extra-text").textContent = "上面填的內容都存在這個頻道的說明檔裡。說明檔裡也可能有 Claude 依你的要求記下的其他規則，控制台不會動到它們。想看全部或自己改，可以用記事本打開。";
   // font select
   fillFonts();
   // preview
@@ -663,7 +717,7 @@ function presetMock(key) {           // a tiny drawing of the look in the curren
     return h("div", { class: "mock", style: `background:${p.bg}` },
       h("i", { style: `position:absolute;left:12%;top:18%;width:26px;height:26px;border-radius:50%;background:${p.accent}` }),
       h("i", { style: `position:absolute;right:14%;top:12%;width:34px;height:12px;transform:rotate(-12deg);background:${p.highlight}` }),
-      h("i", { style: `position:absolute;left:42%;top:30%;width:18px;height:18px;transform:rotate(45deg);border:2px dashed ${p.fg || p.ink}` }),
+      h("i", { style: `position:absolute;left:46%;top:8px;width:14px;height:14px;transform:rotate(45deg);border:2px dashed ${p.fg || p.ink}` }),
       h("span", { style: `position:absolute;left:50%;bottom:7px;transform:translateX(-50%);font-size:11px;white-space:nowrap;font-weight:700;color:${p.fg || p.ink}` }, "你描述，Claude 設計"));
   const bg = { blobs: `radial-gradient(circle at 10% 20%, ${p.peach} 0 26%, transparent 27%), radial-gradient(circle at 95% 90%, ${p.highlight}66 0 30%, transparent 31%), ${p.bg}`,
                plain: p.bg, grid: `repeating-linear-gradient(0deg, ${p.ink}14 0 1px, transparent 1px 9px), repeating-linear-gradient(90deg, ${p.ink}14 0 1px, transparent 1px 9px), ${p.bg}`,
@@ -780,7 +834,24 @@ function collect() {
       badge: $("#e-badge").value, cta: $("#e-cta").value, sub: $("#e-sub").value, guest_prefix: $("#e-guest").value } } };
 }
 
-function setDirty(v) { dirty = v; $("#dirty-msg").replaceChildren(v ? h("span", { class: "dirty" }, "● 有還沒儲存的修改") : ""); }
+function setDirty(v) {
+  dirty = v;
+  $("#dirty-msg").replaceChildren(v ? h("span", { class: "dirty" }, "⚠ 有還沒儲存的修改，記得按「儲存設定」") : "");
+  $("#savebar").hidden = !v; document.body.classList.toggle("has-savebar", v);
+  if (v && cur) $("#savebar-name").textContent = $("#b-name").value.trim() || (cur.exists ? cur.brand.name : cur.folder);
+  syncSavebar();
+  const tab = $('nav button[data-tab="brand"]');
+  if (v && !tab.querySelector(".unsaved")) tab.append(h("span", { class: "unsaved", title: "有還沒儲存的修改" }));
+  if (!v && tab.querySelector(".unsaved")) tab.querySelector(".unsaved").remove();
+}
+function syncSavebar() {             // 回到頻道風格 only makes sense from another tab
+  $("#sb-back").hidden = !$("#tab-brand").hidden;
+}
+$("#sb-save").addEventListener("click", () => runPreview(true));
+$("#md-open").addEventListener("click", () => api("/api/open", { path: cur.dir + "\\BRAND.md" }).catch(err => toast(err.message)));
+$("#sb-back").addEventListener("click", () => showTab("brand"));
+$("#sb-drop").addEventListener("click", () => { if (cur) { fillBrand(cur); toast("已放棄修改，回到上次儲存的設定"); } });
+window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 function markDirty() { setDirty(true); }
 // only the channel form counts as "unsaved changes" — not the channel picker or the new-channel / delete boxes
 $("#tab-brand").addEventListener("input", e => { if (!e.target.closest("#brandpick-card")) markDirty(); });
@@ -795,7 +866,7 @@ function showPreview(src, caption) {
 
 async function runPreview(save) {
   if (save && !$("#b-name").value.trim()) { toast("請先填頻道名稱"); $("#b-name").focus(); return; }
-  const btns = [$("#btn-preview"), $("#btn-save")]; btns.forEach(b => b.disabled = true);
+  const btns = [$("#btn-preview"), $("#btn-save"), $("#sb-save")]; btns.forEach(b => b.disabled = true);
   const msg = $("#pv-msg"); msg.replaceChildren(h("p", { class: "muted small" }, save ? "儲存並產生樣張中，大約 5–15 秒⋯⋯" : "產生樣張中，大約 5–15 秒⋯⋯"));
   try {
     const r = await api(save ? "/api/save" : "/api/preview", collect());
@@ -812,7 +883,8 @@ async function runPreview(save) {
     if (save) {
       setDirty(false);
       const i = S.brands.findIndex(b => b.dir === r.brand.dir); S.brands[i] = r.brand; cur = r.brand;
-      renderHome(); renderBrandPicker();
+      renderPhrases(); renderBrandPicker();
+      toast("頻道風格已儲存 ✓");
       msg.prepend(h("div", { class: "note ok" }, h("b", {}, "已儲存 ✓"), h("div", { class: "small" }, "之後 Claude 剪片、寫文案都會用這個設定。")));
     }
   } catch (err) { msg.replaceChildren(h("div", { class: "note" }, err.message)); }
@@ -866,11 +938,18 @@ function renderFontExtras() {
     h("li", {}, h("a", { href: f.url, target: "_blank", rel: "noopener" }, f.name), "：", f.look))));
 }
 
-// ---------------- works ----------------
+// ---------------- 做影片 ----------------
+let openFolder = null;               // the folder shown in 做影片
 function renderRecent() {
   const box = $("#w-recent"); box.replaceChildren();
-  if (S.recent.length) box.append(h("span", { class: "muted small" }, "最近："),
-    ...S.recent.map(p => h("button", { class: "chip", title: p, onclick: () => loadProject(p) }, p.split("\\").pop())));
+  const others = S.recent.filter(p => p !== openFolder);
+  if (others.length) box.append(h("div", { class: "muted small", style: "margin-bottom:6px" }, openFolder ? "其他最近的資料夾" : "最近的資料夾：點一下接著做"),
+    h("div", { class: "recentgrid" }, others.slice(0, 6).map(p => h("button", { class: "recent", title: p, onclick: () => loadProject(p) },
+      h("b", {}, "📁 " + p.split("\\").pop()), h("div", { class: "muted" }, p)))));
+}
+function showPicker(open) {          // the folder picker is big when nothing is open, a small 換資料夾 bar after
+  $("#m-pick-title").textContent = open ? "換一個資料夾" : "選素材資料夾";
+  $("#m-pick").hidden = !!open;
 }
 $("#w-pick").addEventListener("click", async () => {
   toast("已打開選擇視窗（如果沒看到，可能在其他視窗後面）");
@@ -880,28 +959,32 @@ $("#w-load").addEventListener("click", () => loadProject($("#w-path").value));
 $("#w-path").addEventListener("keydown", e => { if (e.key === "Enter") loadProject(e.target.value); });
 
 const CUT_PICKED = "幫我剪我在控制台選好的片段";
+const TOPIC_HOLE = "（在這裡寫你想講的事）";   // the part of the script sentence people must replace before copying
+const STEP_LABELS = { source: "素材（錄音、影片或口播稿）", transcript: "聽打逐字稿", picks: "選片段", videos: "剪片",
+                      captions: "寫貼文文案", pack: "整理發文包" };
 function nextStep(r) {
-  // [what is going on (may be ""), what to tell Claude]
+  // [what is going on (may be ""), what to tell Claude, the step it belongs to]
   const p = r.project || {}, step = k => r.steps.find(s => s.key === k);
   const confirmed = p.picks && p.picks.confirmed ? p.picks.items : [];
   const cut = new Set(r.clips.map(c => c.n));
-  if (!step("source").done) return ["這個資料夾還沒有錄音或影片。有的話放進來，再按「重新讀取」；還沒錄的話，先請 Claude 幫你寫稿：", "幫我寫一支 reels 口播稿，主題是：（在這裡寫你想講的事）"];
+  if (!step("source").done) return ["這個資料夾還沒有錄音或影片。有的話放進來，再按「重新讀取」；還沒錄的話，先請 Claude 幫你寫稿：把下面括號裡的字換成你想講的主題。", "幫我寫一支 reels 口播稿，主題是：" + TOPIC_HOLE, "source"];
   if (!step("transcript").done) return p.updated
-    ? ["這個資料夾的設定好了，可以開工。", "照控制台的設定幫我做 reels"]
-    : ["想指定頻道、支數或風格要求的話，先在下面「這個資料夾的設定」選好並儲存（不選就用預設）。", `幫我把這個檔案做成 ${p.count || 3} 支 reels`];
+    ? ["這個資料夾的要求存好了，可以開工。Claude 會先聽打，再挑精華片段讓你選。", "照控制台的設定幫我做 reels", "transcript"]
+    : ["Claude 會先聽打，再挑精華片段讓你選。要做幾支、用哪個素材檔可以在下面的「這次的要求」設定（不設也可以）；想要的風格直接寫在這句話裡。", `幫我把這個檔案做成 ${p.count || 3} 支 reels`, "transcript"];
   if (r.picks.length && !confirmed.length && !r.clips.length)
-    return ["精華片段挑好了！先在下面「選要剪的片段」勾選、按「確定要剪這幾段」。", CUT_PICKED];
+    return ["精華片段挑好了！在上面勾選要剪的、需要的話改標題，按「確定要剪這幾段」，再複製下面這句。", CUT_PICKED, "picks"];
   const left = confirmed.filter(x => !cut.has(x.n));
-  if (left.length) return [`還有 ${left.length} 段選好了但還沒剪。`, CUT_PICKED];
-  if (!r.clips.length) return ["", "幫我剪 reels"];
-  if (!step("captions").done) return ["影片好了！接著寫貼文文案。", "幫我寫文案"];
-  if (!step("pack").done) return ["最後一步：整理成發文包（封面、文案、發文清單）。", "幫我整理發文包"];
+  if (left.length) return [`還有 ${left.length} 段選好了但還沒剪。`, CUT_PICKED, "videos"];
+  if (!r.clips.length) return ["", "幫我剪 reels", "videos"];
+  if (!step("captions").done) return ["影片好了！先在下面看過影片，接著寫貼文文案。", "幫我寫文案", "captions"];
+  if (!step("pack").done) return ["最後一步：整理成發文包（封面、文案、發文清單）。", "幫我整理發文包", "pack"];
   return null;
 }
 
-function projectBrand(r) {           // the channel this folder uses: its saved choice, else the default
+function projectBrand(r) {           // the channel this folder uses: its saved choice, else the header's 目前頻道
   const p = r.project || {}, brands = S.brands.filter(b => b.exists);
   return (p.brand && S.brands.find(b => b.exists && (b.folder === p.brand || b.dir === p.brand)))
+    || S.brands.find(b => b.dir === S.current && b.exists)
     || S.brands.find(b => b.folder === "my-brand" && b.exists) || brands[0];
 }
 // the copied sentence carries the folder and channel, so it works however the Claude chat was opened
@@ -914,58 +997,73 @@ function howToBox(r, next) {
     placeholder: "寫下你想跟 Claude 說的話，例如：幫我做 3 支 reels，第一支想講休息這件事，節奏快一點" });
   ta.value = next[1];
   const reset = h("button", { class: "btn ghost small", onclick: () => { ta.value = next[1]; ta.focus(); } }, "還原建議句");
+  // wishes for the edit go into the sentence itself (one place to say what you want); the chips add common ones
+  const wishes = ["transcript", "picks", "videos"].includes(next[2])
+    ? h("div", { class: "chiplist", style: "margin-top:6px" }, h("span", { class: "muted small", style: "align-self:center" }, "常用的要求，點一下加進去："),
+        WISH_CHIPS.map(c => h("button", { type: "button", class: "chip", onclick: () => {
+          const v = ta.value.trim().replace(/[。.]$/, "");
+          if (!v.includes(c)) ta.value = v + (v ? "，" : "") + c;
+          ta.focus(); } }, c)))
+    : "";
   const copyIt = h("button", { class: "btn small", onclick: () => {
     const say = ta.value.trim();
     if (!say) { toast("請先寫下要跟 Claude 說的話"); ta.focus(); return; }
+    if (say.includes(TOPIC_HOLE)) {           // select the placeholder so typing replaces it
+      toast("先把「在這裡寫你想講的事」換成你的主題"); ta.focus();
+      const i = ta.value.indexOf(TOPIC_HOLE); ta.setSelectionRange(i, i + TOPIC_HOLE.length); return;
+    }
     copy(say + ctx);
   } }, "複製這句話");
-  return h("div", { class: "note ok" }, h("b", { class: "t" }, "下一步"), next[0] ? h("div", {}, next[0]) : "",
+  return h("div", { class: "note ok" }, h("b", { class: "t" }, "現在要做的事"), next[0] ? h("div", {}, next[0]) : "",
     h("ol", { class: "howto" },
       h("li", {}, "打開 Claude 桌面 App，開一個新的對話。如果要你選資料夾，就選這個：",
         h("div", { class: "pathrow" }, h("span", { class: "file" }, r.folder), " ", copyBtn(r.folder, "複製路徑"))),
       h("li", {}, "把要跟 Claude 說的話貼上、送出。",
-        h("div", { class: "muted small" }, "下面這句可以直接用，也可以改成你自己的話，例如加上想要的風格、想講的重點，或哪一段不要剪。"),
-        ta,
+        h("div", { class: "muted small" }, next[2] === "source"
+          ? "主題寫得越具體，稿子越貼近你，例如想講給誰聽、想舉什麼例子、想要多長。"
+          : "下面這句可以直接用，也可以改成你自己的話，例如加上想要的風格、想講的重點，或哪一段不要剪。"),
+        ta, wishes,
         h("div", { class: "muted small ctxline" }, "複製時會自動加在後面：", h("span", {}, ctx)),
         h("div", { class: "actions", style: "margin-top:6px" }, copyIt, reset))),
     h("div", { class: "muted small" }, "資料夾和頻道會自動帶上，Claude 會直接照著做，你不用再另外說明。"));
 }
 
-function projectCard(r) {
+const WISH_CHIPS = ["不要露臉，只用插圖", "節奏快一點", "字幕大一點", "多用實拍照片", "不用實拍照片，全部用插圖", "影片短一點（30 秒內）"];
+
+function projectCard(r) {             // 這次的要求: how many clips + which file; wishes go in the sentence instead
   const p = r.project || {};
   const brands = S.brands.filter(b => b.exists);
-  const card = h("div", { class: "card" }, h("h2", {}, "這個資料夾的設定"));
-  if (!brands.length) { card.append(h("div", { class: "note" }, "還沒有任何頻道設定。先到「頻道設定」建立一個。")); return card; }
+  const card = h("details", { class: "card" }, h("summary", {}, "這次的要求（選填：要做幾支、用哪個素材檔）"));
+  if (!brands.length) { card.append(h("div", { class: "note" }, "還沒有任何頻道。先到「頻道風格」設定一個。")); return card; }
   const cur = projectBrand(r);
-  const selB = h("select", {}, brands.map(b => h("option", { value: b.dir, selected: b.dir === cur.dir }, brandLabel(b))));
   const selS = h("select", {}, h("option", { value: "" }, r.sources.length ? "（交給 Claude 判斷）" : "（資料夾裡還沒有錄音或影片）"),
     r.sources.map(s => h("option", { value: s, selected: s === p.source }, s)));
   const selC = h("select", {}, [1, 2, 3, 4, 5].map(n => h("option", { value: n, selected: n === (p.count || 3) }, `${n} 支`)));
-  const face = h("div", { class: "icons" }, [["auto", "依素材判斷（影片有拍到人就保留畫面）"], ["no", "不要露臉，只用插圖"]].map(([v, l]) =>
-    h("label", {}, h("input", { type: "radio", name: "pj-face", value: v, checked: (p.face || "auto") === v }), l)));
-  const notes = h("textarea", { rows: 3, placeholder: "這次想要的風格或特別要求，例如：節奏快一點、第 2 段想多用實拍照片" });
-  notes.value = p.notes || "";
-  const chips = ["節奏快一點", "字幕大一點", "多用實拍照片", "不用實拍照片，全部用插圖", "影片短一點（30 秒內）"].map(c =>
-    h("button", { type: "button", class: "chip", onclick: () => { const v = notes.value.trim(); if (!v.includes(c)) notes.value = v ? v + "、" + c : c; } }, c));
+  // folders saved by an older panel may still carry 露臉 / 風格要求; Claude keeps following them, so show and allow clearing
+  const old = [p.face === "no" ? "不要露臉，只用插圖" : "", (p.notes || "").trim()].filter(Boolean).join("、");
+  const oldBox = old ? h("div", { class: "note", style: "margin:10px 0 0" }, h("b", { class: "t" }, "之前存的要求"), old,
+    h("div", { class: "muted small", style: "margin-top:4px" }, "Claude 還會照這些做。不需要了就清除；要改的話，清除後寫在上面那句話裡。"),
+    h("button", { class: "btn ghost small", style: "margin-top:6px", onclick: async () => {
+      try { await api("/api/project-save", { folder: r.folder, face: "auto", notes: "" }); toast("已清除之前存的要求"); loadProject(r.folder); }
+      catch (err) { toast(err.message); } } }, "清除")) : "";
   const status = h("p", { class: "muted small", style: "margin:8px 0 0" },
-    p.updated ? `上次儲存：${p.updated}。Claude 在這個資料夾開工時會照這裡的設定。` : "還沒儲存。不存也可以，Claude 會用預設頻道、做 3 支。");
+    p.updated ? `上次儲存：${p.updated}。Claude 在這個資料夾開工時會照這裡做。` : "還沒儲存。不存也可以，Claude 會做 3 支，資料夾裡有好幾個檔案時自己判斷用哪個。",
+    h("br"), p.updated ? "存在這個資料夾的 " : "儲存後會存在這個資料夾的 ", h("span", { class: "file" }, "_reels_studio.json"),
+    p.updated ? "。" : "，Claude 開工時會照著做。");
   const save = h("button", { class: "btn", onclick: async () => {
     try {
-      await api("/api/project-save", { folder: r.folder, brand: selB.value, source: selS.value, count: +selC.value,
-        face: (card.querySelector("input[name=pj-face]:checked") || {}).value, notes: notes.value });
-      toast("已儲存這個資料夾的設定"); loadProject(r.folder);
-    } catch (err) { toast(err.message); } } }, "儲存設定");
+      await api("/api/project-save", { folder: r.folder, brand: cur.dir, source: selS.value, count: +selC.value });
+      toast("已儲存這次的要求"); loadProject(r.folder);
+    } catch (err) { toast(err.message); } } }, "儲存這次的要求");
   card.append(
-    h("div", { class: "row2" }, h("label", { class: "f", style: "margin-top:0" }, "用哪個頻道的設定", selB),
-      h("label", { class: "f", style: "margin-top:0" }, "要做幾支", selC)),
-    h("label", { class: "f" }, "素材檔", selS),
-    h("label", { class: "f" }, "畫面"), face,
-    h("label", { class: "f" }, "這次的要求", notes), h("div", { class: "chiplist", style: "margin-top:6px" }, chips),
-    h("div", { class: "actions" }, save), status);
+    h("p", { class: "muted small", style: "margin:8px 0 0" }, "頻道：", h("b", {}, cur.brand.name), "（要換頻道，用右上角的「目前頻道」）"),
+    h("div", { class: "row2" }, h("label", { class: "f" }, "要做幾支", selC), h("label", { class: "f" }, "素材檔", selS)),
+    h("p", { class: "muted small", style: "margin:8px 0 0" }, "要不要露臉、想要的風格，直接寫在上面「複製這句話」的那句話裡，或點那裡的常用要求按鈕。"),
+    oldBox, h("div", { class: "actions" }, save), status);
   return card;
 }
 
-function picksCard(r) {
+function picksCard(r) {              // the picks list, shown inside the 選片段 step
   if (!r.picks.length) return null;
   const p = r.project || {}, conf = p.picks && p.picks.confirmed ? p.picks.items : null;
   const cut = new Set(r.clips.map(c => c.n));
@@ -986,12 +1084,11 @@ function picksCard(r) {
     if (!picks.length) { toast("至少勾一段"); return; }
     try { await api("/api/project-save", { folder: r.folder, picks }); toast(`已確定 ${picks.length} 段`); loadProject(r.folder); }
     catch (err) { toast(err.message); } } }, "確定要剪這幾段");
-  return h("div", { class: "card" }, h("h2", {}, "選要剪的片段"),
+  return h("div", {},
     h("p", { class: "muted small", style: "margin:0 0 6px" }, conf
       ? `已確定 ${conf.length} 段（${p.picks.updated}）。想改的話重新勾選再按確定。`
       : `Claude 從 ${r.picks_file} 挑了 ${r.picks.length} 段。勾選要剪的，標題可以直接改。`),
-    rows.map(x => x.el), h("div", { class: "actions" }, confirmBtn,
-      h("span", { class: "muted small", style: "align-self:center" }, "確定後，照上面「接下來」的步驟貼給 Claude。")));
+    rows.map(x => x.el), h("div", { class: "actions" }, confirmBtn));
 }
 
 async function loadProject(path) {
@@ -1001,27 +1098,49 @@ async function loadProject(path) {
   let r;
   try { r = await api("/api/project", { path: $("#w-path").value }); }
   catch (err) { body.replaceChildren(h("div", { class: "note" }, err.message)); return; }
-  $("#w-path").value = r.folder; S.recent = r.recent; renderRecent(); renderHome();
+  $("#w-path").value = ""; S.recent = r.recent; openFolder = r.folder;
+  // a folder that already chose its channel brings the header along (not while the channel form has unsaved edits)
+  const saved = (r.project || {}).brand && S.brands.find(b => b.exists && (b.folder === r.project.brand || b.dir === r.project.brand));
+  if (saved && saved.dir !== S.current && !dirty) { try { await switchChannel(saved.dir); } catch {} }
+  renderRecent(); showPicker(true);
   body.replaceChildren();
+  const brand = projectBrand(r);
+  body.append(h("div", { class: "card" }, h("div", { class: "folderhead" },
+    h("h2", {}, "📁 " + r.folder.split("\\").pop()),
+    brand ? h("span", { class: "chip", style: "cursor:default" }, "頻道：" + brand.brand.name) : "",
+    h("span", { style: "margin-left:auto;display:flex;gap:8px;flex-wrap:wrap" },
+      h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: r.folder }).catch(e => toast(e.message)) }, "打開這個資料夾"),
+      h("button", { class: "btn ghost small", onclick: () => loadProject(r.folder) }, "重新讀取"),
+      h("button", { class: "btn ghost small", onclick: () => { showPicker(false); $("#m-pick").scrollIntoView({ behavior: "smooth" }); } }, "換資料夾"))),
+    h("div", { class: "muted small", style: "overflow-wrap:anywhere" }, r.folder)));
   if (r.problems && r.problems.length)
     body.append(h("div", { class: "note" }, h("b", { class: "t" }, "有些檔案讀不到"), r.problems.map(p => h("div", {}, p)),
-      h("button", { class: "btn ghost small", style: "margin-top:8px", onclick: () => loadProject(r.folder) }, "重新讀取")));
-  // progress
-  const next = nextStep(r);
-  const steps = h("ol", { class: "steps" }, r.steps.map(s => h("li", { class: s.done ? "done" : "" },
-    h("span", { class: "mark" }, s.done ? "✓" : "·"),
-    h("div", {}, h("div", {}, s.label, s.optional && !s.done ? h("span", { class: "muted small" }, "（可略過）") : ""),
-      s.files.length ? h("div", { class: "files" }, s.files.slice(0, 4).join("、") + (s.files.length > 4 ? ` 等 ${s.files.length} 個` : "")) : ""))));
-  const nextBox = r.problems && r.problems.length ? h("div", { class: "note" }, h("b", { class: "t" }, "下一步"),
-      "先讓電腦重新讀到這些檔案（見上方說明），再按「重新讀取」。檔案讀不到的時候，Claude 也沒辦法處理它們。")
-    : next ? howToBox(r, next)
-    : h("div", { class: "note ok" }, h("b", {}, "都準備好了！"), " 看完影片、複製文案，就可以到 IG／TikTok 發文了。發文清單在 ",
-      h("span", { class: "file" }, "發文包\\發文清單.md"), "。");
-  body.append(h("div", { class: "grid2" },
-    h("div", { class: "card" }, h("h2", {}, "做到哪一步"), steps),
-    h("div", { class: "card" }, h("h2", {}, "接下來"), nextBox,
-      h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: r.folder }).catch(e => toast(e.message)) }, "打開這個資料夾"))));
-  body.append(h("div", { class: "grid2" }, projectCard(r), picksCard(r) || ""));
+      h("div", { style: "margin-top:6px" }, "先讓電腦重新讀到這些檔案，再按上面的「重新讀取」。檔案讀不到的時候，Claude 也沒辦法處理它們。")));
+  // the steps, with only the current one open
+  const next = r.problems && r.problems.length ? null : nextStep(r);
+  const curKey = next ? next[2] : null;
+  const picks = picksCard(r);
+  const steps = h("ol", { class: "steps" }, r.steps.map(s => {
+    const isCur = s.key === curKey;
+    const label = STEP_LABELS[s.key] || s.label;
+    const extra = [];
+    if (s.key === "picks" && picks) extra.push(isCur ? picks : h("details", {}, h("summary", { class: "small" }, "看／改選好的片段"), picks));
+    if (isCur) extra.push(howToBox(r, next));
+    return h("li", { class: s.done && !isCur ? "done" : isCur ? "current" : "" },
+      h("span", { class: "mark" }, s.done && !isCur ? "✓" : isCur ? "●" : "○"),
+      h("div", {}, h("div", { class: "label" }, label, isCur ? "　← 現在在這裡" : "",
+          s.optional && !s.done && !isCur ? h("span", { class: "muted small" }, "（長素材才需要）") : ""),
+        s.files.length ? h("div", { class: "files" }, s.files.slice(0, 4).join("、") + (s.files.length > 4 ? ` 等 ${s.files.length} 個` : "")) : "",
+        extra.length ? h("div", { class: "stepbody" }, extra) : ""));
+  }));
+  const done = !next && !(r.problems && r.problems.length)
+    ? h("div", { class: "note ok" }, h("b", {}, "都準備好了！"), " 看完影片、複製文案，就可以到 IG／TikTok 發文了。發文清單在 ",
+        h("span", { class: "file" }, "發文包\\發文清單.md"), "。") : "";
+  body.append(h("div", { class: "card" }, h("h2", {}, "一步一步做"), steps, done));
+  // no recording yet: 支數、素材檔、露臉 do not apply, the topic goes in the sentence above
+  if (r.steps.find(s => s.key === "source").done) body.append(projectCard(r));
+  else body.append(h("div", { class: "card" }, h("h2", {}, "這次的要求"),
+    h("p", { class: "muted small", style: "margin:0" }, "等資料夾裡有錄音或影片之後再設定（要做幾支、露不露臉、風格要求）。現在只要在上面那句話寫下你想講的主題就好。")));
   // clips
   if (!r.clips.length) return;
   body.append(h("h2", { style: "margin-top:8px" }, `剪好的影片（${r.clips.length} 支）`));
@@ -1043,7 +1162,7 @@ async function loadProject(path) {
 
 // ---------------- lifecycle ----------------
 $("#quit").addEventListener("click", async () => {
-  if (dirty && !confirm("頻道設定還沒儲存，確定要關閉嗎？")) return;
+  if (dirty && !confirm("頻道風格還沒儲存，確定要關閉嗎？")) return;
   dirty = false;
   try { await api("/api/quit"); } catch {}
   $("#app").style.display = "none"; $("header.top").style.display = "none"; $("#closed").style.display = "block";
@@ -1051,11 +1170,13 @@ $("#quit").addEventListener("click", async () => {
 setInterval(() => api("/api/ping").catch(() => {}), 60000);
 
 refresh().then(() => {
-  // where to start: not the last tab used, but what this person needs next —
-  // no channel yet → 開始 (it says to set one up); channel set and a folder opened before → 我的作品 (the daily work)
-  let tab = S.brands.some(b => b.exists) && S.recent.length ? "works" : "home";
+  // where to start: the welcome screen once (first open), then what this person needs next —
+  // no channel yet → 頻道風格; otherwise → 做影片 (the daily work)
+  const hasBrand = S.brands.some(b => b.exists);
+  let tab = !S.welcomed ? "welcome" : hasBrand ? "make" : "brand";
   const hash = location.hash.slice(1);
-  if (["home", "brand", "works"].includes(hash)) tab = hash;
+  if (["make", "brand", "home", "works"].includes(hash)) tab = hash;
+  renderWelcome();
   showTab(tab);
 }).catch(err => { $("#app").replaceChildren(h("div", { class: "note" }, "控制台載入失敗：" + err.message)); });
 </script>

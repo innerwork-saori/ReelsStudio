@@ -216,9 +216,9 @@ else {
         $sc.Arguments = """$Panel"""
         $sc.WorkingDirectory = $Studio
         $sc.IconLocation = (Join-Path $Studio 'ui\icon.ico')
-        $sc.Description = 'Reels Studio 控制台：頻道設定、看做好的影片和文案'
+        $sc.Description = 'Reels Studio 控制台：做影片、頻道風格'
         $sc.Save()
-        Say "  OK  桌面多了「Reels Studio」，點它就會打開控制台（頻道設定、我的作品、使用說明）" Green
+        Say "  OK  桌面多了「Reels Studio」，點它就會打開控制台（做影片、頻道風格、使用說明）" Green
     } catch { Say "  桌面捷徑建立失敗（不影響使用）：$($_.Exception.Message)" Yellow }
 }
 
@@ -252,8 +252,8 @@ if (Test-Path (Join-Path $Studio 'my-brand\brand.json')) { Say "  找到既有�
 if ($Problems.Count -eq 0) {
     Say "`n全部完成！" Green
     Say "1. 把 Claude 桌面 App 完全關掉再打開，它才會認得剛裝好的小幫手。"
-    Say "2. 在控制台的「頻道設定」選配色、字型和結尾卡（也可以之後直接跟 Claude 說「幫我做 reels」，它會一題一題問你）。"
-    Say "3. 在控制台的「我的作品」選素材所在的資料夾，照「下一步」把句子複製貼給 Claude。"
+    Say "2. 在控制台的「頻道風格」選版面風格、配色和字型（也可以之後直接跟 Claude 說「幫我做 reels」，它會一題一題問你）。"
+    Say "3. 在控制台的「做影片」選素材所在的資料夾，照著一步一步把句子複製貼給 Claude。"
     Say "第一次聽打時會自動下載約 1.6 GB 的語音辨識模型，需要一點時間。"
     if (-not $SkipShortcut -and $Pyw) {
         Say "`n正在打開 Reels Studio 控制台⋯⋯之後點桌面上的「Reels Studio」就能再打開。" Cyan
