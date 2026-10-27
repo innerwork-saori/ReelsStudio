@@ -9,6 +9,8 @@
 點上面的連結就會下載 `ReelsStudio.zip`。不要按這個頁面上方綠色的「Code」按鈕，那是給寫程式的人用的。
 想看每一版改了什麼，到 [Releases](https://github.com/innerwork-saori/ReelsStudio/releases)。
 
+> ⚠️ **請確認工具是 Saori 本人提供的**：Reels Studio 只從這個 GitHub 頁面（[github.com/innerwork-saori/ReelsStudio](https://github.com/innerwork-saori/ReelsStudio)）或 [Saori 的作品頁](https://lab.heysaori.com/links.html) 發布。如果你是從別人那裡、其他網站或群組拿到的，裡面的檔案可能被改過，請注意來源，改到這裡重新下載。**非 Saori 本人提供的版本，Saori 不負任何責任。**
+
 ## 需要什麼
 
 - Windows 電腦
@@ -52,6 +54,7 @@
 - **哪些資料會交給 Claude**：語音辨識（聽打）在你自己的電腦上執行；但逐字稿、文案，以及剪片時用來檢查畫面的截圖，會在對話中交給 Claude（Anthropic）處理，適用 Anthropic 的使用條款與隱私政策。含有不公開內容的素材請自行斟酌。
 - **素材的權利由你負責**：請確認你有權使用錄音、影片、照片與音樂，來賓或入鏡的人同意公開，並遵守 Pexels 素材授權和各社群平台的規範。
 - **安裝會改動這台電腦**：安裝程式會下載安裝 Python 與套件、安裝字型、寫入 `%USERPROFILE%\.claude\`，選填的 Pexels 金鑰會存成使用者環境變數。
+- **請確認來源**：只有從這個 GitHub 頁面或 Saori 的作品頁下載的才是 Saori 本人提供的版本。從其他來源取得的檔案可能被修改過，使用前請注意來源；非 Saori 本人提供的版本，Saori 不負任何責任。
 - **非官方工具**：Reels Studio 是個人作品，與 Anthropic、Meta（Instagram）、TikTok、Google（YouTube）沒有關係。
 - **不提供任何保證**：本工具依「現狀」提供，作者不保證它沒有錯誤或適合特定用途；因使用本工具或其成品造成的任何損失，作者不負責任（詳見 [LICENSE](LICENSE)）。
 
