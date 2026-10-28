@@ -1,4 +1,4 @@
-"""Reels Studio 控制台：本機網頁面板（做影片、頻道風格），給不想打字的使用者用。只聽 127.0.0.1，不需要網路。
+"""Reels Studio 控制台：本機網頁面板（做影片、風格），給不想打字的使用者用。只聽 127.0.0.1，不需要網路。
 
 usage: python studio_ui.py [--port 8765] [--no-browser]
 The desktop shortcut runs it with pythonw (no console window), so output goes to studio_ui.log next to this file.
@@ -30,6 +30,7 @@ INDEX_HTML = open(os.path.join(UI_DIR, "index.html"), encoding="utf-8").read()
 VERSION = __import__("hashlib").sha1(open(os.path.abspath(__file__), "rb").read() + INDEX_HTML.encode("utf-8")
                                      + app_version().encode("utf-8")).hexdigest()[:12]
 IDLE_EXIT = 15 * 60
+RELEASES = "https://github.com/innerwork-saori/ReelsStudio/releases"
 NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 MEDIA_EXT = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".mp4": "video/mp4",
              ".mov": "video/quicktime", ".webm": "video/webm", ".m4a": "audio/mp4", ".mp3": "audio/mpeg"}
@@ -159,7 +160,7 @@ def brand_dirs():
 
 def check_brand_dir(d):
     if not any(os.path.normcase(os.path.abspath(d)) == os.path.normcase(x) for x in brand_dirs()):
-        raise ValueError("不認得這個頻道資料夾")
+        raise ValueError("不認得這個風格資料夾")
     return d
 
 
@@ -605,14 +606,14 @@ def to_recycle_bin(path):
 def delete_brand(body):
     d = check_brand_dir(body["dir"])
     if os.path.normcase(os.path.abspath(d)) == os.path.normcase(os.path.join(HERE, "my-brand")):
-        raise ValueError("預設頻道不能刪除：沒有選頻道的資料夾都會用它。想重來的話，直接修改它的設定就好。")
+        raise ValueError("預設風格不能刪除：沒有選風格的資料夾都會用它。想重來的話，直接修改它的設定就好。")
     if os.environ.get("REELS_BRAND") and os.path.normcase(os.path.abspath(os.environ["REELS_BRAND"])) == os.path.normcase(os.path.abspath(d)):
-        raise ValueError("這個頻道是用環境變數 REELS_BRAND 指定的，請先移除那個設定再刪除。")
-    if not os.path.isdir(d): raise ValueError("這個頻道已經不存在了")
+        raise ValueError("這個風格是用環境變數 REELS_BRAND 指定的，請先移除那個設定再刪除。")
+    if not os.path.isdir(d): raise ValueError("這個風格已經不存在了")
     used = projects_using(d)
     where = "資源回收筒"
     if not to_recycle_bin(d):                     # e.g. a drive without a Recycle Bin: keep a copy beside the toolkit
-        keep = os.path.join(HERE, "_已刪除的頻道", f"{os.path.basename(d)}-{time.strftime('%Y%m%d-%H%M%S')}")
+        keep = os.path.join(HERE, "_已刪除的風格", f"{os.path.basename(d)}-{time.strftime('%Y%m%d-%H%M%S')}")
         os.makedirs(os.path.dirname(keep), exist_ok=True)
         shutil.move(d, keep); where = keep
     if os.path.normcase(state().get("brand") or "") == os.path.normcase(d): save_state(brand=os.path.join(HERE, "my-brand"))
@@ -654,7 +655,7 @@ def new_brand(body):
     """make my-brand-<name>; blank, or reusing another channel's look (brand.json + the free style's direction; the rest
     of BRAND.md starts blank)"""
     name = " ".join((body.get("name") or "").split())
-    if not name: raise ValueError("請輸入新頻道的名稱")
+    if not name: raise ValueError("請輸入新風格的名稱")
     slug = re.sub(r'[<>:"/\\|?*\s.]+', "-", name).strip("-") or "channel"
     d = os.path.join(HERE, "my-brand-" + slug); k = 2
     while os.path.exists(d): d = os.path.join(HERE, f"my-brand-{slug}-{k}"); k += 1
@@ -845,6 +846,7 @@ class Handler(BaseHTTPRequestHandler):
                        "welcomed": bool(st.get("welcomed")),     # the first-open welcome screen was seen
                        "studio": HERE, "env_brand": os.environ.get("REELS_BRAND")}
             elif path == "/api/ping": out = {"ok": True}
+            elif path == "/api/latest": out = latest_release()
             elif path == "/api/fonts": out = fonts()
             elif path == "/api/preview": out = preview(body)
             elif path == "/api/save":
@@ -898,6 +900,26 @@ def stop_running(port):
         if running_version(port) is None: return True
         time.sleep(0.2)
     return False
+
+
+_latest = {"at": 0, "out": None}
+def latest_release():
+    """the newest release on GitHub, read from where releases/latest redirects (…/tag/v1.5.0); no API key, no
+    rate limit. Asked when the page opens, kept for an hour. Offline or GitHub down → {"latest": None}, not kept,
+    and the page shows nothing"""
+    import urllib.request
+    if _latest["out"] and time.time() - _latest["at"] < 3600: return _latest["out"]
+    try:
+        req = urllib.request.Request(RELEASES + "/latest", method="HEAD", headers={"User-Agent": "ReelsStudio/" + app_version()})
+        with urllib.request.urlopen(req, timeout=5) as r: m = re.search(r"/tag/v?(\d+(?:\.\d+)*)$", r.geturl())
+    except Exception: m = None
+    if not m: return {"latest": None}
+    ver = lambda v: tuple(int(x) for x in re.findall(r"\d+", v))
+    cur, new = app_version(), m.group(1)
+    out = {"latest": new, "current": cur, "newer": bool(cur) and ver(new) > ver(cur),
+           "notes": f"{RELEASES}/tag/v{new}", "download": f"{RELEASES}/latest/download/ReelsStudio.zip"}
+    _latest.update(at=time.time(), out=out)
+    return out
 
 
 def main():

@@ -226,15 +226,15 @@
   </div></li>
 </ol>
 
-<h2 id="start"><span class="num">2</span>建立你的頻道設定<span class="cnt" data-for="sec2"></span></h2>
+<h2 id="start"><span class="num">2</span>建立你的風格<span class="cnt" data-for="sec2"></span></h2>
 <p class="lead">設定一次，之後每支影片都會自動套用。全部在控制台用點的就好。</p>
 <ol class="todos" id="sec2">
   <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-open"><span></span></label><div>
-    <strong><label for="c-brand-open">1. 打開控制台，點上面的「🎨 頻道風格」</label></strong>
+    <strong><label for="c-brand-open">1. 打開控制台，點上面的「🎨 風格」</label></strong>
     點桌面的 <span class="file">Reels Studio</span> 圖示就會打開。
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-name"><span></span></label><div>
-    <strong><label for="c-brand-name">2. 填頻道名稱</label></strong>
+    <strong><label for="c-brand-name">2. 填風格名稱（通常用頻道或帳號名稱）</label></strong>
     會出現在影片上方的小標籤和結尾卡。
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-look"><span></span></label><div>
@@ -246,7 +246,7 @@
     結尾卡可以選圖示、按鈕文字和下面的小字，例如「每週三更新」。
   </div></li>
   <li class="todo optional"><label class="tick"><input type="checkbox" id="c-brand-claude"><span></span></label><div>
-    <strong><label for="c-brand-claude">5. 填「給 Claude 看的頻道說明」</label><span class="opt">可以之後再補</span></strong>
+    <strong><label for="c-brand-claude">5. 填「給 Claude 看的說明」</label><span class="opt">可以之後再補</span></strong>
     文案語氣、目標觀眾、固定 hashtag 這些。點灰色的小按鈕就能快速填入。
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-save"><span></span></label><div>
@@ -275,12 +275,12 @@
     按「選擇資料夾⋯」選它，就會看到做到哪一步。
   </div></li>
   <li class="todo optional"><label class="tick"><input type="checkbox" id="c-first-settings"><span></span></label><div>
-    <strong><label for="c-first-settings">3. 確認右上角的「目前頻道」；想指定要做幾支、用哪個素材檔，打開「這次的要求」設定並儲存</label><span class="opt">可略過</span></strong>
-    不選的話就用預設頻道、做 3 支。
+    <strong><label for="c-first-settings">3. 確認右上角的「目前風格」；想指定要做幾支、用哪個素材檔，直接改要複製的那句話</label><span class="opt">可略過</span></strong>
+    不選的話就用預設風格、做 3 支。
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-first-say"><span></span></label><div>
     <strong><label for="c-first-say">4. 在「一步一步做」的「現在要做的事」複製句子，在 Claude 開新對話、貼上送出</label></strong>
-    句子裡已經寫好資料夾和頻道，不用再另外說明。長的錄音要先聽打，可能要 30–60 分鐘。
+    句子裡已經寫好資料夾和風格，不用再另外說明。長的錄音要先聽打，可能要 30–60 分鐘。
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-first-picks"><span></span></label><div>
     <strong><label for="c-first-picks">5. 選要剪的片段</label></strong>
@@ -307,7 +307,7 @@
   </table>
 </div>
 
-<div class="note ok"><b class="t">用控制台更省事</b>在「做影片」選素材資料夾，控制台會一步一步告訴你現在該跟 Claude 說什麼，複製的句子會自動寫上<b>資料夾和頻道</b>，在 Claude 開新對話、貼上送出就好。也可以在那裡選片段、播放成品、一鍵複製文案。</div>
+<div class="note ok"><b class="t">用控制台更省事</b>在「做影片」選素材資料夾，控制台會一步一步告訴你現在該跟 Claude 說什麼，複製的句子會自動寫上<b>資料夾和風格</b>，在 Claude 開新對話、貼上送出就好。也可以在那裡選片段、播放成品、一鍵複製文案。</div>
 
 <h2><span class="num">5</span>小提醒</h2>
 <div class="card">
@@ -342,21 +342,25 @@
   <p>確認安裝最後有出現「全部完成！」，而且有把 Claude 桌面 App <b>完全關掉再打開</b>。還是不行的話，直接說「幫我做 reels」試試看。</p>
 </details>
 <details>
-  <summary>我的頻道設定存在哪裡？可以自己改嗎？</summary>
-  <p>在 <span class="file">C:\Users\你的名字\.claude\reels-studio\my-brand\</span>。裡面的 <span class="file">brand.json</span> 是配色、字型、結尾卡；<span class="file">BRAND.md</span> 是文案語氣和 hashtag。最簡單的方式是在控制台的「頻道風格」修改，或直接跟 Claude 說你想改什麼。控制台只會改你動過的那幾項，Claude 依你的要求記下的其他規則不會被洗掉。</p>
+  <summary>我的風格設定存在哪裡？可以自己改嗎？</summary>
+  <p>在 <span class="file">C:\Users\你的名字\.claude\reels-studio\my-brand\</span>。裡面的 <span class="file">brand.json</span> 是配色、字型、結尾卡；<span class="file">BRAND.md</span> 是文案語氣和 hashtag。最簡單的方式是在控制台的「風格」分頁修改，或直接跟 Claude 說你想改什麼。控制台只會改你動過的那幾項，Claude 依你的要求記下的其他規則不會被洗掉。</p>
 </details>
 <details>
   <summary>我有好幾個頻道或帳號，怎麼分開設定？</summary>
-  <p>在控制台的「頻道風格」按 <b>「＋ 新增頻道」</b>，輸入名稱，選「從空白開始」或「沿用某個頻道的配色、字型、版面風格和結尾卡」，建好後照平常一樣填寫、儲存。之後在「做影片」打開素材資料夾，再用右上角的「目前頻道」選它，這個資料夾就會改用那個頻道，Claude 和剪片程式都會自動套用。沒有選的資料夾會用預設頻道。</p>
-  <p>不要的頻道：用右上角的「目前頻道」選它，在「頻道風格」按 <b>「刪除這個頻道」</b>。它會移到資源回收筒，刪錯了可以從那裡還原。預設頻道不能刪除。</p>
+  <p>在控制台的「風格」分頁按 <b>「＋ 新增風格」</b>，輸入名稱，選「從空白開始」或「沿用某個風格的配色、字型、版面風格和結尾卡」，建好後照平常一樣填寫、儲存。之後在「做影片」打開素材資料夾，再用右上角的「目前風格」選它，這個資料夾就會改用那個風格，Claude 和剪片程式都會自動套用。沒有選的資料夾會用預設風格。</p>
+  <p>不要的風格：用右上角的「目前風格」選它，在「風格」分頁按 <b>「刪除這個風格」</b>。它會移到資源回收筒，刪錯了可以從那裡還原。預設風格不能刪除。</p>
 </details>
 <details>
   <summary>點桌面的 Reels Studio 沒有反應</summary>
   <p>等 5 秒左右，瀏覽器應該會自己打開。如果還是沒有，直接跟 Claude 說「打開控制台」。控制台只在你自己的電腦上執行，不會上傳任何東西；關掉分頁 15 分鐘後它會自己結束，也可以按右上角的「關閉」。</p>
 </details>
 <details>
+  <summary>怎麼知道有沒有新版？</summary>
+  <p>每次打開控制台，它會連到 Reels Studio 的 GitHub 頁面看最新版是哪一版（只讀版本號，不會傳送你的設定或檔案）。有新版時，控制台最上面會出現提示，照著按「下載新版」、解壓縮、雙擊「② 雙擊安裝.bat」就好。沒有網路的話不會檢查，也不影響使用。已經是最新版時，控制台最下面的版本號旁會寫「已是最新版」。</p>
+</details>
+<details>
   <summary>重新安裝會不會把我的設定洗掉？</summary>
-  <p>不會。重新安裝只會更新程式，你的頻道設定會保留；被替換的舊檔也會先備份到 <span class="file">.claude\backup-reels-studio-日期時間\</span>。</p>
+  <p>不會。重新安裝只會更新程式，你的風格設定會保留；被替換的舊檔也會先備份到 <span class="file">.claude\backup-reels-studio-日期時間\</span>。</p>
 </details>
 
 <h2><span class="num">!</span>使用須知與免責聲明</h2>

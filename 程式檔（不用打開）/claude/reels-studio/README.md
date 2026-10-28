@@ -40,5 +40,5 @@ Python 3.10 以上：faster-whisper、opencc、av（含 libx264/aac）、skia-py
 Pexels（選用）：Windows 使用者環境變數 `PEXELS_API_KEY`。Unsplash（選用）：`UNSPLASH_ACCESS_KEY`。
 
 ## 多個頻道
-每個頻道一個資料夾：預設 `my-brand\`，其他是 `my-brand-<名稱>\`（控制台「頻道風格」→「＋ 新增頻道」會建立，可以沿用現有頻道的 brand.json）。
+每個頻道一個資料夾：預設 `my-brand\`，其他是 `my-brand-<名稱>\`（控制台「風格」→「＋ 新增風格」會建立，可以沿用現有頻道的 brand.json）。
 一個素材資料夾用哪個頻道，寫在它的 `_reels_studio.json` 的 `"brand"`（資料夾名稱，或完整路徑）。`reels_lib` 依序決定頻道：環境變數 `REELS_BRAND` → 從執行中的腳本所在資料夾和工作資料夾往上找 `_reels_studio.json`（最多 4 層）→ `my-brand\`。不是預設頻道時會印出 `[reels_lib] channel: …`。
