@@ -172,6 +172,10 @@
   footer .links + .links { margin-left: 8px; }
   footer .donate { border-color: var(--line); color: var(--muted); font-weight: 400; }
   footer .author .thanks { margin-top: 10px; font-size: 13px; }
+  footer .share { margin: 0 auto 16px; max-width: 560px; }
+  footer .share p { margin: 0 0 8px; }
+  footer .share .saybox { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; word-break: break-all; }
+  footer .verify { margin: 0 auto 20px; max-width: 560px; font-size: 13px; }
 
   /* unsaved channel edits: a bar pinned to the bottom of the window, on every tab, until saved or dropped */
   #savebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; background: var(--accent); color: #fff;
@@ -540,6 +544,11 @@
     <a class="links donate" href="https://lab.heysaori.com/donate.html" target="_blank" rel="noopener">☕ 請 Saori 喝杯咖啡</a>
     <p class="thanks">這個工具免費提供，覺得有幫助的話，歡迎小額支持。</p>
   </div>
+  <div class="share">
+    <p>覺得好用、想分享給朋友嗎？把這個網址傳給他，請朋友填表單就可以索取囉：</p>
+    <div class="saybox">https://lab.heysaori.com/reelsstudio.html <button class="btn ghost small" data-copy="https://lab.heysaori.com/reelsstudio.html">複製</button></div>
+  </div>
+  <p class="verify">🔒 提醒：Reels Studio 只由 Saori 本人提供。如果是別人轉傳安裝檔給你，請先確認來源是不是 Saori 本人給你的，或改從上面的網址索取。</p>
   影片字型使用 justfont 的 jf open 粉圓，以 SIL Open Font License 1.1 釋出（授權全文見 <span class="file">.claude\reels-studio\font\OFL.txt</span>）。
   <p id="appver" style="margin:8px 0 0"></p>
 </footer>
@@ -1357,7 +1366,7 @@ async function loadProject(path) {
 }
 
 // 常見問題: some answers take you straight to the place they talk about
-document.querySelectorAll("#tab-faq [data-copy]").forEach(b => b.addEventListener("click", () => copy(b.dataset.copy)));
+document.querySelectorAll("#tab-faq [data-copy], footer [data-copy]").forEach(b => b.addEventListener("click", () => copy(b.dataset.copy)));
 document.querySelectorAll("#tab-faq [data-go]").forEach(b => b.addEventListener("click", () => {
   const go = b.dataset.go;
   if (go === "make") showTab("make");
