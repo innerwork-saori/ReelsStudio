@@ -44,6 +44,10 @@ foreach ($p in $Parts) {
     $srcDir = Join-Path $Src $p.From
     Get-ChildItem $srcDir -Recurse -File | ForEach-Object {
         $rel = $_.FullName.Substring($srcDir.Length).TrimStart('\')
+        # 跟 tools\build_release.py 一樣跳過本機產生的檔：從開發資料夾直接安裝時，
+        # 不然會用開發用的 ui_state.json（最近資料夾、目前風格）和 my-brand* 蓋掉使用者自己的
+        if ($_.Name -eq 'ui_state.json' -or $_.Extension -in '.pyc', '.bak', '.log' -or
+            ($rel -split '\\' | Where-Object { $_ -eq '__pycache__' -or $_ -like 'my-brand*' })) { return }
         $dst = Join-Path (Join-Path $Claude $p.To) $rel
         if (Test-Path $dst) {                       # 備份會被覆蓋的舊檔
             $bk = Join-Path (Join-Path $Backup $p.To) $rel
