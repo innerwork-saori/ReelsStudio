@@ -1,6 +1,6 @@
 # Reels Studio 短影音小幫手
 
-**目前版本：第一版（v1.5.0，2026-10-29）**｜[版本記錄](CHANGELOG.md)
+**目前版本：第一版（v1.6.0，2026-11-01）**｜[版本記錄](CHANGELOG.md)
 
 讓 Claude 幫你把錄音、影片，或一個還沒錄的想法，做成直式短影音（IG Reels／TikTok／YouTube Shorts）：聽打逐字稿、挑出精華片段、剪成有字幕和插圖的 9:16 影片，再寫好貼文文案。
 
@@ -33,6 +33,7 @@
 | 一段很長的錄音或影片（Podcast、訪談、講座、直播） | 幫我把這個檔案做成 3 支 reels |
 | 一支自己拍的口播或 vlog | 幫我剪這支 |
 | 一篇文章或一個想法 | 幫我把這篇寫成 reels 口播稿 |
+| 一個想法，但不想錄音 | 幫我把這篇做成純字卡 reels |
 | 已經剪好的影片 | 幫我寫文案、幫我整理發文包 |
 
 ## 範例影片
@@ -79,6 +80,6 @@
 
 - `程式檔（不用打開）/claude/`：安裝到 `%USERPROFILE%\.claude\` 的 agents、skill 與工具包（`reels-studio/`，說明見裡面的 `README.md`）。檔案裡的 `{{STUDIO}}`、`{{HOME}}` 會在安裝時換成實際路徑。
 - `程式檔（不用打開）/install.ps1`：安裝程式本體；`② 雙擊安裝.bat` 只負責找到它並執行（.bat 必須維持純 ASCII、CRLF）。
-- 打包 Release：`python tools/build_release.py` → `dist/ReelsStudio.zip`（檔案直接放在 zip 最上層，解壓縮後只有一層資料夾）。上傳時檔名維持 `ReelsStudio.zip`，首頁的下載連結才會一直指向最新版；版本號寫在 `程式檔（不用打開）/VERSION`。
+- 打包 Release：`python tools/build_release.py` → `dist/ReelsStudio.zip`（檔案直接放在 zip 最上層，解壓縮後只有一層資料夾）。上傳時檔名維持 `ReelsStudio.zip`，首頁的下載連結才會一直指向最新版；版本號寫在 `程式檔（不用打開）/VERSION`；發布時這份 README 第 3 行和 `① 先看我.html` 的版本標籤也要一起改。
 
 </details>
