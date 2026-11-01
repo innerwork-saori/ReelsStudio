@@ -18,8 +18,10 @@
 | `unsplash.py` | Unsplash 照片搜尋、預覽、下載，通知 Unsplash 下載並記錄必要標註（key 讀環境變數 `UNSPLASH_ACCESS_KEY`） |
 | `reels_lib.py` | 繪圖與輸出引擎：品牌載入、色票、圖形、字幕、標題卡、結尾卡、轉場、實拍素材、露臉 `Reel.face()`、音訊組裝、H.264 輸出、驗證 |
 | `props.py` | 60 個現成物件（天氣、情緒、醫療、居家、工作目標），全部不畫人 |
+| `props_sheet.py` | 把 `props.py` 的道具畫成一覽圖，控制台「常見問題 → 影片裡的插圖有哪些現成道具？」用它。新增或修改道具時：在 `props.py` 檔頭的分類清單加上名字，在 `props_sheet.py` 的 `SAMPLES` 加中文名稱和示範姿勢，跑 `python props_sheet.py --check` 確認沒有漏掉 |
 | `TEMPLATE_clip.py` | 插圖模式的片段腳本範本（素材只有聲音） |
 | `TEMPLATE_face_clip.py` | 露臉模式的片段腳本範本（主講人自己拍的影片，可混插圖） |
+| `TEMPLATE_cards_clip.py` | 純字卡模式的片段腳本範本（沒有錄音，`text_cards()` 依字數排字卡時間，輸出無聲影片） |
 
 ## 素材資料夾結構
 ```

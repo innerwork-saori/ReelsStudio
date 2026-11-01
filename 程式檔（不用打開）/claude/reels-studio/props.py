@@ -14,6 +14,9 @@ stretch / heat are 0..1 progress values) and make them react to each other, e.g.
                    binoculars, side_mirror (blind spot), box_lid, weight, balance
   work & goals     grad_cap, briefcase, ladder, coins, trophy, badge, check, qmark, book, note, tarot, squiggle
   (* gauge, tape, sticky, stamp, heart, flower, mic, warning_sign, tick, xmark live in reels_lib)
+
+Adding or changing a prop: list it above (the panel's 常見問題 picture takes its categories from this list) and give
+it a Chinese name and sample pose in props_sheet.SAMPLES; `python props_sheet.py --check` lists any that are missing.
 """
 import math, random
 import skia

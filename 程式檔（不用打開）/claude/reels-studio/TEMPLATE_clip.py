@@ -35,8 +35,10 @@ SUBS = [
 ]
 
 # ---- 3. scenes: fn(c, t, lt, dur). t = global sec, lt = sec since scene start. Sync beats with R.L(name, src). ----
+TITLE_PHOTO = None                  # layout.title_bg "photo": a Pexels / Unsplash file in ./assets, e.g.
+                                    # os.path.join(HERE, "assets", "unsplash_abc123.jpg") (ignored with "paper")
 def sc_title(c, t, lt, dur):
-    title_card(c, t, lt, ["你上一次覺得", "「活著就很【幸福】」", "是什麼時候？"], "小標語")
+    title_card(c, t, lt, ["你上一次覺得", "「活著就很【幸福】」", "是什麼時候？"], "小標語", photo=TITLE_PHOTO)
 
 def sc_example(c, t, lt, dur):
     paper_bg(c, t); deco(c, t)

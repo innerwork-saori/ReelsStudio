@@ -40,6 +40,9 @@
   .lead { color: var(--muted); margin: 0 0 20px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 20px 22px; margin: 0 0 16px;
     box-shadow: 0 2px 10px rgba(75,70,67,.05); }
+  .card.picking { border: 2px solid var(--accent); background: var(--accent-soft); animation: pickpulse 0.9s ease 3; }
+  @keyframes pickpulse { 50% { box-shadow: 0 0 0 8px var(--highlight); } }
+  @media (prefers-reduced-motion: reduce) { .card.picking { animation: none; } }
   .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
   .btn { border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 12px; padding: 7px 16px;
     cursor: pointer; font-weight: 700; }
@@ -66,9 +69,20 @@
 
   /* brand */
   .brandlayout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
-  .previewbox { position: sticky; top: 76px; }
+  .previewbox { position: sticky; top: calc(var(--hdr, 58px) + 66px); }
+  /* 快速前往: one chip per settings card, pinned under the header while 風格 scrolls */
+  .toc { position: sticky; top: calc(var(--hdr, 58px) + 8px); z-index: 4; display: flex; align-items: center; gap: 4px;
+    overflow-x: auto; scrollbar-width: none; margin: 0 0 16px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(243,239,234,.94); backdrop-filter: blur(6px); box-shadow: 0 4px 14px rgba(75,70,67,.08); }
+  .toc::-webkit-scrollbar { display: none; }
+  .toc .lab { flex: none; color: var(--muted); font-size: 14px; padding: 0 6px 0 8px; }
+  .toc button { flex: none; border: none; background: none; padding: 3px 12px; border-radius: 999px; cursor: pointer;
+    color: var(--muted); font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .toc button:hover { color: var(--accent); }
+  .toc button.on { background: var(--accent-soft); color: var(--accent); }
+  #brandlayout .card { scroll-margin-top: calc(var(--hdr, 58px) + 76px); }
   .previewbox img { width: 100%; border-radius: 12px; border: 1px solid var(--line); background: #fff; display: block; }
-  .previewbox .empty { aspect-ratio: 1260 / 703; border-radius: 12px; border: 1px dashed var(--line); display: flex;
+  .previewbox .empty { aspect-ratio: 1560 / 737; border-radius: 12px; border: 1px dashed var(--line); display: flex;
     align-items: center; justify-content: center; color: var(--muted); text-align: center; padding: 16px; }
   .actions { display: flex; gap: 8px; margin: 12px 0 0; flex-wrap: wrap; }
   label.f { display: block; margin: 12px 0 0; font-weight: 700; }
@@ -153,6 +167,9 @@
   .pick:last-of-type { border-bottom: none; }
   .pickhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; cursor: pointer; }
   .pickhead input { width: 18px; height: 18px; }
+  .extra { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-top: 8px; }
+  .extra-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .extra pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 6px 0 0; font-family: inherit; }
   .pick pre { white-space: pre-wrap; background: var(--code); border-radius: 10px; padding: 8px 10px; font-family: inherit; max-height: 200px; overflow: auto; }
 
   /* footer: same as the guide (① 先看我.html) */
@@ -162,6 +179,12 @@
   .faq summary { color: var(--ink); }
   .faq details[open] summary { color: var(--accent); }
   .faq details p { margin: 6px 0 8px; max-width: 70ch; }
+  .kinds { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+  .kind { border: 2px solid var(--line); background: var(--card); border-radius: 12px; padding: 6px 14px; cursor: pointer; font-weight: 700; color: var(--muted); }
+  .kind[aria-checked="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .kind[aria-checked="true"]::before { content: "● "; }
+  .kind[aria-checked="false"]::before { content: "○ "; }
+  .faq .props-sheet { display: block; width: 100%; max-width: 760px; margin-top: 8px; border-radius: 12px; border: 1px solid var(--line); }
   footer { margin-top: 56px; color: var(--muted); font-size: 15px; text-align: center; }
   footer .author { border-top: 1px solid var(--line); padding-top: 28px; margin-bottom: 20px; }
   footer .author p { margin: 0 0 4px; }
@@ -298,7 +321,11 @@
   <p class="lead">選放錄音或影片的資料夾，照著一步一步走。每一步都是複製一句話貼給 Claude。</p>
   <p class="small" id="m-maphint" style="margin:-12px 0 16px"></p>
   <div class="card" id="m-pick">
-    <h2 id="m-pick-title">選素材資料夾</h2>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <h2 id="m-pick-title">選素材資料夾</h2>
+      <button class="btn ghost small" id="w-pick-cancel" style="margin-left:auto" hidden>取消，留在原本的資料夾</button>
+    </div>
+    <p class="small" id="m-pick-hint" style="margin:-4px 0 12px" hidden>👇 在這裡選新的資料夾。選好之後，下面就會換成新資料夾的進度。</p>
     <div class="folderbar">
       <button class="btn" id="w-pick">📁 選擇資料夾⋯</button>
       <input type="text" id="w-path" placeholder="或貼上資料夾路徑，例如 C:\Users\你\Desktop\EP80">
@@ -345,6 +372,7 @@
       <div class="actions"><button class="btn" id="nb-create">建立</button><button class="btn ghost" id="nb-cancel">取消</button></div>
     </div>
   </div>
+  <div class="toc" id="brand-toc" role="navigation" aria-label="快速前往"></div>
   <div class="brandlayout" id="brandlayout">
     <div>
       <div class="card">
@@ -363,16 +391,34 @@
           <p class="muted small" style="margin:6px 0 0">從上面選的風格出發，只換你想換的那幾項。</p>
           <div class="row2" id="style-parts"></div></details>
         <div id="free-box" hidden>
-          <p class="muted small" style="margin:12px 0 0">自由創作時，標題、字幕、背景、裝飾和轉場都由剪輯師照這裡設計，每支可以不一樣。配色、字型和下面的「版面規則」照樣會套用。樣張只是備用的樣子，不代表成品。</p>
+          <p class="muted small" style="margin:12px 0 0">自由創作時，標題、字幕、背景、裝飾和轉場都由剪輯師照這裡設計，每支可以不一樣。配色、字型和下面的「開頭標題卡」「版面規則」照樣會套用。樣張只是備用的樣子，不代表成品。</p>
           <div id="free-fields"></div>
         </div>
       </div>
 
       <div class="card">
-        <h2>版面規則</h2>
-        <p class="muted small" style="margin:0">影片的固定結構。不想每支都有開頭標題卡或結尾卡，在這裡關掉就好。</p>
+        <h2>開頭標題卡</h2>
+        <p class="muted small" style="margin:0">影片最前面 2–3 秒的問句標題，用來抓住滑過去的人。</p>
         <div class="icons" style="margin-top:10px">
-          <label><input type="checkbox" id="l-title_card"> 開頭標題卡</label>
+          <label><input type="checkbox" id="l-title_card"> 影片開頭放標題卡</label>
+        </div>
+        <div id="title-opts">
+          <label class="f" id="title-style-row">樣式<select data-part="title" id="t-style"></select></label>
+          <p class="muted small" id="title-free-note" style="margin:6px 0 0" hidden>自由創作時，標題卡的樣子由剪輯師每支設計；背景照下面的選擇。</p>
+          <label class="f">背景</label>
+          <div class="icons">
+            <label><input type="radio" name="title_bg" value="paper"> 跟影片一樣的背景</label>
+            <label><input type="radio" name="title_bg" value="photo"> 免費圖庫的照片（Pexels／Unsplash）</label>
+          </div>
+          <p class="muted small" id="title-photo-note" style="margin:6px 0 0" hidden></p>
+        </div>
+        <p class="muted small" id="title-off-note" style="margin:6px 0 0" hidden>關掉時，開場會直接進畫面，鉤子改用第一句字幕或剪輯師設計的開場。</p>
+      </div>
+
+      <div class="card">
+        <h2>版面規則</h2>
+        <p class="muted small" style="margin:0">影片的固定結構。不想每支都有結尾卡，在這裡關掉就好。</p>
+        <div class="icons" style="margin-top:10px">
           <label><input type="checkbox" id="l-end_card"> 結尾卡</label>
           <label><input type="checkbox" id="l-top_tag"> 上方的名稱標籤</label>
         </div>
@@ -381,7 +427,7 @@
           <label class="f">字幕大小<select id="l-subtitle_size"><option value="s">小（每行 13 字內）</option><option value="m">中（每行 12 字內，原本）</option><option value="l">大（每行 10 字內）</option></select></label>
         </div>
         <label class="f">節奏<select id="l-pace"><option value="fast">快：每 2–3 秒換畫面</option><option value="medium">中：每 3–4 秒（原本）</option><option value="slow">慢：每 4–6 秒，留白多</option></select></label>
-        <p class="muted small" style="margin:6px 0 0">關掉開頭標題卡時，開場會直接進畫面，鉤子改用第一句字幕或剪輯師設計的開場。關掉結尾卡時，影片在最後一句話說完後結束。</p>
+        <p class="muted small" style="margin:6px 0 0">關掉結尾卡時，影片在最後一句話說完後結束。</p>
       </div>
 
       <div class="card">
@@ -452,6 +498,7 @@
       <div class="card" id="md-extra" hidden>
         <h2>進階：完整的說明檔</h2>
         <p class="muted small" id="md-extra-text" style="margin:0"></p>
+        <div id="md-extra-list"></div>
         <div class="actions"><button class="btn ghost small" id="md-open">用記事本打開說明檔（BRAND.md）</button></div>
       </div>
     </div>
@@ -486,6 +533,10 @@
       <p>打開 Claude 桌面 App，開一個新的對話，貼上送出。句子後面已經帶著資料夾和風格，不用再另外說明。</p></details>
     <details><summary>我只有想法，還沒有錄音</summary>
       <p>先開一個空的資料夾，在「做影片」打開它。第一步會給你一句話，請 Claude 幫你寫口播稿；照著稿子錄好，把錄音放進資料夾，按「重新讀取」就能接著做。</p></details>
+    <details><summary>可以不錄音、不配音嗎？</summary>
+      <p>可以，做成「純字卡」：在「做影片」第一步選「不錄音，做純字卡」，Claude 會把你的主題寫成一張張字卡，每張停留的時間照字數算好，配上插圖做成影片。影片本身沒有聲音，發文時在 IG／TikTok 的 App 裡加音樂就好；用平台的音樂庫，音樂才有授權。</p>
+      <p>已經寫好口播稿、但不想錄了，跟 Claude 說「我不想錄音，幫我把口播稿改成純字卡，做成影片」。</p>
+      <button class="btn ghost small" data-go="make">去做影片</button></details>
   </div>
 
   <div class="card faq">
@@ -497,6 +548,11 @@
       <p>大約 10–30 分鐘，有露臉的影片比較久，可以同時剪 2 支。這段時間電腦可以做別的事，但不要關機。第一次聽打會先下載語音辨識模型，會特別久，之後就快了。</p></details>
     <details><summary>字幕有錯，或想改其中一支</summary>
       <p>Claude 沒辦法真的聽聲音，成品請自己完整看一遍。哪一句要改、哪裡想換，直接跟 Claude 說，例如「片段 2 的第三句字幕應該是……」。</p></details>
+    <details id="faq-props"><summary>影片裡的插圖有哪些現成道具？</summary>
+      <p>沒有露臉的影片會用插圖說故事。下面是已經畫好、可以直接拿來用的道具，顏色會跟著目前的風格。想用哪一個，跟 Claude 說它的名字就好，例如「這段用發芽」「放一個天秤，左邊是錢、右邊是心」。</p>
+      <p>這些只是現成的，Claude 每支也會照內容另外畫新的插圖，不會只用這幾個。</p>
+      <p class="muted small" data-props-msg>打開時才會畫，第一次要等幾秒。</p>
+      <a data-props-link target="_blank" rel="noopener" hidden><img data-props-img class="props-sheet" alt="現成道具一覽"></a></details>
     <details><summary>做好的影片和文案在哪裡？</summary>
       <p>都在你的素材資料夾裡。「做影片」最下面可以直接播放、複製文案，或按「在資料夾中顯示」找到檔案。發文包在資料夾裡的 <span class="file">發文包\發文清單.md</span>。</p></details>
     <details><summary>Claude 會幫我發文嗎？</summary>
@@ -616,6 +672,7 @@ function showTab(name) {
   syncSavebar();
   if (name === "make" && !$("#w-body").childElementCount && S && S.recent.length) loadProject(S.recent[0]);
   window.scrollTo(0, 0);
+  if (name === "brand") headerHeight();
 }
 document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
 
@@ -623,7 +680,8 @@ document.querySelectorAll("nav button").forEach(b => b.addEventListener("click",
 let S = null;          // /api/state
 let cur = null;        // current brand object from the server
 let dirty = false;
-const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色", night: "深夜藍（深色）", cocoa: "可可深棕（深色）" };
+const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色", night: "深夜藍（深色）", cocoa: "可可深棕（深色）", leaf: "植葉米白（植物手帳）",
+  berry: "漿果紅＋湖藍", rouge: "胭脂粉＋墨黑（深色）", violet: "霓堇紫＋櫻粉", periwinkle: "長春花藍＋可可棕", nude: "裸桃粉＋苔青", fuchsia: "桃緋粉＋薄荷青", pine: "淺松色＋艾草青", persimmon: "柿橙＋蜜金", wine: "酒紅＋芥末黃", midnight: "午夜藍＋珊瑚橘（深色）", forest: "森林綠＋蜜桃粉", klein: "克萊因藍＋檸檬黃", lavender: "薰衣草紫＋橄欖綠", tomato: "番茄紅＋奶油白", peacock: "孔雀綠＋杏桃橘", berrylime: "莓果紫＋萊姆綠", caramel: "焦糖棕＋霧藍", navy: "海軍藍＋向日葵黃（深色）", rosewood: "玫瑰粉＋墨綠（深色）", brick: "天空藍＋磚紅", matcha: "抹茶綠＋葡萄紫", milktea: "奶茶色＋靛青", electric: "活力橘＋電光藍", dusty: "灰粉＋鐵灰" };
 const ICONS = [["mic", "🎙 麥克風"], ["play", "▶ 播放"], ["heart", "♥ 愛心"], ["star", "★ 星星"], ["logo", "🖼 我的 logo"], ["none", "不要圖示"]];
 const LOGO_SHAPES = [["original", "原本的形狀"], ["circle", "圓形"], ["rounded", "圓角方形"]];
 const MD = [
@@ -670,6 +728,7 @@ const PHRASES = [
   ["一段很長的錄音或影片（Podcast、訪談、講座、直播）", "幫我把這個檔案做成 3 支 reels", "會先聽打、挑精華讓你選，再開始剪"],
   ["一支自己拍的口播或 vlog", "幫我剪這支", "保留你的畫面，自動剪掉停頓，加上字幕和插圖"],
   ["一篇文章或一個想法", "幫我把這篇寫成 reels 口播稿", "寫好稿你照著錄，錄好再說「錄好了，幫我剪」"],
+  ["一個想法，但不想錄音", "幫我把這篇做成純字卡 reels", "一句一張字卡配插圖，影片沒有聲音，發文時在 App 裡加音樂"],
   ["已經剪好的影片", "幫我寫文案", "寫好之後可以再說「幫我整理發文包」"],
 ];
 function renderPhrases() {
@@ -897,9 +956,8 @@ function fillBrand(b) {
       note ? h("p", { class: "muted small", style: "margin:4px 0 0" }, note) : ""));
   }
   $("#b-notes").value = b.fields["其他補充"] || "";
-  const ex = $("#md-extra");
-  ex.hidden = !b.md_exists;
-  $("#md-extra-text").textContent = "上面填的內容都存在這個風格的說明檔裡。說明檔裡也可能有 Claude 依你的要求記下的其他規則，控制台不會動到它們。想看全部或自己改，可以用記事本打開。";
+  $("#md-extra").hidden = !b.md_exists;
+  renderMdExtra(b);
   // font select
   fillFonts();
   // preview
@@ -915,15 +973,16 @@ const PRESET_INFO = {
   magazine: ["雜誌感", "色塊斜帶標題、柔和漸層、深色字幕框、名片卡結尾"],
   notebook: ["筆記本", "方格紙背景、便條紙標題、淡淡的細線插圖、柔和動畫"],
   street:   ["街頭活力", "滿版大字標題、描邊字幕、純色背景、彈跳感"],
+  botanical: ["植物手帳", "米白紙＋手繪蕨葉、細框字幕、宋體標題、磚紅重點底線、深綠結尾"],
   free:     ["自由創作", "不套版：你描述想要的感覺，剪輯師每支自己設計標題、字幕、背景和轉場"],
 };
 const PART_INFO = {
-  subtitle: ["字幕", { box: "白色框（原本）", outline: "描邊大字、沒有框", pill: "每行一條白色膠囊", dark: "深色半透明框" }],
-  title: ["開頭標題卡", { note: "膠帶便條紙（原本）", bold: "滿版大字、沒有卡片", line: "細框卡＋側邊色條", magazine: "斜斜的色塊帶" }],
-  background: ["背景與裝飾", { blobs: "手繪色塊＋星光（原本）", plain: "乾淨純色", grid: "方格筆記紙", gradient: "柔和漸層光暈" }],
+  subtitle: ["字幕", { box: "白色框（原本）", outline: "描邊大字、沒有框", pill: "每行一條白色膠囊", dark: "深色半透明框", frame: "白底細線框" }],
+  title: ["開頭標題卡", { note: "膠帶便條紙（原本）", bold: "滿版大字、沒有卡片", line: "細框卡＋側邊色條", magazine: "斜斜的色塊帶", leaf: "大字直接放背景＋葉子分隔線" }],
+  background: ["背景與裝飾", { blobs: "手繪色塊＋星光（原本）", plain: "乾淨純色", grid: "方格筆記紙", gradient: "柔和漸層光暈", leaves: "手繪蕨葉" }],
   line: ["插圖線條", { bold: "粗墨線（原本）", thin: "細線", soft: "淡淡的細線" }],
   motion: ["動畫", { bouncy: "活潑彈跳（原本）", snappy: "俐落、輕微回彈", gentle: "柔和、不彈跳" }],
-  end: ["結尾卡", { classic: "大圖示＋按鈕（原本）", minimal: "極簡：大字＋外框按鈕", card: "名片卡" }],
+  end: ["結尾卡", { classic: "大圖示＋按鈕（原本）", minimal: "極簡：大字＋外框按鈕", card: "名片卡", deep: "整頁深色＋圓形圖示" }],
 };
 function resolveStyle(s) {
   s = s || {};
@@ -941,10 +1000,12 @@ function presetMock(key) {           // a tiny drawing of the look in the curren
       h("span", { style: `position:absolute;left:50%;bottom:7px;transform:translateX(-50%);font-size:11px;white-space:nowrap;font-weight:700;color:${p.fg || p.ink}` }, "你描述，Claude 設計"));
   const bg = { blobs: `radial-gradient(circle at 10% 20%, ${p.peach} 0 26%, transparent 27%), radial-gradient(circle at 95% 90%, ${p.highlight}66 0 30%, transparent 31%), ${p.bg}`,
                plain: p.bg, grid: `repeating-linear-gradient(0deg, ${p.ink}14 0 1px, transparent 1px 9px), repeating-linear-gradient(90deg, ${p.ink}14 0 1px, transparent 1px 9px), ${p.bg}`,
-               gradient: `radial-gradient(circle at 80% 20%, ${p.highlight}66, transparent 55%), linear-gradient(${p.bg}, ${p.peach})` }[st.background];
+               gradient: `radial-gradient(circle at 80% 20%, ${p.highlight}66, transparent 55%), linear-gradient(${p.bg}, ${p.peach})`,
+               leaves: `radial-gradient(ellipse 18% 8% at 92% 10%, ${p.sage} 0 60%, transparent 62%), radial-gradient(ellipse 16% 7% at 6% 62%, ${p.sage} 0 60%, transparent 62%), radial-gradient(ellipse 10% 5% at 12% 18%, ${p.accent}88 0 60%, transparent 62%), ${p.bg}` }[st.background];
   const sub = { box: `background:#fff;border:2px solid ${p.ink};border-radius:6px`,
                 outline: `background:transparent;color:#fff;-webkit-text-stroke:3px ${p.ink};paint-order:stroke fill;font-size:13px`,
-                pill: `background:#fff;border-radius:99px;box-shadow:0 1px 4px ${p.ink}40`, dark: `background:${p.ink};color:#fff;border-radius:5px` }[st.subtitle];
+                pill: `background:#fff;border-radius:99px;box-shadow:0 1px 4px ${p.ink}40`, dark: `background:${p.ink};color:#fff;border-radius:5px`,
+                frame: `background:#fff;border:1px solid ${p.ink};border-radius:4px` }[st.subtitle];
   const txtCol = "";
   return h("div", { class: "mock", style: `background:${bg}` },
     h("span", { style: `position:absolute;left:50%;bottom:7px;transform:translateX(-50%);font-size:11px;padding:1px 8px;white-space:nowrap;font-weight:700;${sub};${txtCol}` }, "字幕長這樣"));
@@ -957,42 +1018,72 @@ function renderStyle(style) {
     box.append(h("button", { type: "button", class: "pal", "aria-pressed": key === preset, "data-preset": key,
       onclick: ev => {
         box.querySelectorAll(".pal").forEach(x => x.setAttribute("aria-pressed", x === ev.currentTarget));
-        fillParts(S.style_presets[key]); showFreeBox(); markDirty(); runPreview(false);
+        fillParts(S.style_presets[key]); suggestLook(key); showFreeBox(); markDirty(); runPreview(false);
       } }, presetMock(key), h("b", {}, name), h("div", { class: "desc" }, desc)));
   }
   fillParts(resolveStyle(style));
   $("#style-d").open = true;            // left open so people see the element-by-element choices exist
   showFreeBox();
 }
+// presets drawn after one particular look: picking them also picks its palette and (if installed) its font
+const PRESET_LOOK = { botanical: { palette: "leaf", fonts: ["Noto Serif TC", "思源宋體"], weight: 700 } };
+function suggestLook(key) {
+  const look = PRESET_LOOK[key]; if (!look) return;
+  const pal = document.querySelector(`#palettes .pal[data-key="${look.palette}"]`);
+  if (pal) pal.click();
+  const sel = $("#b-font"), name = look.fonts.find(n => [...sel.options].some(o => o.value === n));
+  if (name) { sel.value = name; fillWeights(look.weight); }
+}
 function showFreeBox() {             // free style: the description fields instead of the element-by-element choices
   const free = collectStyle().preset === "free";
   $("#free-box").hidden = !free; $("#style-d").hidden = free;
+  syncTitleBox();
+}
+// 開頭標題卡: its own card (on/off, look, background); the look is still style.title in brand.json
+function syncTitleBox() {
+  const on = $("#l-title_card").checked, free = collectStyle().preset === "free";
+  $("#title-opts").hidden = !on; $("#title-off-note").hidden = on;
+  $("#title-style-row").hidden = free; $("#title-free-note").hidden = !free;
+  const photo = (document.querySelector("input[name=title_bg]:checked") || {}).value === "photo";
+  const k = S.stock_keys || {}, note = $("#title-photo-note");
+  note.hidden = !photo;
+  note.textContent = k.pexels || k.unsplash
+    ? `剪輯師會照每支的標題找一張合適的照片（會用 ${[k.pexels && "Pexels", k.unsplash && "Unsplash"].filter(Boolean).join(" 和 ")}），樣張裡的照片只是示意。${k.unsplash ? "用了 Unsplash 的照片，發文時要標註攝影師，發文包會幫你寫好。" : ""}`
+    : "這台電腦還沒有設定 Pexels 或 Unsplash 金鑰，剪片時會先用一般背景。設定方法在「常見問題 → 想用實拍照片，但安裝時跳過了金鑰」。";
 }
 const LAYOUT_BOOL = ["title_card", "end_card", "top_tag"], LAYOUT_SEL = ["subtitle_pos", "subtitle_size", "pace"];
 function fillLayout(l) {
   l = Object.assign({}, S.layout_defaults, l || {});
   for (const k of LAYOUT_BOOL) $("#l-" + k).checked = !!l[k];
   for (const k of LAYOUT_SEL) $("#l-" + k).value = l[k];
+  document.querySelectorAll("input[name=title_bg]").forEach(x => x.checked = x.value === (l.title_bg || "paper"));
+  syncTitleBox();
 }
 function collectLayout() {
   const out = {};
   for (const k of LAYOUT_BOOL) out[k] = $("#l-" + k).checked;
   for (const k of LAYOUT_SEL) out[k] = $("#l-" + k).value;
+  out.title_bg = (document.querySelector("input[name=title_bg]:checked") || {}).value || "paper";
   return out;
 }
 // the preview shows the tag, subtitle and end card, so redraw it when those change (pace is not visible)
 ["title_card", "end_card", "top_tag", "subtitle_pos", "subtitle_size"].forEach(k =>
   $("#l-" + k).addEventListener("change", () => { markDirty(); runPreview(false); }));
+[$("#l-title_card"), ...document.querySelectorAll("input[name=title_bg]")].forEach(x => x.addEventListener("change", syncTitleBox));
+document.querySelectorAll("input[name=title_bg]").forEach(x => x.addEventListener("change", () => { markDirty(); runPreview(false); }));
+$("#t-style").addEventListener("change", () => { markDirty(); runPreview(false); });
 function fillParts(values) {
   const box = $("#style-parts"); box.replaceChildren();
-  for (const [part, [label, names]] of Object.entries(PART_INFO))
+  const [, titleNames] = PART_INFO.title;      // the title look lives in the 開頭標題卡 card
+  $("#t-style").replaceChildren(...(S.style_options.title || []).map(v => h("option", { value: v, selected: v === values.title }, titleNames[v] || v)));
+  for (const [part, [label, names]] of Object.entries(PART_INFO)) if (part !== "title")
     box.append(h("label", { class: "f" }, label, h("select", { "data-part": part, onchange: markDirty },
       (S.style_options[part] || []).map(v => h("option", { value: v, selected: v === values[part] }, names[v] || v)))));
 }
 function collectStyle() {
   const el = $("#presets .pal[aria-pressed=true]");
   const out = { preset: el ? el.dataset.preset : "handmade" };
-  document.querySelectorAll("#style-parts select").forEach(s => out[s.dataset.part] = s.value);
+  document.querySelectorAll("#style-parts select, #t-style").forEach(s => out[s.dataset.part] = s.value);
   return out;
 }
 
@@ -1069,6 +1160,20 @@ function syncSavebar() {             // 回到風格 only makes sense from anoth
   $("#sb-back").hidden = !$("#tab-brand").hidden;
 }
 $("#sb-save").addEventListener("click", () => runPreview(true));
+// rules Claude wrote into BRAND.md that the fields above don't show: list them so they can be seen and removed
+function renderMdExtra(b) {
+  const list = b.md_extra || [];
+  $("#md-extra-text").textContent = list.length
+    ? `說明檔裡還有 ${list.length} 條上面沒有顯示的規則，通常是 Claude 依你的要求記下的。Claude 剪片、寫文案時都會照著做；已經不需要的可以刪掉。`
+    : "上面填的內容都存在這個風格的說明檔裡。想看全部或自己改，可以用記事本打開。";
+  $("#md-extra-list").replaceChildren(...list.map(x => { const whole = x.text.startsWith("## "), shown = whole ? x.text.replace(/^## .*\n?/, "") : x.text; return h("div", { class: "extra" },
+    h("div", { class: "extra-head" }, h("span", { class: "muted small" }, whole ? `整段「${x.section}」` : `在「${x.section}」裡`),
+      h("button", { type: "button", class: "btn ghost small", onclick: async () => {
+        if (!confirm(`從說明檔刪掉這條規則？\n\n${shown}`)) return;
+        try { const r = await api("/api/md-extra-delete", { dir: b.dir, text: x.text }); b.md_extra = r.md_extra; renderMdExtra(b); toast("已刪除"); }
+        catch (err) { toast(err.message); } } }, "刪除")),
+    h("pre", {}, shown)); }));
+}
 $("#md-open").addEventListener("click", () => api("/api/open", { path: cur.dir + "\\BRAND.md" }).catch(err => toast(err.message)));
 $("#sb-back").addEventListener("click", () => showTab("brand"));
 $("#sb-drop").addEventListener("click", () => { if (cur) { fillBrand(cur); toast("已放棄修改，回到上次儲存的設定"); } });
@@ -1082,7 +1187,7 @@ function showPreview(src, caption) {
   const pv = $("#pv"); pv.replaceChildren();
   if (src) pv.append(h("a", { href: src, target: "_blank", title: "點一下看大圖" }, h("img", { src, alt: "樣張" })),
     caption ? h("div", { class: "muted small", style: "margin-top:4px" }, caption) : "");
-  else pv.append(h("div", { class: "empty" }, "選好配色和字型後，按「看樣張」就會出現標題卡、字幕和結尾卡的樣子。"));
+  else pv.append(h("div", { class: "empty" }, "選好配色和字型後，按「看樣張」就會出現標題卡、字幕、實拍素材上的字幕和結尾卡的樣子。"));
 }
 
 async function runPreview(save) {
@@ -1169,9 +1274,24 @@ function renderRecent() {
       h("b", {}, "📁 " + p.split("\\").pop()), h("div", { class: "muted" }, p)))));
 }
 function showPicker(open) {          // the folder picker is big when nothing is open, a small 換資料夾 bar after
-  $("#m-pick-title").textContent = open ? "換一個資料夾" : "選素材資料夾";
+  $("#m-pick-title").textContent = "選素材資料夾";
   $("#m-pick").hidden = !!open;
+  $("#m-pick").classList.remove("picking");
+  $("#m-pick-hint").hidden = $("#w-pick-cancel").hidden = true;
+  const sw = $("#w-switch"); if (sw) sw.textContent = "換資料夾";
 }
+function togglePicker() {            // 換資料夾: reveal the picker loudly (highlight + scroll + focus) so the click visibly does something
+  const pick = $("#m-pick");
+  if (!pick.hidden) { showPicker(true); return; }
+  pick.hidden = false;
+  $("#m-pick-title").textContent = "換一個資料夾";
+  $("#m-pick-hint").hidden = $("#w-pick-cancel").hidden = false;
+  $("#w-switch").textContent = "取消換資料夾";
+  pick.classList.remove("picking"); void pick.offsetWidth; pick.classList.add("picking");
+  pick.scrollIntoView({ behavior: "smooth", block: "center" });
+  $("#w-path").focus({ preventScroll: true });
+}
+$("#w-pick-cancel").addEventListener("click", () => showPicker(true));
 $("#w-pick").addEventListener("click", async () => {
   toast("已打開選擇視窗（如果沒看到，可能在其他視窗後面）");
   try { const r = await api("/api/pick-folder"); if (r.path) loadProject(r.path); } catch (err) { toast(err.message); }
@@ -1181,6 +1301,11 @@ $("#w-path").addEventListener("keydown", e => { if (e.key === "Enter") loadProje
 
 const CUT_PICKED = "幫我剪我在控制台選好的片段";
 const TOPIC_HOLE = "（在這裡寫你想講的事）";   // the part of the script sentence people must replace before copying
+const SAY_SCRIPT = "幫我寫一支 reels 口播稿，主題是：" + TOPIC_HOLE;
+const SAY_CARDS = "幫我寫一支純字卡 reels（不錄音），主題是：" + TOPIC_HOLE;
+// first step, no material yet: record yourself, or text cards with no voice at all
+const SCRIPT_KINDS = [["我會照稿錄音或錄影", SAY_SCRIPT, "寫成照著念的口播稿，錄好放進資料夾再剪。"],
+                      ["不錄音，做純字卡", SAY_CARDS, "每句話變成一張字卡配插圖，影片沒有聲音，發文時在 IG／TikTok 裡加音樂。"]];
 const STEP_LABELS = { source: "素材（錄音、影片或口播稿）", transcript: "聽打逐字稿", picks: "選片段", videos: "剪片",
                       captions: "寫貼文文案", pack: "整理發文包" };
 function nextStep(r) {
@@ -1188,7 +1313,12 @@ function nextStep(r) {
   const p = r.project || {}, step = k => r.steps.find(s => s.key === k);
   const confirmed = p.picks && p.picks.confirmed ? p.picks.items : [];
   const cut = new Set(r.clips.map(c => c.n));
-  if (!step("source").done) return ["這個資料夾還沒有錄音或影片。有的話放進來，再按「重新讀取」；還沒錄的話，先請 Claude 幫你寫稿：把下面括號裡的字換成你想講的主題。", "幫我寫一支 reels 口播稿，主題是：" + TOPIC_HOLE, "source"];
+  if (!step("source").done) return ["這個資料夾還沒有錄音或影片。有的話放進來，再按「重新讀取」；還沒錄的話，先請 Claude 幫你寫稿：先選要不要錄音，再把下面括號裡的字換成你想講的主題。", SAY_SCRIPT, "source", SCRIPT_KINDS];
+  // 純字卡: no recording, so no transcript or picks; the cards go straight to the editor
+  if (r.cards && !r.clips.length)
+    return ["字卡稿寫好了！先打開稿子看過，要改的話跟 Claude 說；沒問題就請 Claude 做成影片。影片沒有聲音，發文時在 IG／TikTok 裡加音樂。", "幫我把字卡做成影片", "videos"];
+  if (r.scripts.length && !r.sources.length && !step("transcript").done)
+    return ["口播稿寫好了！照著稿子錄音或錄影，把檔案放進這個資料夾，再按「重新讀取」。不想錄音的話，也可以改做純字卡：複製下面這句。", "我不想錄音，幫我把口播稿改成純字卡，做成影片", "source"];
   if (!step("transcript").done)
     return ["Claude 會先聽打，再挑精華片段讓你選。要做幾支直接改句子裡的數字；想要的風格、用哪個檔案也寫在這句話裡。", `幫我把這個檔案做成 ${p.count || 3} 支 reels`, "transcript"];
   if (r.picks.length && !confirmed.length && !r.clips.length)
@@ -1233,6 +1363,18 @@ function howToBox(r, next) {
           ta.value = v + (v ? "，" : "") + `用「${s}」這個檔案`;
           ta.focus(); } }, s)))
     : "";
+  // two kinds of script (record yourself / 純字卡): switching keeps the topic already typed
+  const kindNote = h("div", { class: "muted small" });
+  const kinds = next[3] ? h("div", { class: "kinds", role: "radiogroup", "aria-label": "要不要錄音" }, next[3].map(([label, say, note], i) => {
+    const b = h("button", { type: "button", class: "kind", role: "radio", "aria-checked": String(i === 0), onclick: () => {
+      kinds.querySelectorAll(".kind").forEach(x => x.setAttribute("aria-checked", String(x === b)));
+      const topic = ta.value.split("主題是：")[1];
+      ta.value = topic !== undefined ? say.split("主題是：")[0] + "主題是：" + topic : say;
+      kindNote.textContent = note; ta.focus();
+    } }, label);
+    return b;
+  })) : "";
+  if (next[3]) kindNote.textContent = next[3][0][2];
   const copyIt = h("button", { class: "btn small", onclick: () => {
     const say = ta.value.trim();
     if (!say) { toast("請先寫下要跟 Claude 說的話"); ta.focus(); return; }
@@ -1247,7 +1389,8 @@ function howToBox(r, next) {
       h("li", {}, "打開 Claude 桌面 App，開一個新的對話。如果要你選資料夾，就選這個：",
         h("div", { class: "pathrow" }, h("span", { class: "file" }, r.folder), " ", copyBtn(r.folder, "複製路徑"))),
       h("li", {}, "把要跟 Claude 說的話貼上、送出。",
-        h("div", { class: "muted small" }, next[2] === "source"
+        kinds, kinds ? kindNote : "",
+        h("div", { class: "muted small" }, next[3]
           ? "主題寫得越具體，稿子越貼近你，例如想講給誰聽、想舉什麼例子、想要多長。"
           : "下面這句可以直接用，也可以改成你自己的話，例如加上想要的風格、想講的重點，或哪一段不要剪。"),
         ta, files, wishes,
@@ -1318,7 +1461,7 @@ async function loadProject(path) {
     h("span", { style: "margin-left:auto;display:flex;gap:8px;flex-wrap:wrap" },
       h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: r.folder }).catch(e => toast(e.message)) }, "打開這個資料夾"),
       h("button", { class: "btn ghost small", onclick: () => loadProject(r.folder) }, "重新讀取"),
-      h("button", { class: "btn ghost small", onclick: () => { showPicker(false); $("#m-pick").scrollIntoView({ behavior: "smooth" }); } }, "換資料夾"))),
+      h("button", { class: "btn ghost small", id: "w-switch", onclick: togglePicker }, "換資料夾"))),
     h("div", { class: "muted small", style: "overflow-wrap:anywhere" }, r.folder)));
   if (r.problems && r.problems.length)
     body.append(h("div", { class: "note" }, h("b", { class: "t" }, "有些檔案讀不到"), r.problems.map(p => h("div", {}, p)),
@@ -1329,7 +1472,7 @@ async function loadProject(path) {
   const picks = picksCard(r);
   const steps = h("ol", { class: "steps" }, r.steps.map(s => {
     const isCur = s.key === curKey;
-    const label = STEP_LABELS[s.key] || s.label;
+    const label = r.cards && s.key === "source" ? s.label : STEP_LABELS[s.key] || s.label;
     const extra = [];
     if (s.key === "picks" && picks) extra.push(isCur ? picks : h("details", {}, h("summary", { class: "small" }, "看／改選好的片段"), picks));
     if (isCur) extra.push(howToBox(r, next));
@@ -1342,7 +1485,7 @@ async function loadProject(path) {
   }));
   const done = !next && !(r.problems && r.problems.length)
     ? h("div", { class: "note ok" }, h("b", {}, "都準備好了！"), " 看完影片、複製文案，就可以到 IG／TikTok 發文了。發文清單在 ",
-        h("span", { class: "file" }, "發文包\\發文清單.md"), "。") : "";
+        h("span", { class: "file" }, "發文包\\發文清單.md"), "。", r.cards ? "純字卡影片沒有聲音，發文時記得在 App 裡加音樂。" : "") : "";
   body.append(h("div", { class: "card" }, h("h2", {}, "一步一步做"), steps, done));
   const old = oldWishes(r);
   if (old) body.append(old);
@@ -1373,6 +1516,20 @@ document.querySelectorAll("#tab-faq [data-go]").forEach(b => b.addEventListener(
   else if (go === "new") { showTab("brand"); if (S.brands.some(x => x.exists)) $("#nb-open").click(); }
   else openMap();
 }));
+// 現成道具: drawn from props.py on open (so new props show up by themselves), in the current style's colours
+$("#faq-props").addEventListener("toggle", async e => {
+  if (!e.target.open) return;
+  const msg = $("[data-props-msg]"), link = $("[data-props-link]"), img = $("[data-props-img]");
+  const want = S && S.brands.some(x => x.dir === S.current && x.exists) ? S.current : "";
+  if (img.dataset.dir === want && img.src) return;
+  msg.hidden = false; msg.textContent = "畫道具中，第一次要等幾秒⋯⋯";
+  try {
+    const r = await api("/api/props-sheet", { dir: want });
+    if (!r.ok) throw new Error("畫不出來：" + (r.error || "").split("\n").filter(Boolean).pop());
+    img.onload = () => { msg.textContent = "點圖片可以放大看。"; link.hidden = false; };
+    img.dataset.dir = want; img.src = link.href = r.image;
+  } catch (err) { msg.textContent = err.message; }
+});
 
 // ---------------- new version ----------------
 // asked once each time the page opens; offline or GitHub down shows nothing
@@ -1391,6 +1548,38 @@ function showUpdate(u) {
       h("li", {}, "點桌面上的「Reels Studio」重新打開控制台。你的風格設定和作品都會保留。")));
   bar.hidden = false;
 }
+
+// ---------------- 風格: 快速前往 ----------------
+// one chip per settings card (taken from the cards' own h2, so a new card shows up by itself); the chip of the card
+// you're reading lights up. Buttons, not #links: the address hash picks the tab.
+const toc = $("#brand-toc");
+const tocCards = [...document.querySelectorAll("#brandlayout .card")].filter(c => c.querySelector(":scope > h2"));
+toc.replaceChildren(h("span", { class: "lab" }, "快速前往"), ...tocCards.map(c =>
+  h("button", { type: "button", onclick: () => c.scrollIntoView({ behavior: "smooth", block: "start" }) },
+    c.querySelector(":scope > h2").textContent)));
+function tocSpy() {
+  if ($("#tab-brand").hidden) return;
+  const btns = toc.querySelectorAll("button"), line = toc.getBoundingClientRect().bottom + 24;
+  // on a wide window 樣張 is pinned beside everything, so it needs no chip
+  const pinned = getComputedStyle($(".previewbox")).position === "sticky";
+  const shown = c => !c.hidden && !(pinned && c.closest(".previewbox"));
+  let on = -1;
+  tocCards.forEach((c, i) => {
+    btns[i].hidden = !shown(c);
+    if (shown(c) && c.getBoundingClientRect().top <= line && c.getBoundingClientRect().bottom > line) on = i;
+  });
+  if (on < 0) on = tocCards.findIndex(shown);
+  if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4)   // at the bottom: the last visible card
+    on = tocCards.reduce((a, c, i) => shown(c) ? i : a, on);
+  btns.forEach((b, i) => b.classList.toggle("on", i === on));
+  const b = btns[on];
+  if (b && (b.offsetLeft < toc.scrollLeft || b.offsetLeft + b.offsetWidth > toc.scrollLeft + toc.clientWidth))
+    toc.scrollTo({ left: b.offsetLeft - 40, behavior: "smooth" });
+}
+function headerHeight() { document.documentElement.style.setProperty("--hdr", $("header.top").offsetHeight + "px"); tocSpy(); }
+addEventListener("scroll", tocSpy, { passive: true });
+addEventListener("resize", headerHeight);
+headerHeight();
 
 // ---------------- lifecycle ----------------
 $("#quit").addEventListener("click", async () => {

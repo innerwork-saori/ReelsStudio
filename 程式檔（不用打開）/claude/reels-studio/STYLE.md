@@ -25,13 +25,15 @@
 | `PEACH` `ROSE` `SAGE` `SKY` `LILAC` `GRAY` | 同名 | 輔助色 |
 | `COOL` `MINT` `STEEL` | 固定 | 冷色段落（醫院、低潮） |
 
-預設組合：`cream` 奶油暖橘、`mint` 清新薄荷、`sky` 晴空藍、`blush` 蜜桃粉、`mono` 極簡＋一個亮色；深色背景：`night` 深夜藍、`cocoa` 可可深棕。
+預設組合：`cream` 奶油暖橘、`mint` 清新薄荷、`sky` 晴空藍、`blush` 蜜桃粉、`mono` 極簡＋一個亮色；深色背景：`night` 深夜藍、`cocoa` 可可深棕。`leaf` 植葉米白是給 `botanical` 植物手帳配的（多一個 `deep` 深綠，給結尾卡 `deep` 用；其他配色的 `deep` 由 accent 和 ink 混出來）。
+
+撞色組合（深的當 accent、亮的當 highlight）：`berry` 漿果紅＋湖藍、`violet` 霓堇紫＋櫻粉、`periwinkle` 長春花藍＋可可棕、`nude` 裸桃粉＋苔青、`fuchsia` 桃緋粉＋薄荷青、`pine` 淺松色＋艾草青、`persimmon` 柿橙＋蜜金、`wine` 酒紅＋芥末黃、`forest` 森林綠＋蜜桃粉、`klein` 克萊因藍＋檸檬黃、`lavender` 薰衣草紫＋橄欖綠、`tomato` 番茄紅＋奶油白、`peacock` 孔雀綠＋杏桃橘、`berrylime` 莓果紫＋萊姆綠、`caramel` 焦糖棕＋霧藍、`brick` 天空藍＋磚紅、`matcha` 抹茶綠＋葡萄紫、`milktea` 奶茶色＋靛青、`electric` 活力橘＋電光藍、`dusty` 灰粉＋鐵灰；深色背景的撞色：`rouge` 胭脂粉＋墨黑、`midnight` 午夜藍＋珊瑚橘、`navy` 海軍藍＋向日葵黃、`rosewood` 玫瑰粉＋墨綠。
 
 - **深色背景**（`DARK` 為 True）：props 物件保留淺色填色＋深色描邊，像貼紙一樣浮在背景上，不用改。直接寫在背景上的字（自己的標語、圖表刻度、物件旁的說明字）要用 `FG`，不要用 `INK`；props 裡畫在背景上的標籤字（例如 `balance()` 秤盤下的字）在深色背景上會看不清楚，sheet 上要檢查，看不清楚就不用那個標籤、改成自己寫 `FG` 的字。
 
 - 字體：全片只用 brand.json 的 `font`＋`font_weight`（預設 jf open 粉圓）。`python fonts.py list` 列出可用的字型，`fonts.py check "<字型>" "<文字>"` 檢查缺字。字型沒有的字或符號（例如 ▶、emoji）不能直接打字，要換字或自己畫。
 - **版面風格**：brand.json 的 `style` 決定字幕、標題卡、背景與裝飾、插圖線條、動畫、結尾卡的樣子。`preset` 分兩類：
-  - **快速套版**：`handmade` 手作便條（brand.json 沒寫 `style` 的舊頻道就是這個）、`clean` 俐落簡約、`magazine` 雜誌感、`notebook` 筆記本、`street` 街頭活力；其他 key 是逐項改過的元素，選項見 `reels_lib.STYLE_OPTIONS`。照下面的規則用內建函式。
+  - **快速套版**：`handmade` 手作便條（brand.json 沒寫 `style` 的舊頻道就是這個）、`clean` 俐落簡約、`magazine` 雜誌感、`notebook` 筆記本、`street` 街頭活力、`botanical` 植物手帳（米白紙＋手繪蕨葉、細框字幕、關鍵字磚紅底線、深綠結尾；搭配配色 `leaf` 和宋體字最像）；其他 key 是逐項改過的元素，選項見 `reels_lib.STYLE_OPTIONS`。照下面的規則用內建函式。
   - **自由創作** `free`（新頻道的預設）：不套版，剪輯師依 BRAND.md 的「自由創作方向」「參考帳號或影片」每支自己設計，規則見**第 12 節**；下面「不要自己重畫」那幾條不適用。
   BRAND.md「影片」的「版面風格」那行是同一份設定的說明。快速套版時剪片引擎會自動套用，所以：
   - 背景用 `paper_bg()`、裝飾用 `deco()`、標題卡用 `title_card()`、字幕交給 `Reel`、結尾用 `end_card()`，不要自己重畫成固定的樣子，也不要另外發明新的裝飾風格。
@@ -40,6 +42,7 @@
   - 頻道說明（BRAND.md）若另外寫了版面要求，以 BRAND.md 為準。
 - **版面規則**：brand.json 的 `layout`（控制台的「版面規則」；BRAND.md「版面規則」那行是說明），快速套版和自由創作都適用：
   - `title_card`：開頭要不要標題卡（第 3 節第 4 點）。
+  - `title_bg`：標題卡的背景。`paper`（預設）跟影片一樣的背景；`photo` 用 Pexels／Unsplash 的照片（或短影片）當滿版背景：照這支的標題找一張氣氛相符、中間不雜亂的素材，`title_card(..., photo=<檔案>)`，字的可讀性由 `title_card` 自動處理。素材規則照第 9 節（人像限制、Unsplash 標註）。沒有金鑰或找不到合適的，就用一般背景並在回報說明。
   - `end_card`：要不要結尾卡。`false` 時 `Timeline` 自動不留結尾卡的時間（最後一句後多留 0.9 秒），SCENES 不要放 end 場景。
   - `top_tag`：要不要上方的頻道標籤（`false` 時 `Reel` 自動不畫）。
   - `subtitle_pos`、`subtitle_size`：字幕位置（`low` 下方／`middle` 畫面中間）和大小（`s`／`m`／`l`），引擎自動套用；程式裡用 `SUB_Y`、`SUB_SZ`、`SUB_MAX`（每行字數上限）、`ILLU_TOP`／`ILLU_BOTTOM`（插圖區）。
@@ -135,7 +138,7 @@
 - **旋轉**：手機直拍的影片會自動轉正；sheet 上若看到畫面是橫倒的，加 `Reel(..., rotate=90)`（或 -90）。
 - **節奏**：露臉段可以比插圖段長，但**單一露臉鏡頭不超過 5 秒**沒有變化。變化可以是：跳接放大、疊一個 props 物件或印章跟著關鍵字跳出、切到滿版插圖 B-roll（聲音照常）、改成子母畫面（`R.face(..., rect=..., card=True)` 放在插圖旁邊）。
 - **建議比例**：露臉約 50–70%，其餘是插圖或實拍 B-roll；講抽象概念時切走，講個人經驗、情緒、結論時回到臉。
-- **標題卡**（`layout.title_card` 為 true 時）：用 `title_card(..., bg=lambda c: R.face(c, t))`，開頭就看得到人。
+- **標題卡**（`layout.title_card` 為 true 時）：用 `title_card(..., bg=lambda c: R.face(c, t))`，開頭就看得到人。`layout.title_bg` 是 `photo` 時改用 `photo=`（主講人從第一個內容場景開始出現）。
 - **轉場**：臉接臉用 `cut`；進出插圖輪流用 circle／slide／zoom／fade／push。
 - **品管額外檢查**：臉有沒有被裁到、畫面是否橫倒、字幕是否擋臉、跳接是否太密（兩個跳接間隔少於 1.5 秒就考慮合併）。
 

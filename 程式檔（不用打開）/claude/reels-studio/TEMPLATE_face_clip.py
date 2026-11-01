@@ -38,6 +38,7 @@ FOCUS = (0.5, 0.40)     # where the face sits in the source frame (landscape sho
 PUNCH = 1.12            # every other KEEPS range is zoomed in, so jump cuts read as deliberate
 
 def sc_title(c, t, lt, dur):                                  # hook card over the speaker
+    # layout.title_bg "photo": add photo=<Pexels / Unsplash file>; it replaces the speaker behind the card
     title_card(c, t, lt, ["你是不是也", "一直在【等準備好】？"], "別等了", bg=lambda c: R.face(c, t, focus=FOCUS))
 
 def sc_talk(c, t, lt, dur):                                   # plain talking head

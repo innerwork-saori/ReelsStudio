@@ -1,6 +1,6 @@
 ---
 name: reels-studio
-description: Reels Studio 短影音製作流程：錄音／影片／想法 → 逐字稿 → 精華片段 → 9:16 Reels 影片（動畫解說或露臉）→ 貼文文案 → 發文包。主對話擔任製作人，依序派出 studio-transcriber、studio-clip-picker、studio-script-writer、studio-reels-editor、studio-caption-writer、studio-publish-prep。第一次使用會先問幾個問題建立頻道設定。Use when the user gives a recording or video and wants reels / 短影音 made, wants to turn an idea or article into a reel, says /reels-studio, 幫我做 reels、剪短影音、照控制台的設定、剪控制台選好的片段、重新設定品牌、新增頻道、新增風格、打開控制台.
+description: Reels Studio 短影音製作流程：錄音／影片／想法 → 逐字稿 → 精華片段 → 9:16 Reels 影片（動畫解說或露臉）→ 貼文文案 → 發文包。主對話擔任製作人，依序派出 studio-transcriber、studio-clip-picker、studio-script-writer、studio-reels-editor、studio-caption-writer、studio-publish-prep。第一次使用會先問幾個問題建立頻道設定。Use when the user gives a recording or video and wants reels / 短影音 made, wants to turn an idea or article into a reel, wants a text-card reel with no recording (純字卡、不錄音), says /reels-studio, 幫我做 reels、剪短影音、照控制台的設定、剪控制台選好的片段、重新設定品牌、新增頻道、新增風格、打開控制台.
 ---
 
 # Reels Studio 製作流程（製作人手冊）
@@ -8,7 +8,7 @@ description: Reels Studio 短影音製作流程：錄音／影片／想法 → �
 你（主對話）是製作人：負責派工、在檢查點問使用者、彙整回報。實際工作交給 agents，不要自己重做它們的工作。
 
 工具包：`{{STUDIO}}\`（`STYLE.md` 是共通規則，`README.md` 有目錄說明）。
-頻道設定：每個頻道一個資料夾（**頻道資料夾**；控制台和跟使用者說話時一律叫它「風格」，例如「風格」分頁、右上角的「目前風格」、「＋ 新增風格」）：預設 `{{STUDIO}}\my-brand\`，其他頻道是 `{{STUDIO}}\my-brand-<名稱>\`。裡面的 `brand.json` 給程式用、`BRAND.md` 給 agents 用。使用者也可能用控制台改過這兩個檔，每次開工都重新讀，不要沿用對話裡記得的舊值。下面寫 `my-brand\` 的地方，都是指這次的頻道資料夾。
+頻道設定：每個頻道一個資料夾（**頻道資料夾**；控制台和跟使用者說話時一律叫它「風格」，例如「風格」分頁、右上角的「目前風格」、「＋ 新增風格」）：預設 `{{STUDIO}}\my-brand\`，其他頻道是 `{{STUDIO}}\my-brand-<名稱>\`。裡面的 `brand.json` 給程式用、`BRAND.md` 給 agents 用。使用者也可能用控制台改過這兩個檔，每次開工都重新讀，不要沿用對話裡記得的舊值。影片上和結尾卡顯示的名稱一律是 `brand.json` 的 `name`（也就是控制台右上角「目前風格」顯示的名稱）；資料夾名稱（`my-brand-<名稱>`）是建立時的名字，改名後不會跟著變，`BRAND.md` 的「名稱」或內文出現舊名稱也一樣：都以 `name` 為準，不用問使用者要不要改，也不要因此改名稱。下面寫 `my-brand\` 的地方，都是指這次的頻道資料夾。
 控制台：`{{STUDIO}}\studio_ui.py`，本機網頁面板，兩個分頁：「做影片」（每個素材資料夾一步一步的進度、要複製給 Claude 的一句話、選片、看成品與文案）和「風格」（風格的設定與說明、新增風格；沒有任何風格或正在新增時，最上面有「風格路線圖」）；右上角的「目前風格」是唯一選風格的地方，打開的資料夾也跟著它。使用者說「打開控制台」「打開 Reels Studio」或想用點選的方式操作時，在背景啟動它：`Start-Process pythonw -ArgumentList '"{{STUDIO}}\studio_ui.py"'`（找不到 pythonw 就用 python），它會自己打開瀏覽器；已經開著的話只會再開一次頁面。
 
 ## 開工前：讀這個資料夾的設定 `_reels_studio.json`
@@ -63,10 +63,10 @@ description: Reels Studio 短影音製作流程：錄音／影片／想法 → �
    使用者也可以選 Other 直接說字型名稱。把 `fonts_sheet.png` 的路徑一起給使用者，讓他能自己看樣本。
    選定後寫入 brand.json：`font` 填 `fonts.py list` 印出的名稱（預設粉圓保留 `jf-openhuninn-1.1.ttf`）；`font_weight` 字幕用 500–700 比較清楚（字型只有 400／700 就用 700；粉圓維持 400，引擎會自動加粗描邊）。
    同一個 AskUserQuestion 再加三題：
-   - **版面風格**（單選）：自由創作 `free` (Recommended)（預設；不套版：照第 3 步描述的感覺，剪輯師每支自己設計標題、字幕、背景和轉場；最不容易跟別人撞款）、手作便條 `handmade`（快速套版：膠帶便條卡、手繪色塊、粗線條）、俐落簡約 `clean`（快速套版：細框卡、純色、膠囊字幕）、雜誌感 `magazine`（快速套版：色塊斜帶、柔和漸層、深色字幕框）。另外兩種快速套版筆記本 `notebook`（方格紙、便條紙標題、淡細線）和街頭活力 `street`（滿版大字、描邊字幕）放在說明裡，使用者可以選 Other。使用者沒有特別想要哪種套版就用 `free`；第 3 步沒描述感覺的話，請使用者至少用一句話說想要的感覺，寫進「自由創作方向」。寫入 brand.json 的 `style`：`{"preset": "<key>"}`；使用者想單獨換某一項（例如「字幕改深色框」），加上那個元素的 key（`subtitle`、`title`、`background`、`line`、`motion`、`end`，選項見 STYLE.md 第 1 節）。
+   - **版面風格**（單選）：自由創作 `free` (Recommended)（預設；不套版：照第 3 步描述的感覺，剪輯師每支自己設計標題、字幕、背景和轉場；最不容易跟別人撞款）、手作便條 `handmade`（快速套版：膠帶便條卡、手繪色塊、粗線條）、俐落簡約 `clean`（快速套版：細框卡、純色、膠囊字幕）、雜誌感 `magazine`（快速套版：色塊斜帶、柔和漸層、深色字幕框）。另外三種快速套版：筆記本 `notebook`（方格紙、便條紙標題、淡細線）、街頭活力 `street`（滿版大字、描邊字幕）和植物手帳 `botanical`（米白紙＋手繪蕨葉、宋體標題、深綠結尾；配色用 `leaf`，字型用 Noto Serif TC 或思源宋體 700）放在說明裡，使用者可以選 Other。使用者沒有特別想要哪種套版就用 `free`；第 3 步沒描述感覺的話，請使用者至少用一句話說想要的感覺，寫進「自由創作方向」。寫入 brand.json 的 `style`：`{"preset": "<key>"}`；使用者想單獨換某一項（例如「字幕改深色框」），加上那個元素的 key（`subtitle`、`title`、`background`、`line`、`motion`、`end`，選項見 STYLE.md 第 1 節）。
    - **影片結構**（multiSelect，問「每支影片要有哪些固定的部分？」）：開頭標題卡、結尾卡、上方頻道標籤。沒勾的寫進 brand.json 的 `layout`（`"title_card": false`、`"end_card": false`、`"top_tag": false`）；都勾就不用寫。
    - **節奏**（單選）：中等（每 3–4 秒換畫面）(Recommended)、快（每 2–3 秒，資訊密集）、慢（每 4–6 秒，留白多、適合療癒或深夜感）。不是中等時寫 `layout.pace`：`fast` 或 `slow`。
-   告訴使用者：字幕位置（下方／畫面中間）和大小、深色背景（配色 `night` 深夜藍、`cocoa` 可可深棕）都能之後在控制台「風格」分頁調，那裡也能點選比較每一種風格。使用者想要深色背景時，第 2 步的配色改用 `night` 或 `cocoa`。
+   告訴使用者：字幕位置（下方／畫面中間）和大小、深色背景（配色 `night` 深夜藍、`cocoa` 可可深棕）都能之後在控制台「風格」分頁調，那裡也能點選比較每一種風格。使用者想要深色背景時，第 2 步的配色改用 `night` 或 `cocoa`（撞色的深色款：`rouge`、`midnight`、`navy`、`rosewood`）。想要撞色、對比強烈的感覺時，從 STYLE.md 列的撞色組合挑一個。
 5. 依回答寫兩個檔（UTF-8，資料夾不存在就建立）：
    - `my-brand\brand.json`：照 `{{STUDIO}}\brand_template\brand.json` 的格式。`end_card.icon`：Podcast 用 `mic`，其他用 `play`（使用者喜歡也可以 `heart` / `star` / `none`；想用自己的 logo 就設 `logo`，圖片存成頻道資料夾的 `logo.png`，`logo_shape` 是 `original`（去背圖）、`circle` 或 `rounded`。最簡單是請使用者在控制台的「結尾卡 → 我的 logo」上傳）；`end_card.cta` 依結尾行動寫 4–6 字（例如「完整收聽」「追蹤看更多」「看完整版」）；`speaker_label` 是第二位講者的標籤。
    - `my-brand\BRAND.md`：照 `{{STUDIO}}\brand_template\BRAND.md` 的章節填，把使用者的原話放進去，沒回答的寫「未設定」。第 3 步「影片的感覺、參考帳號」寫進「自由創作方向」和「參考帳號或影片」（快速套版時也寫，剪輯師在套版內挑插圖和節奏時會參考）；「版面規則」寫出 `layout` 的白話說明（例如「開頭標題卡 不要、結尾卡 有、上方標籤 有、字幕在下方・中、節奏 慢」）。
@@ -83,6 +83,7 @@ description: Reels Studio 短影音製作流程：錄音／影片／想法 → �
 | 長錄音或長影片（超過約 2 分鐘） | 2 逐字稿 → 3 選片 → 5 剪片 → 6 文案 → 7 發文包 |
 | 短影片或短錄音（本來就是一支，2 分鐘內） | 2 逐字稿 → 5 剪片（整支，`0 end`）→ 6 文案 → 7 發文包 |
 | 還沒有素材，只有想法、文章、筆記 | 4 口播稿 → 使用者錄音或錄影 → 走「短影片」路線 |
+| 不想錄音（使用者說「純字卡」「不錄音」，或 `_口播稿.md` 寫著 `**模式**：純字卡`） | 4 口播稿（純字卡模式）→ 5 剪片（純字卡）→ 6 文案 → 7 發文包；不用逐字稿和選片 |
 
 影片有沒有露臉由剪輯師判斷；使用者說「不要露臉」「只用聲音」，或 `face` 是 `"no"`，要轉告剪輯師。
 使用者只要其中一步（例如「只幫我寫文案」），就只派那一個 agent。
@@ -100,9 +101,10 @@ description: Reels Studio 短影音製作流程：錄音／影片／想法 → �
 ## 4. 口播稿 → `studio-script-writer`
 傳入：頻道資料夾、使用者的想法／文章／筆記（檔案路徑或原文）、想要的長度與版本數。
 **檢查點 B**：把口播稿給使用者看，確認或修改。之後請使用者照稿錄音（或錄影），檔案放進同一個資料夾，回來說「錄好了」。
+純字卡：派工時寫明「純字卡模式」。檢查點 B 確認字卡後直接進第 5 步，不用等錄音。
 
 ## 5. 剪片 → `studio-reels-editor`（每個片段一個 agent）
-傳入：頻道資料夾、素材路徑、精華片段 md 路徑與片段編號（或口播稿路徑，或「整支」）、標題卡問句（`picks.items` 的 `title`；使用者改過的以它為準）、成品檔名、人物名、要不要露臉、使用者這次的額外要求（對話裡說的＋ `notes`；都沒有就說「依 STYLE.md 與 BRAND.md」）。
+傳入：頻道資料夾、素材路徑、精華片段 md 路徑與片段編號（或口播稿路徑，或「整支」；純字卡要寫明「純字卡，沒有錄音」並給口播稿路徑）、標題卡問句（`picks.items` 的 `title`；使用者改過的以它為準）、成品檔名、人物名、要不要露臉、使用者這次的額外要求（對話裡說的＋ `notes`；都沒有就說「依 STYLE.md 與 BRAND.md」）。
 - 同時最多跑 **2 個** studio-reels-editor（CPU 限制），其餘排隊。
 - 每支完成就把影片路徑給使用者（環境裡有傳檔工具就直接傳），並轉述 agent 回報中「剪了什麼／需要確認的字幕」重點。
 

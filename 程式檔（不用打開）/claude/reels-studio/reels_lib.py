@@ -20,7 +20,7 @@ CLI of a clip script:
   python clip.py preview 3.2 7.5  specific seconds -> preview_XX.XX.png
   python clip.py render           full MP4 (+ verify)
 """
-import math, os, sys, random, glob, json
+import math, os, sys, random, glob, json, re
 import numpy as np, skia, av, soundfile as sf
 
 W, H, FPS = 1080, 1920, 30
@@ -63,6 +63,58 @@ PALETTES = {   # bg may be light or dark; text straight on the background uses F
                   rose="#F08FA0", sage="#9FD3B4", sky="#8EC5F0", lilac="#C3B8F2", alert="#FF6B57", ok="#6CCB8E", gray="#5A6378"),
     "cocoa": dict(bg="#2B211D", ink="#1A1311", fg="#F7EDE2", accent="#F2A541", highlight="#F6D06F", peach="#F1C2A2",
                   rose="#E79A8C", sage="#B5CFA0", sky="#A7CBE0", lilac="#CDBBE6", alert="#F06A4F", ok="#8CC98F", gray="#6B5A52"),
+    # botanical: rice paper, fern green, terracotta keywords; deep = the forest-green end card (style end "deep")
+    "leaf":  dict(bg="#F1F0EA", ink="#2B3428", accent="#9E4E2A", highlight="#E6CBB0", peach="#EED9C4", rose="#D49A84",
+                  sage="#A9C19B", sky="#B9CFD3", lilac="#CFC8DA", alert="#B5462B", ok="#5E8F55", gray="#CFCDC2", deep="#2D5A26"),
+    # clash pairs (8組經典撞色 + 16 more): the deeper colour is the accent, the brighter one the highlight
+    "berry": dict(bg="#EEFBFC", ink="#3A0106", accent="#65020A", highlight="#18D5E7", peach="#F9C9B0", rose="#E98A7E",
+                   sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CAC9CB"),
+    "rouge": dict(bg="#141214", ink="#0A0A0A", fg="#FFF1F5", accent="#FF7CA2", highlight="#FFC2D4", peach="#F6C3A8", rose="#F08FA0",
+                   sage="#9FD3B4", sky="#8EC5F0", lilac="#C3B8F2", alert="#FF6B57", ok="#6CCB8E", gray="#5A5558"),
+    "violet": dict(bg="#F5F4FF", ink="#25226B", accent="#615EDE", highlight="#FF7EC1", peach="#F9C9B0", rose="#E98A7E",
+                    sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CBCAE1"),
+    "periwinkle": dict(bg="#F2F4FC", ink="#3B2720", accent="#6D483B", highlight="#7B8AD7", peach="#F9C9B0", rose="#E98A7E",
+                        sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CDCBD0"),
+    "nude": dict(bg="#F3F6F1", ink="#263628", accent="#465C47", highlight="#FACBC6", peach="#F9C9B0", rose="#E98A7E",
+                  sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CAD0C9"),
+    "fuchsia": dict(bg="#F0FCF8", ink="#3A0F24", accent="#F31383", highlight="#8AEED1", peach="#F9C9B0", rose="#E98A7E",
+                     sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CCCDCE"),
+    "pine": dict(bg="#FFF9EC", ink="#1F3B2C", accent="#2E9E63", highlight="#FFC44F", peach="#F9C9B0", rose="#E98A7E",
+                  sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#D2D3C6"),
+    "persimmon": dict(bg="#FFF7EA", ink="#3E2210", accent="#B85516", highlight="#EAAE35", peach="#F9C9B0", rose="#E98A7E",
+                       sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#D8CCBE"),
+    "wine": dict(bg="#FBF5E9", ink="#3A0E15", accent="#7A1E2C", highlight="#E3B23C", peach="#F9C9B0", rose="#E98A7E",
+                  sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#D4C7BF"),
+    "midnight": dict(bg="#1B2A4A", ink="#101828", fg="#FFF3EC", accent="#FF7F50", highlight="#FFB491", peach="#F6C3A8", rose="#F08FA0",
+                      sage="#9FD3B4", sky="#8EC5F0", lilac="#C3B8F2", alert="#FF6B57", ok="#6CCB8E", gray="#5F667B"),
+    "forest": dict(bg="#FFF5F2", ink="#173A2C", accent="#1F4D3A", highlight="#F7B2A1", peach="#F9C9B0", rose="#E98A7E",
+                    sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#D1D0CA"),
+    "klein": dict(bg="#FFFCE6", ink="#0F1E4D", accent="#002FA7", highlight="#F4E04D", peach="#F9C9B0", rose="#E98A7E",
+                   sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CFD0C7"),
+    "lavender": dict(bg="#F6F2FD", ink="#2F3518", accent="#6B7B3A", highlight="#B8A1E3", peach="#F9C9B0", rose="#E98A7E",
+                      sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CECCCF"),
+    "tomato": dict(bg="#F1FAEE", ink="#3B1114", accent="#E63946", highlight="#F7B1B6", peach="#F9C9B0", rose="#E98A7E",
+                    sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CDCBC2"),
+    "peacock": dict(bg="#FFF6EE", ink="#0E3438", accent="#00727A", highlight="#F4A261", peach="#F9C9B0", rose="#E98A7E",
+                     sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CFCFCA"),
+    "berrylime": dict(bg="#F7FCEB", ink="#3A1029", accent="#7B2D5B", highlight="#B5E655", peach="#F9C9B0", rose="#E98A7E",
+                       sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#D1CDC4"),
+    "caramel": dict(bg="#EEF3F6", ink="#3B2216", accent="#A0522D", highlight="#9DB4C0", peach="#F9C9B0", rose="#E98A7E",
+                     sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CAC9C9"),
+    "navy": dict(bg="#14213D", ink="#0B1324", fg="#F6F1E6", accent="#FCA311", highlight="#FFD27A", peach="#F6C3A8", rose="#F08FA0",
+                  sage="#9FD3B4", sky="#8EC5F0", lilac="#C3B8F2", alert="#FF6B57", ok="#6CCB8E", gray="#585F70"),
+    "rosewood": dict(bg="#1E3B2F", ink="#10221A", fg="#FFF1F4", accent="#E07A9A", highlight="#F6B9CB", peach="#F6C3A8", rose="#F08FA0",
+                      sage="#9FD3B4", sky="#8EC5F0", lilac="#C3B8F2", alert="#FF6B57", ok="#6CCB8E", gray="#62726A"),
+    "brick": dict(bg="#EEF7FC", ink="#3A1A0C", accent="#C1440E", highlight="#8ECAE6", peach="#F9C9B0", rose="#E98A7E",
+                   sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CACBCC"),
+    "matcha": dict(bg="#F5F7EC", ink="#2A1A33", accent="#4B2E5C", highlight="#C2D085", peach="#F9C9B0", rose="#E98A7E",
+                    sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CCCBC7"),
+    "milktea": dict(bg="#FBF7F2", ink="#1D2647", accent="#2D3A6B", highlight="#D6B999", peach="#F9C9B0", rose="#E98A7E",
+                     sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CFCDD0"),
+    "electric": dict(bg="#F0F5FF", ink="#0F1B3D", accent="#1A73FF", highlight="#FF6B1A", peach="#F9C9B0", rose="#E98A7E",
+                      sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#C3C9D8"),
+    "dusty": dict(bg="#F9F1F2", ink="#2E3236", accent="#3A3F44", highlight="#D8A7B1", peach="#F9C9B0", rose="#E98A7E",
+                   sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#D0CBCC"),
 }
 BRAND_DEFAULTS = {
     "name": "我的頻道",              # top tag + end card title
@@ -80,13 +132,15 @@ BRAND_DEFAULTS = {
     "layout": {"title_card": True,   # hook card in the first seconds (False: the clip opens straight on a scene)
                "end_card": True,     # brand end card (False: the clip ends after the last word)
                "top_tag": True,      # channel label at the top of every scene
-               "subtitle_pos": "low", "subtitle_size": "m", "pace": "medium"},   # options: LAYOUT_OPTIONS
+               "subtitle_pos": "low", "subtitle_size": "m", "pace": "medium",
+               "title_bg": "paper"},  # options: LAYOUT_OPTIONS
 }
 # layout rules the channel can change (the panel's 版面規則); pace is read by the editor agent, not the engine
 LAYOUT_OPTIONS = {
     "subtitle_pos":  ["low", "middle"],              # centre y 1500 (under the picture) / 1180 (over the middle)
     "subtitle_size": ["s", "m", "l"],                # 70 / 82 / 96 px, max 13 / 12 / 10 chars per line
     "pace":          ["fast", "medium", "slow"],     # a new picture or beat every 2-3 / 3-4 / 4-6 s
+    "title_bg":      ["paper", "photo"],             # title card over the clip's own background / a stock photo
 }
 
 # Layout looks (the panel's 版面風格). A preset fills every element; keys given next to it override that one element.
@@ -94,12 +148,12 @@ LAYOUT_OPTIONS = {
 # so channels made before free existed keep theirs. "free" = the editor designs each clip from BRAND.md's
 # 自由創作方向; its element values are only the fallback the built-in title_card / end_card / subtitles use.
 STYLE_OPTIONS = {
-    "subtitle":   ["box", "outline", "pill", "dark"],        # white framed box / outlined text, no box / a pill per line / dark box
-    "title":      ["note", "bold", "line", "magazine"],      # taped note card / big text, no card / thin-frame card / colour slab
-    "background": ["blobs", "plain", "grid", "gradient"],    # hand-drawn blobs + sparkles / flat / notebook grid / soft gradient
-    "line":       ["bold", "thin", "soft"],                  # illustration outlines: thick ink / thin ink / thin and faded
-    "motion":     ["bouncy", "snappy", "gentle"],            # overshoot of every pop-in + transition length
-    "end":        ["classic", "minimal", "card"],            # end card layout
+    "subtitle":   ["box", "outline", "pill", "dark", "frame"],          # white framed box / outlined text, no box / a pill per line / dark box / thin-line box
+    "title":      ["note", "bold", "line", "magazine", "leaf"],         # taped note card / big text, no card / thin-frame card / colour slab / text on the paper + leaf rule
+    "background": ["blobs", "plain", "grid", "gradient", "leaves"],     # hand-drawn blobs + sparkles / flat / notebook grid / soft gradient / fern sprigs in the corners
+    "line":       ["bold", "thin", "soft"],                             # illustration outlines: thick ink / thin ink / thin and faded
+    "motion":     ["bouncy", "snappy", "gentle"],                       # overshoot of every pop-in + transition length
+    "end":        ["classic", "minimal", "card", "deep"],               # end card layout (deep: full deep-colour page, round badge)
 }
 STYLE_PRESETS = {
     "free":     {"subtitle": "pill", "title": "bold", "background": "plain", "line": "thin", "motion": "snappy", "end": "minimal"},
@@ -108,6 +162,7 @@ STYLE_PRESETS = {
     "magazine": {"subtitle": "dark", "title": "magazine", "background": "gradient", "line": "thin", "motion": "gentle", "end": "card"},
     "notebook": {"subtitle": "pill", "title": "note", "background": "grid", "line": "soft", "motion": "gentle", "end": "card"},
     "street":   {"subtitle": "outline", "title": "bold", "background": "plain", "line": "bold", "motion": "bouncy", "end": "classic"},
+    "botanical": {"subtitle": "frame", "title": "leaf", "background": "leaves", "line": "thin", "motion": "gentle", "end": "deep"},
 }
 
 def load_brand():
@@ -198,6 +253,8 @@ def mix(a, b, k):
     """hex colour k (0..1) of the way from a to b"""
     a, b = a.lstrip("#"), b.lstrip("#")
     return "#" + "".join(f"{round(int(a[i:i + 2], 16) * (1 - k) + int(b[i:i + 2], 16) * k):02X}" for i in (0, 2, 4))
+
+DEEP = _pal.get("deep") or mix(ACC, INK, 0.45)   # end "deep" page colour (only palette leaf sets its own)
 
 # style "line": every INK outline (props, cards, frames) is drawn through P(), so it follows the channel's look
 LINE_W = {"bold": 1.0, "thin": 0.55, "soft": 0.6}[STYLE["line"]]
@@ -298,9 +355,10 @@ def text(c, s, x, y, sz, color=INK, a=1.0, align="c", bold=0):
     c.drawString(s, xx, y, f, P(color, a))
     return w
 
-def rich_line(c, s, cx, y, sz, base=INK, acc=ACC, a=1.0, hi=True, bold=2.2, outline=0):
+def rich_line(c, s, cx, y, sz, base=INK, acc=ACC, a=1.0, hi=True, bold=2.2, outline=0, under=False):
     """「【關鍵字】」 segments get the accent colour + a mustard highlighter swipe.
-    outline: width of a dark rim drawn behind the letters (outlined captions on any background)."""
+    outline: width of a dark rim drawn behind the letters (outlined captions on any background).
+    under: a thin accent underline under the keywords instead (botanical)."""
     _note(s)
     parts, buf, on = [], "", False
     for ch in s:
@@ -314,6 +372,7 @@ def rich_line(c, s, cx, y, sz, base=INK, acc=ACC, a=1.0, hi=True, bold=2.2, outl
     for p, k in parts:
         w = f.measureText(p)
         if k and hi: rrect(c, x - 6, y - sz * 0.42, w + 12, sz * 0.5, sz * 0.18, P(SUN, 0.55 * a))
+        if k and under: c.drawLine(x, y + sz * 0.16, x + w, y + sz * 0.16, P(acc, a, stroke=max(2.0, sz * 0.04), raw=True))
         col = acc if k else base
         if outline: c.drawString(p, x, y, f, P(INK, a, stroke=outline, raw=True))
         c.drawString(p, x, y, f, P(col, a, stroke=bold, raw=True)); c.drawString(p, x, y, f, P(col, a))
@@ -422,10 +481,28 @@ def mic(c):
 SPARKS = [(80, 420, 22, SUN), (1000, 520, 18, ACC), (60, 1180, 16, ROSE), (1015, 1120, 24, SUN),
           (140, 760, 12, ACC), (950, 860, 14, SAGE), (900, 330, 12, ROSE), (190, 330, 10, SAGE)]
 
+def sprig(c, x, y, ang, ln, col, a=1.0, n=7, bend=0.12):
+    """a hand-drawn fern sprig: curved stem from (x, y) pointing ang degrees from straight up, n pairs of outlined leaves"""
+    fill, line = P(mix(col, BG, 0.72), a), P(col, a, stroke=max(2.0, ln * 0.007), raw=True)
+    with Xf(c, x, y, 1, ang):
+        stem = skia.Path(); stem.moveTo(0, 0); stem.quadTo(ln * bend, -ln * 0.5, 0, -ln); c.drawPath(stem, line)
+        def leaf(px, py, L, rot):
+            with Xf(c, px, py, 1, rot):
+                p = skia.Path(); p.moveTo(0, 0); p.quadTo(L * 0.5, -L * 0.34, L, 0); p.quadTo(L * 0.5, L * 0.34, 0, 0); p.close()
+                c.drawPath(p, fill); c.drawPath(p, line); c.drawLine(L * 0.08, 0, L * 0.8, 0, line)
+        for i in range(n):
+            s = (i + 1) / (n + 1); px = 2 * (1 - s) * s * ln * bend; L = ln * 0.2 * (1 - 0.55 * s)
+            leaf(px, -ln * s, L, -48); leaf(px, -ln * s, L, 228)
+        leaf(0, -ln, ln * 0.11, -90)
+
+# (x, y, angle, length, colour key) — big ferns hug the corners, small terracotta sprigs fill the gaps
+LEAVES = [(1080, 40, -140, 520, "sage"), (-20, 900, 40, 460, "sage"), (40, 1900, 25, 480, "sage"),
+          (1090, 1450, -35, 420, "sage"), (120, 260, -150, 210, "acc"), (60, 1640, 30, 190, "acc")]
+
 def deco(c, t, a=1.0):
     """the channel's decoration layer (style "background"): sparkles + rings / none / a few pencil marks / soft glints"""
     bgs = STYLE["background"]
-    if bgs == "plain": return
+    if bgs in ("plain", "leaves"): return    # leaves: the sprigs are part of paper_bg
     if bgs == "blobs":
         for i, (x, y, r, col) in enumerate(SPARKS):
             star4(c, x, y + 6 * math.sin(t * 1.4 + i), r * (0.65 + 0.35 * math.sin(t * 2.6 + i * 1.3)), col, a)
@@ -451,8 +528,13 @@ def paper_bg(c, t, base=BG):
         for x in range(30, W, 60): c.drawLine(x, 0, x, H, line)
         for y in range(30, H, 60): c.drawLine(0, y, W, y, line)
         c.drawLine(96, 0, 96, H, P(ROSE, 0.45, stroke=3, raw=True))           # margin line
+    elif bgs == "leaves":                    # fern sprigs swaying slowly in the corners
+        green = mix(SAGE, INK, 0.35)
+        for i, (x, y, ang, ln, col) in enumerate(LEAVES):
+            sprig(c, x, y, ang + 2.5 * math.sin(t * 0.8 + i * 1.7), ln, green if col == "sage" else mix(ACC, BG, 0.25),
+                  0.9 if col == "sage" else 0.75, n=8 if ln > 300 else 5)
     elif bgs == "gradient":
-        top, bot = (mix(base, WHITE, 0.08), mix(base, ACC, 0.12)) if DARK else (mix(base, WHITE, 0.5), mix(base, PEACH, 0.4))
+        top, bot =(mix(base, WHITE, 0.08), mix(base, ACC, 0.12)) if DARK else (mix(base, WHITE, 0.5), mix(base, PEACH, 0.4))
         c.drawPaint(P(base, shader=lin(0, 0, 0, H, [top, bot])))
         for x, y, r, col, a in ((860 + 30 * math.sin(t * 0.4), 520, 520, SUN, 0.30), (180, 1450 + 30 * math.cos(t * 0.35), 560, SKY, 0.26)):
             c.drawCircle(x, y, r, P(col, shader=skia.GradientShader.MakeRadial(skia.Point(x, y), r, [hx(col, a), hx(col, 0)])))
@@ -591,6 +673,39 @@ class Timeline:
             if out < acc: return i
         return len(s.KEEPS) - 1
 
+# ---------------- text cards (no recording) ----------------
+CARD_CPS = {"fast": 6.5, "medium": 5.5, "slow": 4.5}     # Chinese characters read per second, by layout.pace
+
+def read_secs(txt, cps=None):
+    """how long a subtitle card stays up so it can be read once, calmly"""
+    n = len(re.sub(r"[|【】!！\s]", "", txt))
+    sec = 0.7 + n / (cps or CARD_CPS.get(LAYOUT.get("pace"), 5.5))
+    if txt.startswith("!"): sec += 0.5                    # punch cards get a beat to land
+    return clamp(sec, 1.6, 6.0)
+
+def text_cards(cards, start=None, gap=0.15, cps=None, **tl_kw):
+    """Silent clip with no recording ("純字卡"): the subtitles are the whole message, each held long enough to
+    read. cards: [text | (text, hold_sec) | (text, hold_sec, who)], hold_sec None = by length (read_secs).
+    start: first card's time; default leaves the title card on its own (2.8 s) when brand.json has one.
+    Returns (TL, SUBS) for Reel(...). The 'source clock' is just reading time: there is no seg.wav, and
+    `python clip.py audio` / `render` write a silent soundtrack (add music in the IG / TikTok app)."""
+    t = (2.8 if LAYOUT["title_card"] else 0.0) if start is None else start
+    subs = []
+    for card in cards:
+        txt, hold, who = (card, None, "r") if isinstance(card, str) else (tuple(card) + (None, "r"))[:3]
+        subs.append((txt, t, who or "r"))
+        t += (hold or read_secs(txt, cps)) + gap
+    tl_kw.setdefault("end_hold", 0.3 if LAYOUT["end_card"] else 0.6)
+    tl = Timeline([(0.0, t)], 0.0, **tl_kw)
+    tl.SILENT = True
+    for txt, t0, _ in subs: print(f"card {tl.o(t0):6.2f}s  {txt}")
+    print(f"total {tl.TOTAL:.1f}s")
+    return tl, subs
+
+def silent_audio(tl, out_wav, sr=48000):
+    sf.write(out_wav, np.zeros((int(round(tl.TOTAL * sr)) + sr // 10, 2), np.float32), sr)
+    print(f"silent audio {tl.TOTAL:.2f}s -> {out_wav}")
+
 def build_audio(tl, seg_wav, out_wav, tail_fade=0.08, target_db=-17):
     a, sr = sf.read(seg_wav)
     if a.ndim == 1: a = np.stack([a, a], 1)
@@ -632,6 +747,10 @@ def draw_subtitle(c, t, s, t0, who="r"):
             shadow(c, -bw / 2, -bh / 2, bw, bh, 36, 0.16)
             rrect(c, -bw / 2, -bh / 2, bw, bh, 36, P(WHITE, 0.94))
             rrect(c, -bw / 2, -bh / 2, bw, bh, 36, P(edge, 0.95, stroke=6 if chip else 5))
+        elif st == "frame":                  # white box, thin ink line, small corners (botanical)
+            shadow(c, -bw / 2, -bh / 2, bw, bh, 14, 0.08)
+            rrect(c, -bw / 2, -bh / 2, bw, bh, 14, P(WHITE, 0.96))
+            rrect(c, -bw / 2, -bh / 2, bw, bh, 14, P(edge, 0.85, stroke=4 if chip else 3, raw=True))
         elif st == "dark":                   # dark translucent box, light text; a second speaker gets a sage rim
             rrect(c, -bw / 2, -bh / 2, bw, bh, 28, P(INK, 0.86))
             if chip: rrect(c, -bw / 2, -bh / 2, bw, bh, 28, P(SAGE, stroke=5, raw=True))
@@ -652,6 +771,7 @@ def draw_subtitle(c, t, s, t0, who="r"):
         for i, l in enumerate(lines):
             if st == "dark": rich_line(c, l, 0, y0 + i * lh, sz, base=WHITE, acc=SUN, hi=False)
             elif st == "outline": rich_line(c, l, 0, y0 + i * lh, sz, base=WHITE, acc=SUN, hi=False, outline=sz * 0.13)
+            elif st == "frame": rich_line(c, l, 0, y0 + i * lh, sz, acc=RED if big else ACC, hi=False, under=True)
             else: rich_line(c, l, 0, y0 + i * lh, sz, acc=RED if big else ACC)
 
 def top_tag(c, t, label):
@@ -661,12 +781,18 @@ def top_tag(c, t, label):
         c.drawCircle(-w / 2 - 6, -6, 8, P(ACC, 0.6 + 0.4 * math.sin(t * 5)))
         text(c, label, 8, 6, sz, INK)
 
-def title_card(c, t, lt, rows, punch, punch_bg=SUN, y=None, bg=None):
+def title_card(c, t, lt, rows, punch, punch_bg=SUN, y=None, bg=None, photo=None, grade=None):
     """Hook card for 0-3 s. rows: ≤3 rich-text lines (92px); punch: big accent line (≤6 chars ideal).
     y: card centre; default 790, or 640 with middle subtitles so the first subtitle does not sit on the card.
     bg: optional fn(c) drawn instead of the paper background — e.g. lambda c: R.face(c, t) so the speaker is
-    already on screen behind the card (a light wash keeps the card readable)."""
-    if bg:
+    already on screen behind the card (a light wash keeps the card readable).
+    photo: a stock photo or video file (pexels.py / unsplash.py get) drawn full-bleed behind the card when
+    brand.json layout.title_bg is "photo" (ignored otherwise, so clip scripts can always pass it)."""
+    if photo and LAYOUT["title_bg"] == "photo":
+        img = video(photo).frame_at(lt) if photo.lower().endswith((".mp4", ".mov", ".webm")) else load_image(photo)
+        draw_media(c, img, k=eio(prog(lt, 0, 3.5)), zoom=(1.0, 1.06), pan=((0, 0), (0, -30)), grade=grade)
+        title_wash(c)
+    elif bg:
         bg(c); c.drawRect(skia.Rect.MakeXYWH(0, 0, W, H), P(BG, 0.35))
     else:
         paper_bg(c, t); deco(c, t)
@@ -689,6 +815,17 @@ def title_card(c, t, lt, rows, punch, punch_bg=SUN, y=None, bg=None):
         with Xf(c, shake, 225, lerp(0.2, 1, kk), -4, clamp(kk * 1.5)):
             rrect(c, -w / 2 - 40, -66, w + 80, 96, 30, P(punch_bg, 0.55)); text(c, punch, 0, 18, 130, ACC, bold=4)
 
+def title_wash(c):
+    """keep the title readable on a photo: text straight on the picture (leaf: dark type; bold: white type) needs
+    more help than a solid card"""
+    style = STYLE["title"]
+    if style == "leaf":
+        c.drawRect(skia.Rect.MakeWH(W, H), P(BG, 0.62))
+    else:
+        a = 0.42 if style == "bold" else 0.22
+        c.drawRect(skia.Rect.MakeWH(W, H), skia.Paint(Shader=skia.GradientShader.MakeLinear(
+            [(0, 0), (0, H)], [hx(INK, a * 0.6), hx(INK, a), hx(INK, a * 0.6)], [0, 0.45, 1])))
+
 def _plain(s): return s.replace("【", "").replace("】", "")
 
 def _title_rows(c, lt, rows, y_first, step, sz, maxw, **kw):
@@ -699,7 +836,7 @@ def _title_rows(c, lt, rows, y_first, step, sz, maxw, **kw):
         with Xf(c, 0, y_first + i * step, lerp(0.3, 1, kk), 0, clamp(kk * 1.5)): rich_line(c, s, 0, 30, size, **kw)
 
 def _title_styled(c, t, lt, rows, punch, punch_bg, y, k, style):
-    """title_card for the bold / line / magazine looks (note is drawn inline in title_card)"""
+    """title_card for the bold / line / leaf / magazine looks (note is drawn inline in title_card)"""
     n = len(rows)
     kk = eback(prog(lt, 0.7, 0.4), 2.5)
     shake = 6 * math.sin(lt * 40) * prog(lt, 1.3, 0.1) * (1 - prog(lt, 1.7, 0.2))
@@ -722,6 +859,20 @@ def _title_styled(c, t, lt, rows, punch, punch_bg, y, k, style):
             with Xf(c, shake, 228, lerp(0.6, 1, kk), 0, clamp(kk * 1.5)):
                 text(c, punch, 0, 10, sz, ACC, bold=3)
                 rrect(c, -w / 2, 34, w * eo(prog(lt, 0.9, 0.35)), 12, 6, P(SUN))
+    elif style == "leaf":                    # no card: dark type on the paper, a leafy rule, underlined punch line
+        with Xf(c, W / 2, y, 1, 0, clamp(k * 1.4)):
+            _title_rows(c, lt, rows, -230 if n == 3 else -160, 120, 100, 900, base=FG, hi=False, under=True, bold=2)
+            rw = 230 * eo(prog(lt, 0.55, 0.5)); ry = 110 if n == 3 else 60
+            green = mix(SAGE, INK, 0.35)
+            if rw > 2:
+                c.drawLine(-rw, ry, -30, ry, P(green, stroke=3, raw=True)); c.drawLine(30, ry, rw, ry, P(green, stroke=3, raw=True))
+                for dx in (-rw * 0.55, rw * 0.55): c.drawCircle(dx, ry, 5, P(green))
+                sprig(c, 0, ry + 12, 0, 46 * eo(prog(lt, 0.55, 0.5)), green, n=2, bend=0.05)
+            sz = fit(punch, 112, 860); w = font(sz).measureText(punch)
+            with Xf(c, shake, ry + 140, lerp(0.85, 1, kk), 0, clamp(kk * 1.5)):
+                text(c, punch, 0, 10, sz, ACC, bold=2.5)
+                uw = w * eo(prog(lt, 0.9, 0.4))
+                c.drawLine(-w / 2, 36, -w / 2 + uw, 36, P(ACC, stroke=5, raw=True))
     else:                                    # magazine: a tilted colour slab sliding in, white type, punch on a label
         slide = (1 - eo(prog(lt, 0.0, 0.4))) * -W
         with Xf(c, W / 2 + slide, y, 1, -5):
@@ -816,7 +967,7 @@ def _cta(c, cta, filled=True, width=560):
     text(c, cta, max(-bw / 2 + 320, -bw / 2 + 160 + tw / 2), 25, sz, col, bold=2.5)
 
 def _end_styled(c, t, lt, show, line, is_ep, cta, sub, badge, draw_icon, style):
-    """end_card for the minimal / card looks (classic is drawn inline in end_card)"""
+    """end_card for the minimal / deep / card looks (classic is drawn inline in end_card)"""
     k = eback(prog(lt, 0, 0.5), 1.6)
     kt2 = eo(prog(lt, 0.35, 0.4))
     if style == "minimal":                   # small icon, big name, a thin rule, outlined button
@@ -832,6 +983,30 @@ def _end_styled(c, t, lt, show, line, is_ep, cta, sub, badge, draw_icon, style):
         with Xf(c, 540, 1370, lerp(0.85, 1, eback(prog(lt, 0.6, 0.4))), 0, eo(prog(lt, 0.6, 0.3))): _cta(c, cta, filled=False)
         if sub:
             with Xf(c, 540, 1530, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 42, 900), FG, a=0.7)
+    elif style == "deep":                    # full deep-colour page, faint ferns, icon in a white disc, white pill button
+        c.drawColor(hx(DEEP))
+        for i, (x, y, ang, ln, _) in enumerate(LEAVES[:4]):
+            sprig(c, x, y, ang + 2.5 * math.sin(t * 0.8 + i * 1.7), ln, mix(DEEP, WHITE, 0.3), 0.35, n=8)
+        for i in range(2):
+            ph = (lt * 0.5 + i / 2) % 1; c.drawCircle(540, 720, 215 + ph * 120, P(WHITE, (1 - ph) * 0.25, stroke=3, raw=True))
+        with Xf(c, 540, 720, lerp(0.6, 1, k), 0, clamp(k * 1.5)):
+            c.drawCircle(0, 0, 210, P(WHITE, 0.96))
+            if draw_icon:
+                with Xf(c, 0, 0, 0.95 if draw_icon is brand_logo else 0.62): draw_icon(c)
+        if badge:
+            with Xf(c, 540, 1000, 1, 0, eo(prog(lt, 0.2, 0.4))): text(c, badge, 0, 0, fit(badge, 60, 700), WHITE, a=0.85, bold=1.5)
+        with Xf(c, 540, 1130 + (1 - kt2) * 30, 1, 0, kt2):
+            text(c, show, 0, 0, fit(show, 104, 940), WHITE, bold=2.5)
+            if line: text(c, line, 0, 76, fit(line, 44, 900), WHITE, a=0.75)
+        with Xf(c, 540, 1340, lerp(0.85, 1, eback(prog(lt, 0.6, 0.4))), 0, eo(prog(lt, 0.6, 0.3))):
+            sz = fit(cta, 68, 400); tw = font(sz).measureText(cta); bw = max(520, tw + 200)
+            shadow(c, -bw / 2, -62, bw, 124, 62, 0.25)
+            rrect(c, -bw / 2, -62, bw, 124, 62, P(WHITE))
+            tri = skia.Path(); tri.moveTo(-bw / 2 + 80, -28); tri.lineTo(-bw / 2 + 80, 28); tri.lineTo(-bw / 2 + 128, 0); tri.close()
+            c.drawPath(tri, P(DEEP))
+            text(c, cta, max(-bw / 2 + 300, -bw / 2 + 150 + tw / 2), 24, sz, DEEP, bold=2.5)
+        if sub:
+            with Xf(c, 540, 1490, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 42, 900), WHITE, a=0.75)
     else:                                    # card: everything on one profile-style card
         with Xf(c, 540, 985, lerp(0.85, 1, k), 0, clamp(k * 1.5)):
             shadow(c, -390, -470, 780, 880, 48, 0.16)
@@ -991,6 +1166,7 @@ class Reel:
         s.report_missing()
 
     def render(s):
+        if getattr(s.tl, "SILENT", False): silent_audio(s.tl, os.path.join(s.dir, "clip_audio.wav"))
         audio, sr = sf.read(os.path.join(s.dir, "clip_audio.wav"), dtype="float32")
         surf = skia.Surface(W, H)
         cont = av.open(s.out, "w")
@@ -1024,7 +1200,8 @@ class Reel:
 
     def cli(s):
         cmd = sys.argv[1] if len(sys.argv) > 1 else "sheet"
-        if cmd == "audio": build_audio(s.tl, os.path.join(s.dir, "seg.wav"), os.path.join(s.dir, "clip_audio.wav"))
+        if cmd == "audio" and getattr(s.tl, "SILENT", False): silent_audio(s.tl, os.path.join(s.dir, "clip_audio.wav"))
+        elif cmd == "audio": build_audio(s.tl, os.path.join(s.dir, "seg.wav"), os.path.join(s.dir, "clip_audio.wav"))
         elif cmd == "sheet": s.sheet()
         elif cmd == "preview":
             for x in sys.argv[2:]: s.snapshot(float(x), os.path.join(s.dir, f"preview_{float(x):05.2f}.png"))

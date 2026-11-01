@@ -7,7 +7,7 @@ Already running? It just opens the browser on the running one. It exits by itsel
 Edits the same files the agents read: <brand dir>\brand.json and BRAND.md. BRAND.md is also edited by Claude, so the
 panel only rewrites the "- 欄位：值" lines the user changed and leaves every other line alone.
 """
-import ast, glob, json, os, re, secrets, shutil, subprocess, sys, tempfile, threading, time, webbrowser
+import ast, glob, hashlib, json, os, re, secrets, shutil, subprocess, sys, tempfile, threading, time, webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, quote, unquote, urlparse
 
@@ -218,17 +218,17 @@ def md_set(md, section, label, value):
     return md[:sec.end()] + body + f"\n- {label}：{value}\n\n" + md[end:].lstrip("\n")
 
 STYLE_NAMES = {"handmade": "手作便條", "clean": "俐落簡約", "magazine": "雜誌感", "notebook": "筆記本", "street": "街頭活力",
-               "free": "自由創作"}
+               "botanical": "植物手帳", "free": "自由創作"}
 LAYOUT_NAMES = {"subtitle_pos": {"low": "下方", "middle": "畫面中間"}, "subtitle_size": {"s": "小", "m": "中", "l": "大"},
                 "pace": {"fast": "快（每 2–3 秒換畫面）", "medium": "中（每 3–4 秒）", "slow": "慢（每 4–6 秒，留白多）"}}
 STYLE_PART_NAMES = {"subtitle": "字幕", "title": "標題卡", "background": "背景", "line": "線條", "motion": "動畫", "end": "結尾卡"}
 STYLE_OPTION_NAMES = {
-    "subtitle": {"box": "白框", "outline": "描邊字", "pill": "膠囊條", "dark": "深色框"},
-    "title": {"note": "便條紙", "bold": "大字", "line": "細框卡", "magazine": "色塊斜帶"},
-    "background": {"blobs": "手繪色塊", "plain": "純色", "grid": "方格紙", "gradient": "柔和漸層"},
+    "subtitle": {"box": "白框", "outline": "描邊字", "pill": "膠囊條", "dark": "深色框", "frame": "細線框"},
+    "title": {"note": "便條紙", "bold": "大字", "line": "細框卡", "magazine": "色塊斜帶", "leaf": "葉子分隔線"},
+    "background": {"blobs": "手繪色塊", "plain": "純色", "grid": "方格紙", "gradient": "柔和漸層", "leaves": "手繪蕨葉"},
     "line": {"bold": "粗墨線", "thin": "細線", "soft": "淡細線"},
     "motion": {"bouncy": "活潑彈跳", "snappy": "俐落", "gentle": "柔和"},
-    "end": {"classic": "經典", "minimal": "極簡", "card": "名片卡"}}
+    "end": {"classic": "經典", "minimal": "極簡", "card": "名片卡", "deep": "整頁深色"}}
 
 NOTES_SECTION = "其他補充（控制台填寫）"   # the panel's 「其他」 box owns this section; Claude's 其他偏好 is left alone
 
@@ -278,6 +278,47 @@ def brand_summary(b):
     }
 
 
+def md_extras(md):
+    """what the panel does not show: whole sections Claude added, and runs of lines in the template's sections that are
+    not one of its '- label：' lines — [{"section", "text"}], text exactly as in the file so it can be removed"""
+    tmpl = template_md()
+    tmpl_secs = set(re.findall(r"^## (.+?)\s*$", tmpl, re.M))
+    known = ({lab for _, lab, al in MD_FIELDS for lab in (lab, *al)} | {lab for _, lab in AUTO_FIELDS}
+             | set(re.findall(r"^- ([^：\n]+)：", tmpl, re.M)))
+    out, sec, run, whole = [], None, [], None
+    def flush():
+        if run: out.append({"section": sec, "text": "\n".join(run)}); run.clear()
+    for line in md.split("\n") + ["## "]:                   # sentinel heading closes the last section
+        m = re.match(r"^## (.*?)\s*$", line)
+        if m:
+            flush()
+            if whole: out.append({"section": sec, "text": "\n".join(whole).rstrip("\n")})
+            sec = m.group(1)
+            whole = [line] if sec and sec not in tmpl_secs and sec != NOTES_SECTION else None
+            continue
+        if whole is not None: whole.append(line); continue
+        if sec is None or sec == NOTES_SECTION: continue
+        lab = re.match(r"^- ([^：\n]+)：", line)
+        if not line.strip() or (lab and lab.group(1) in known) or (sec == "其他偏好" and is_placeholder(line)): flush()
+        else: run.append(line)
+    return out
+
+
+def delete_md_extra(body):
+    """remove one block md_extras listed, if the file still has it"""
+    d = check_brand_dir(body["dir"])
+    p = os.path.join(d, "BRAND.md")
+    md = open(p, encoding="utf-8").read() if os.path.exists(p) else ""
+    lines, want = md.split("\n"), body.get("text", "").split("\n")
+    i = next((i for i in range(len(lines)) if lines[i:i + len(want)] == want), None) if body.get("text") else None
+    if i is None: raise ValueError("說明檔已經改過了，請重新整理控制台再試一次")
+    del lines[i:i + len(want)]
+    if i < len(lines) and not lines[i].strip() and (i == 0 or not lines[i - 1].strip()): del lines[i]   # no double gap
+    shutil.copy2(p, p + ".bak")
+    write_text(p, "\n".join(lines))
+    return {"md_extra": md_extras("\n".join(lines))}
+
+
 def load_brand(d):
     p = os.path.join(d, "brand.json")
     exists = os.path.exists(p)
@@ -294,10 +335,8 @@ def load_brand(d):
     for sec, lab, al in MD_FIELDS:
         fields[lab] = md_get(md, lab, al)[1]
     fields["其他補充"] = md_section(md, NOTES_SECTION) or ""
-    known = {lab for _, lab, al in MD_FIELDS for lab in (lab, *al)} | {lab for _, lab in AUTO_FIELDS}
-    extra = [m.group(1) for m in re.finditer(r"^- ([^：\n]{1,20})：", md, re.M) if m.group(1) not in known]
     return {"dir": d, "folder": os.path.basename(d), "exists": exists, "brand": b, "fields": fields,
-            "md_exists": bool(md), "md_extra": len(extra) + len(re.findall(r"^```", md, re.M)) // 2,
+            "md_exists": bool(md), "md_extra": md_extras(md),
             "preview": file_url(os.path.join(d, "brand_preview.png")) if os.path.exists(os.path.join(d, "brand_preview.png")) else None,
             "logo": logo_url(d)}
 
@@ -357,7 +396,9 @@ def save_brand(form):
         md = md.replace("> 由 Reels Studio 第一次使用時的問答產生。", "> 由 Reels Studio 控制台建立。")
     if new_md or old.get("name") != b["name"]:
         md = re.sub(r"^# 頻道設定：.*$", f"# 頻道設定：{b['name']}", md, count=1, flags=re.M)
-        if not md_get(md, "名稱")[1] or new_md: md = md_set(md, "頻道", "名稱", b["name"])
+        # the name line follows brand.json; a line Claude wrote around the old name keeps its other words
+        cur = md_get(md, "名稱")[1]
+        md = md_set(md, "頻道", "名稱", cur.replace(old["name"], b["name"]) if old.get("name") and old["name"] in cur and not new_md else b["name"])
     summ = brand_summary(b)
     changed = {"配色": (old.get("palette"), old.get("colors")) != (b["palette"], b["colors"]),
                "字型": (old.get("font"), old.get("font_weight")) != (b["font"], b.get("font_weight")),
@@ -397,6 +438,30 @@ def preview(form, real=False):
         return {"ok": False, "error": text[-1500:]}
     return {"ok": True, "image": file_url(out) + f"&v={int(time.time())}", "warnings": preview_warnings(text)}
 
+
+def has_key(name):
+    """a stock-photo API key is set: in this process, or saved with setx after the panel started (user environment)"""
+    if os.environ.get(name): return True
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as k: return bool(winreg.QueryValueEx(k, name)[0])
+    except (ImportError, OSError):
+        return False
+
+def props_sheet(form):
+    """picture of every prop in props.py (常見問題), in the current style's colours; redrawn only when props.py,
+    the drawing code or that style's brand.json changed"""
+    d = check_brand_dir(form["dir"]) if form.get("dir") else None
+    bj = os.path.join(d, "brand.json") if d else None
+    env = {"REELS_BRAND": d} if bj and os.path.exists(bj) else {}
+    stamp = [os.path.getmtime(os.path.join(HERE, f)) for f in ("props.py", "props_sheet.py", "reels_lib.py")]
+    if env: stamp += [bj, os.path.getmtime(bj)]
+    out = os.path.join(TMP, f"props_sheet_{hashlib.sha1(repr(stamp).encode()).hexdigest()[:12]}.png")
+    if not os.path.exists(out):
+        code, text = run_py(["props_sheet.py", out], env=env)
+        if code != 0 or not os.path.exists(out):
+            return {"ok": False, "error": text[-1500:]}
+    return {"ok": True, "image": file_url(out)}
 
 def preview_warnings(text):
     """brand_preview / reels_lib output -> [{kind: font | glyph | other, text}] — each kind gets its own advice in the page"""
@@ -513,12 +578,19 @@ def scan_project(folder):
         {"key": "pack", "label": "發文包", "done": os.path.exists(os.path.join(folder, "發文包", "發文清單.md")),
          "files": ["發文包\\發文清單.md"] if os.path.exists(os.path.join(folder, "發文包", "發文清單.md")) else []},
     ]
+    # 純字卡: a script written for cards (no recording) skips the transcript and picks
+    scripts = has("_口播稿.md")
+    cards = not sources and any("純字卡" in (try_read(read_text, os.path.join(folder, s), problems=problems) or "")[:400]
+                                for s in scripts)
+    if cards:
+        steps = [dict(s, label="素材（純字卡稿，不錄音）") if s["key"] == "source" else s
+                 for s in steps if s["key"] not in ("transcript", "picks")]
     if clips and not problems:            # a listing can come from Windows' cache after a disk drops: probe one file
         try_read(lambda p: open(p, "rb").read(16), clips[0]["path"], problems=problems)
     picks_md = has("_Reels精華片段.md")
     md = try_read(read_text, os.path.join(folder, picks_md[0]), problems=problems) if picks_md else None
     return {"folder": folder, "steps": steps, "clips": clips, "recent": rec[:8], "problems": problems,
-            "sources": sources, "scripts": has("_口播稿.md"), "project": read_project(folder),
+            "sources": sources, "scripts": scripts, "cards": cards, "project": read_project(folder),
             "picks": parse_picks(md) if md else [], "picks_file": picks_md[0] if picks_md else None}
 
 
@@ -844,11 +916,13 @@ class Handler(BaseHTTPRequestHandler):
                        "style_options": STYLE_OPTIONS, "style_presets": STYLE_PRESETS, "layout_options": LAYOUT_OPTIONS,
                        "layout_defaults": BRAND_DEFAULTS["layout"], "version": app_version(),
                        "welcomed": bool(st.get("welcomed")),     # the first-open welcome screen was seen
-                       "studio": HERE, "env_brand": os.environ.get("REELS_BRAND")}
+                       "studio": HERE, "env_brand": os.environ.get("REELS_BRAND"),
+                       "stock_keys": {"pexels": has_key("PEXELS_API_KEY"), "unsplash": has_key("UNSPLASH_ACCESS_KEY")}}
             elif path == "/api/ping": out = {"ok": True}
             elif path == "/api/latest": out = latest_release()
             elif path == "/api/fonts": out = fonts()
             elif path == "/api/preview": out = preview(body)
+            elif path == "/api/props-sheet": out = props_sheet(body)
             elif path == "/api/save":
                 save_brand(body); save_state(brand=body["dir"])
                 out = dict(preview(body, real=True), saved=True, brand=load_brand(body["dir"]))
@@ -860,6 +934,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/brand-usage": out = {"projects": projects_using(check_brand_dir(body["dir"]))}
             elif path == "/api/delete-brand": out = delete_brand(body)
             elif path == "/api/logo": out = save_logo(body)
+            elif path == "/api/md-extra-delete": out = delete_md_extra(body)
             elif path == "/api/new-brand":
                 d = new_brand(body); save_state(brand=d)
                 out = dict(preview({"dir": d}, real=True), brand=load_brand(d))
