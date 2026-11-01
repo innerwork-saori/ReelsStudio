@@ -49,6 +49,12 @@ effort: xhigh
    - 露臉模式：`Reel(..., source_video=<素材>)`，用 `R.face(c, t, focus=..., punch=1.12)`；先用 `python clip.py preview 4` 看臉在畫面哪裡，再設 `FOCUS`。
    - 要用 Pexels 時：`python "{{STUDIO}}\pexels.py" search photos|videos "<英文關鍵字>" "<clipdir>"` → 用 Read 看 `assets\_previews\` 的預覽挑選 → `pexels.py get photo|video <id> "<clipdir>"`。
    - 要用 Unsplash 時（只有照片）：`python "{{STUDIO}}\unsplash.py" search "<英文關鍵字>" "<clipdir>"` → 看預覽挑選 → `unsplash.py get <id> "<clipdir>"`。兩個金鑰都有時，找照片可以兩邊都搜再挑；影片只能用 Pexels。
+   - 使用者自己的照片或影片（派工、或口播稿的 `**素材**` 行寫「照片用我放在資料夾裡的」「影片用我放在資料夾裡的」，或使用者直接給了檔案）：
+     - 找：素材資料夾最上層的 .jpg／.jpeg／.png／.webp／.heic 和不是主講人口播的影片（`_reels_work`、`發文包` 裡的不算）。每張照片都用 Read 看過，記下拍了什麼、主體在哪裡。
+     - 轉正：手機照片常帶旋轉資訊，`load_image()` 不會處理。一律先用 PIL 的 `ImageOps.exif_transpose()` 轉正、長邊縮到 2160 以內，存成 `<clipdir>\assets\user_<原檔名>.jpg` 再用。PIL 打不開（多半是 .heic）就跳過那張，回報請使用者另存成 JPG。
+     - 用：使用者的照片優先於圖庫和插圖，照內容放在最貼切的段落，不要為了全部用上而硬塞。直的照片用 `photo_scene()` 滿版；橫的照片滿版會被裁掉大半，改用 `draw_media(..., card=True)` 卡片，或用 `focus=` 對準主體。一律用原色（不加 `grade`），除非整支的色調需要。使用者自己拍的影片（風景、生活片段）用 `video_scene()`，規則同 STYLE.md 第 9 節的檢查。
+     - 檢查：每張用 `python clip.py preview <秒數>` 確認主體沒被裁掉、字幕和標籤沒壓在臉或重點上。照片裡可以有人（是使用者自己的照片），但「不畫人」的規則照樣只適用自己畫的插圖；不要把照片裡的人放進醜化或負面的字卡。
+     - 不夠用的畫面照派工的其他來源補（圖庫或插圖）；這些照片不寫進 `credits.txt`。
    - 用色傳情緒（冷色＝低潮，暖色＝轉念／希望），整體以頻道的背景色為主（淺色或深色照 brand.json）；深色背景上直接寫在背景的字用 `FG`。
    - 轉場輪流用 circle / slide / zoom / fade / push，衝擊點與臉接臉用 cut；自由創作可以自己寫轉場函式。
 5. `python clip.py audio` → 所有剪接點 OK，而且沒有「⚠ 字型缺字」警告（有的話依警告指出的字幕或行數修正，常見是 emoji 和少見字）。
@@ -64,4 +70,5 @@ effort: xhigh
 - 一張「時間｜講到的內容｜畫面」表格。
 - 新增的顏色（如果有）附色碼。
 - 用了實拍素材的話：列出每個素材用在哪一段（標明來自 Pexels 或 Unsplash），並附上 `assets\credits.txt` 的內容。用了 Unsplash 照片時，提醒使用者發文時**必須**標註。
+- 用了使用者自己的照片或影片的話：列出每個檔案用在哪一段，以及沒用到的檔案和原因（不適合的內容、打不開、場景不夠）。
 - 誠實聲明：你無法真正聽音檔，請使用者完整看過一遍；畫面是抽查每場代表影格。

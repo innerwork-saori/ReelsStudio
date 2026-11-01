@@ -232,6 +232,9 @@
   .kind[aria-checked="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
   .kind[aria-checked="true"]::before { content: "● "; }
   .kind[aria-checked="false"]::before { content: "○ "; }
+  .media { margin: 8px 0 4px; }
+  .mrow { display: grid; grid-template-columns: 3em minmax(0, 1fr); align-items: center; gap: 8px; }
+  .mrow .kinds { margin: 4px 0; }
   .faq .props-sheet { display: block; width: 100%; max-width: 760px; margin-top: 8px; border-radius: 12px; border: 1px solid var(--line); }
   footer { margin-top: 56px; color: var(--muted); font-size: 15px; text-align: center; }
   footer .author { border-top: 1px solid var(--line); padding-top: 28px; margin-bottom: 20px; }
@@ -587,8 +590,18 @@
       <p>打開 Claude 桌面 App，開一個新的對話，貼上送出。句子後面已經帶著資料夾和風格，不用再另外說明。</p></details>
     <details><summary>我只有想法，還沒有錄音</summary>
       <p>先開一個空的資料夾，在「做影片」打開它。第一步會給你一句話，請 Claude 幫你寫口播稿；照著稿子錄好，把錄音放進資料夾，按「重新讀取」就能接著做。</p></details>
+    <details><summary>照片、影片、聲音可以怎麼搭配？</summary>
+      <p>三種素材各自選從哪裡來，可以自由搭配。在「做影片」第一步，每一排選一個就好：</p>
+      <ul>
+        <li><b>照片</b>：用你自己的照片、從免費圖庫找（Pexels／Unsplash），或請 Claude 畫插圖。</li>
+        <li><b>影片</b>：用你自己拍的、從免費圖庫找實拍片段，或不用實拍、用插圖動畫。</li>
+        <li><b>聲音</b>：你自己錄，或不要聲音（做成純字卡，發文時在 App 裡加音樂）。</li>
+      </ul>
+      <p>例如：照片用自己的、影片從圖庫找、聲音自己錄；或全部交給圖庫和插圖，自己只錄音。選好後，下面會告訴你資料夾裡要放什麼。</p>
+      <p>AI 生成影片和 AI 配音目前還不支援：選了 AI 生成影片會用插圖動畫代替；配音目前要自己錄，或選「不要聲音」。</p>
+      <button class="btn ghost small" data-go="make">去做影片</button></details>
     <details><summary>可以不錄音、不配音嗎？</summary>
-      <p>可以，做成「純字卡」：在「做影片」第一步選「不錄音，做純字卡」，Claude 會把你的主題寫成一張張字卡，每張停留的時間照字數算好，配上插圖做成影片。影片本身沒有聲音，發文時在 IG／TikTok 的 App 裡加音樂就好；用平台的音樂庫，音樂才有授權。</p>
+      <p>可以，做成「純字卡」：在「做影片」第一步把聲音選「不要聲音」（或點「不錄音，做純字卡」），Claude 會把你的主題寫成一張張字卡，每張停留的時間照字數算好，配上插圖做成影片。影片本身沒有聲音，發文時在 IG／TikTok 的 App 裡加音樂就好；用平台的音樂庫，音樂才有授權。</p>
       <p>已經寫好口播稿、但不想錄了，跟 Claude 說「我不想錄音，幫我把口播稿改成純字卡，做成影片」。</p>
       <button class="btn ghost small" data-go="make">去做影片</button></details>
   </div>
@@ -1384,9 +1397,28 @@ const CUT_PICKED = "幫我剪我在控制台選好的片段";
 const TOPIC_HOLE = "（在這裡寫你想講的事）";   // the part of the script sentence people must replace before copying
 const SAY_SCRIPT = "幫我寫一支 reels 口播稿，主題是：" + TOPIC_HOLE;
 const SAY_CARDS = "幫我寫一支純字卡 reels（不錄音），主題是：" + TOPIC_HOLE;
-// first step, no material yet: record yourself, or text cards with no voice at all
-const SCRIPT_KINDS = [["我會照稿錄音或錄影", SAY_SCRIPT, "寫成照著念的口播稿，錄好放進資料夾再剪。"],
-                      ["不錄音，做純字卡", SAY_CARDS, "每句話變成一張字卡配插圖，影片沒有聲音，發文時在 IG／TikTok 裡加音樂。"]];
+// first step, no material yet: photos, footage and sound each come from the person, a free library or AI (3 × 3 × 3)
+const MEDIA_ROWS = [["photo", "照片", ["我的照片", "圖庫找", "AI 畫插圖"]],
+                    ["video", "影片", ["我拍的", "圖庫找", "AI 生成"]],
+                    ["sound", "聲音", ["我錄的", "不要聲音", "AI 配音"]]];
+const MEDIA_DEFAULT = { photo: 2, video: 1, sound: 0 };
+const MEDIA_PRESETS = [["我會照稿錄音", { photo: 2, video: 1, sound: 0 }], ["我要露臉錄影", { photo: 2, video: 0, sound: 0 }],
+                       ["我有自己的照片", { photo: 0, video: 1, sound: 0 }], ["不錄音，做純字卡", { photo: 2, video: 1, sound: 1 }]];
+function mediaSay(m) {                // the sentence head for one combination; the topic follows 主題是：
+  const head = m.sound === 1 ? "幫我寫一支純字卡 reels（不錄音）" : "幫我寫一支 reels 口播稿";
+  const parts = [["照片用我放在資料夾裡的", "照片從免費圖庫找", "畫面用插圖"][m.photo],
+    m.video === 0 ? (m.sound === 0 ? "我會照稿錄影，保留我的畫面" : "影片用我放在資料夾裡的")
+                  : ["", "實拍影片從免費圖庫找", "不用實拍影片，用插圖動畫"][m.video]];
+  return [head, ...parts.filter(Boolean)].join("，") + "，主題是：";
+}
+function mediaNote(m) {               // what to put in the folder for this combination, and what isn't possible yet
+  const need = [m.photo === 0 ? "照片" : "", m.video === 0 ? (m.sound === 0 ? "錄好的影片（聲音就在裡面）" : "影片") : "",
+    m.sound === 0 && m.video !== 0 ? "錄音" : ""].filter(Boolean);
+  return [need.length ? `稿子寫好後，資料夾裡要放：${need.join("、")}。` : "資料夾裡不用放任何東西，給 Claude 一個主題就能做。",
+    m.sound === 1 ? "影片沒有聲音，發文時在 IG／TikTok 裡加音樂。" : "",
+    m.video === 2 ? "AI 生成影片還不支援，會用插圖動畫代替。" : "",
+    m.sound === 2 ? "AI 配音還不支援，目前要自己錄，或選「不要聲音」。" : ""].filter(Boolean).join(" ");
+}
 const STEP_LABELS = { source: "素材（錄音、影片或口播稿）", transcript: "聽打逐字稿", picks: "選片段", videos: "剪片",
                       captions: "寫貼文文案", pack: "整理發文包" };
 function nextStep(r) {
@@ -1394,7 +1426,7 @@ function nextStep(r) {
   const p = r.project || {}, step = k => r.steps.find(s => s.key === k) || { done: true };   // 純字卡 has no transcript / picks steps
   const confirmed = p.picks && p.picks.confirmed ? p.picks.items : [];
   const cut = new Set(r.clips.map(c => c.n));
-  if (!step("source").done) return ["這個資料夾還沒有錄音或影片。有的話放進來，再按「重新讀取」；還沒錄的話，先請 Claude 幫你寫稿：先選要不要錄音，再把下面括號裡的字換成你想講的主題。", SAY_SCRIPT, "source", SCRIPT_KINDS];
+  if (!step("source").done) return ["這個資料夾還沒有錄音或影片。有的話放進來，再按「重新讀取」；還沒錄的話，先請 Claude 幫你寫稿：先選照片、影片、聲音各從哪裡來，再把下面括號裡的字換成你想講的主題。", SAY_SCRIPT, "source", MEDIA_ROWS];
   // 純字卡: no recording, so no transcript or picks; the cards go straight to the editor
   if (r.cards && !r.clips.length)
     return ["字卡稿寫好了！先打開稿子看過，要改的話跟 Claude 說；沒問題就請 Claude 做成影片。影片沒有聲音，發文時在 IG／TikTok 裡加音樂。", "幫我把字卡做成影片", "videos"];
@@ -1427,7 +1459,8 @@ function howToBox(r, next) {
   const ta = h("textarea", { class: "sayedit", rows: 2, "aria-label": "要跟 Claude 說的話",
     placeholder: "寫下你想跟 Claude 說的話，例如：幫我做 3 支 reels，第一支想講休息這件事，節奏快一點" });
   ta.value = next[1];
-  const reset = h("button", { class: "btn ghost small", onclick: () => { ta.value = next[1]; ta.focus(); } }, "還原建議句");
+  const reset = h("button", { class: "btn ghost small", onclick: () => {
+    if (next[3]) { ta.value = SAY_SCRIPT; setMedia({}, true); } else { ta.value = next[1]; ta.focus(); } } }, "還原建議句");
   // wishes for the edit go into the sentence itself (one place to say what you want); the chips add common ones
   const wishes = ["transcript", "picks", "videos"].includes(next[2])
     ? h("div", { class: "chiplist", style: "margin-top:6px" }, h("span", { class: "muted small", style: "align-self:center" }, "常用的要求，點一下加進去："),
@@ -1444,18 +1477,25 @@ function howToBox(r, next) {
           ta.value = v + (v ? "，" : "") + `用「${s}」這個檔案`;
           ta.focus(); } }, s)))
     : "";
-  // two kinds of script (record yourself / 純字卡): switching keeps the topic already typed
+  // where photos, footage and sound come from, one row each: switching keeps the topic already typed
   const kindNote = h("div", { class: "muted small" });
-  const kinds = next[3] ? h("div", { class: "kinds", role: "radiogroup", "aria-label": "要不要錄音" }, next[3].map(([label, say, note], i) => {
-    const b = h("button", { type: "button", class: "kind", role: "radio", "aria-checked": String(i === 0), onclick: () => {
-      kinds.querySelectorAll(".kind").forEach(x => x.setAttribute("aria-checked", String(x === b)));
-      const topic = ta.value.split("主題是：")[1];
-      ta.value = topic !== undefined ? say.split("主題是：")[0] + "主題是：" + topic : say;
-      kindNote.textContent = note; ta.focus();
-    } }, label);
-    return b;
-  })) : "";
-  if (next[3]) kindNote.textContent = next[3][0][2];
+  const media = { ...MEDIA_DEFAULT };
+  const setMedia = (m, focus) => {
+    Object.assign(media, m);
+    kinds.querySelectorAll(".kind").forEach(x => x.setAttribute("aria-checked", String(media[x.dataset.k] === +x.dataset.i)));
+    const topic = ta.value.split("主題是：")[1];
+    ta.value = mediaSay(media) + (topic !== undefined ? topic : TOPIC_HOLE);
+    kindNote.textContent = mediaNote(media);
+    if (focus) ta.focus();
+  };
+  const kinds = next[3] ? h("div", { class: "media" },
+    h("div", { class: "chiplist" }, h("span", { class: "muted small", style: "align-self:center" }, "常見的組合："),
+      MEDIA_PRESETS.map(([label, m]) => h("button", { type: "button", class: "chip", onclick: () => setMedia(m, true) }, label))),
+    next[3].map(([k, label, opts]) => h("div", { class: "mrow" }, h("b", {}, label),
+      h("div", { class: "kinds", role: "radiogroup", "aria-label": label + "從哪裡來" }, opts.map((o, i) =>
+        h("button", { type: "button", class: "kind", role: "radio", "data-k": k, "data-i": i, onclick: () => setMedia({ [k]: i }, true) }, o))))),
+    h("div", { class: "muted small" }, "三種素材各自選，可以自由搭配。")) : "";
+  if (next[3]) setMedia({}, false);
   const copyIt = h("button", { class: "btn small", onclick: () => {
     const say = ta.value.trim();
     if (!say) { toast("請先寫下要跟 Claude 說的話"); ta.focus(); return; }
