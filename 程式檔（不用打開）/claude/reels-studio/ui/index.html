@@ -82,6 +82,21 @@
   .toc button.on { background: var(--accent-soft); color: var(--accent); }
   #brandlayout .card { scroll-margin-top: calc(var(--hdr, 58px) + 76px); }
   .previewbox img { width: 100%; border-radius: 12px; border: 1px solid var(--line); background: #fff; display: block; }
+  a[data-zoom] { cursor: zoom-in; }
+  /* 點圖看大圖：頁面內的 popup，不另開視窗 */
+  dialog.zoom { border: none; padding: 0; background: none; max-width: none; max-height: none; width: 100vw; height: 100vh;
+    margin: 0; display: none; align-items: center; justify-content: center; }
+  dialog.zoom[open] { display: flex; }
+  dialog.zoom::backdrop { background: rgba(58,52,49,.82); backdrop-filter: blur(3px); }
+  dialog.zoom figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px; }
+  dialog.zoom img { max-width: min(96vw, 1600px); max-height: calc(100vh - 96px); border-radius: 12px; background: #fff;
+    box-shadow: 0 12px 40px rgba(0,0,0,.35); cursor: zoom-out; }
+  dialog.zoom figcaption { color: #F3EFEA; font-size: 15px; display: flex; gap: 16px; align-items: center; }
+  dialog.zoom figcaption button { border: 1px solid rgba(243,239,234,.6); background: none; color: #F3EFEA; border-radius: 10px;
+    padding: 3px 14px; cursor: pointer; font-weight: 700; }
+  dialog.zoom figcaption button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  @media (prefers-reduced-motion: no-preference) { dialog.zoom[open] img { animation: zoomin .18s ease-out; } }
+  @keyframes zoomin { from { transform: scale(.96); opacity: 0; } }
   .previewbox .empty { aspect-ratio: 1560 / 737; border-radius: 12px; border: 1px dashed var(--line); display: flex;
     align-items: center; justify-content: center; color: var(--muted); text-align: center; padding: 16px; }
   .actions { display: flex; gap: 8px; margin: 12px 0 0; flex-wrap: wrap; }
@@ -554,7 +569,7 @@
       <p>沒有露臉的影片會用插圖說故事。下面是已經畫好、可以直接拿來用的道具，顏色會跟著目前的風格。想用哪一個，跟 Claude 說它的名字就好，例如「這段用發芽」「放一個天秤，左邊是錢、右邊是心」。</p>
       <p>這些只是現成的，Claude 每支也會照內容另外畫新的插圖，不會只用這幾個。</p>
       <p class="muted small" data-props-msg>打開時才會畫，第一次要等幾秒。</p>
-      <a data-props-link target="_blank" rel="noopener" hidden><img data-props-img class="props-sheet" alt="現成道具一覽"></a></details>
+      <a data-props-link data-zoom hidden><img data-props-img class="props-sheet" alt="現成道具一覽"></a></details>
     <details><summary>做好的影片和文案在哪裡？</summary>
       <p>都在你的素材資料夾裡。「做影片」最下面可以直接播放、複製文案，或按「在資料夾中顯示」找到檔案。發文包在資料夾裡的 <span class="file">發文包\發文清單.md</span>。</p></details>
     <details><summary>Claude 會幫我發文嗎？</summary>
@@ -1187,7 +1202,7 @@ window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); 
 
 function showPreview(src, caption) {
   const pv = $("#pv"); pv.replaceChildren();
-  if (src) pv.append(h("a", { href: src, target: "_blank", title: "點一下看大圖" }, h("img", { src, alt: "樣張" })),
+  if (src) pv.append(h("a", { href: src, "data-zoom": "", title: "點一下看大圖" }, h("img", { src, alt: "樣張" })),
     caption ? h("div", { class: "muted small", style: "margin-top:4px" }, caption) : "");
   else pv.append(h("div", { class: "empty" }, "選好配色和字型後，按「看樣張」就會出現標題卡、字幕、實拍素材上的字幕和結尾卡的樣子。"));
 }
@@ -1633,6 +1648,23 @@ refresh().then(() => {
   showTab(tab);
   api("/api/latest").then(showUpdate).catch(() => {});
 }).catch(err => { $("#app").replaceChildren(h("div", { class: "note" }, "控制台載入失敗：" + err.message)); });
+
+// 點圖看大圖：任何 a[data-zoom] 都在頁面內的 popup 打開（Esc、點背景或「關閉」都會關掉）
+const zoom = h("dialog", { class: "zoom", "aria-label": "大圖" },
+  h("figure", {}, h("img", { alt: "" }),
+    h("figcaption", {}, h("span", {}, "按 Esc 或點旁邊也可以關掉"), h("button", { type: "button" }, "關閉"))));
+document.body.append(zoom);
+document.addEventListener("click", e => {
+  const a = e.target.closest("a[data-zoom]");
+  if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button) return;
+  e.preventDefault();
+  const img = zoom.querySelector("img"), src = a.querySelector("img");
+  img.src = a.href; img.alt = src ? src.alt : "";
+  zoom.showModal();
+  zoom.querySelector("button").focus();
+});
+zoom.addEventListener("click", () => zoom.close());   // 點圖片、背景或按鈕都關
+zoom.addEventListener("close", () => zoom.querySelector("img").removeAttribute("src"));
 </script>
 </body>
 </html>
