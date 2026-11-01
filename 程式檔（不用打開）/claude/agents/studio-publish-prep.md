@@ -18,14 +18,24 @@ effort: medium
 
 ## 產出：`<素材所在資料夾>\發文包\`
 每支 Reels 一個子資料夾 `片段N\`：
-1. `reels.mp4`：複製成品影片（不重新編碼）。
-2. `cover_9x16.jpg`：從影片約 2.0 秒處（標題卡完整出現）擷取的 1080×1920 封面。頻道的 brand.json `layout.title_card` 是 false（沒有標題卡）時，從開頭幾秒抽幾格，用 Read 看過後挑最醒目、字幕最完整的一格。
-3. `cover_grid_4x5_preview.jpg`：裁切中央 1080×1350，用來預覽在 IG 個人主頁格狀牆上的樣子；檢查標題字有沒有被裁掉，被裁到就在清單中提醒。
+1. `reels.mp4`：成品影片，用**硬連結**放進來，不要複製（同一份檔案出現在兩個地方，不多佔空間；外面的 `_Reels_片段N.mp4` 要留著，控制台和重剪都用它）：
+   ```python
+   import os, shutil
+   if os.path.exists(dst): os.remove(dst)
+   try: os.link(src, dst)
+   except OSError: shutil.copy2(src, dst)   # 不同磁碟或不支援硬連結時才複製
+   ```
+2. `cover_9x16.jpg`：1080×1920 封面。用哪一格看素材資料夾 `_reels_studio.json` 的 `covers`（使用者在控制台每支影片下面選的，鍵是片段編號）：
+   - 數字：就用那一秒的畫面（使用者自己挑的，不要改）。
+   - `"auto"`：從整支影片均勻抽 8–12 格（避開轉場中間），用 Read 看過後挑最醒目、字最完整、在格狀牆裁切後還看得懂的一格；回報時寫出選了第幾秒和原因。
+   - 沒有設定：約 2.0 秒處（標題卡完整出現）。頻道的 brand.json `layout.title_card` 是 false（沒有標題卡）時，照 `"auto"` 的方式挑。
+   使用者只說「重新挑片段 N 的封面」時，只重做這支的第 2、3 項，其他檔案不動。
+3. `cover_grid_3x4_preview.jpg`：裁切中央 1080×1440（IG 個人主頁的格狀牆從 2025 年起是 3:4），用來預覽在格狀牆上的樣子；檢查標題字有沒有被裁掉，被裁到就在清單中提醒。舊版留下的 `cover_grid_4x5_preview.jpg` 刪掉。
 4. `caption.txt`：只含可貼上的文案，UTF-8。
 5. `alt_text.txt`：一段 100 字內的替代文字，描述畫面內容（無障礙用）。
 6. `credits.txt`：若 `_reels_work\clipN\assets\credits.txt` 存在，直接複製進來（該支用到的 Pexels／Unsplash 素材來源）。
 
-擷取影格可用 PyAV：
+擷取影格可用 PyAV（`2.0` 換成要的秒數）：
 ```python
 import av
 c = av.open(mp4); s = c.streams.video[0]
@@ -40,6 +50,7 @@ for f in c.decode(s):
 - 純字卡影片（資料夾裡的 `_口播稿.md` 寫著 `**模式**：純字卡`）沒有人聲：每支的發文前檢查項目加一條「在 IG／TikTok App 裡加音樂（用平台音樂庫，才有授權）」，有寫在口播稿 `## 發文提示` 的音樂氛圍就一起列出。
 - BRAND.md 有列其他平台（TikTok、YouTube Shorts）時，附上各平台要注意的差異（Shorts 標題 100 字內、TikTok hashtag 放文案裡等），同一份影片可以共用。
 - 需要使用者補的資訊（連結、要不要標記其他帳號）。
+- 一行說明：`reels.mp4` 跟外面的成品是同一個檔案（硬連結），檔案總管會各算一次大小，但硬碟只佔一份；刪掉其中一個，另一個還在。
 - 若該支有 `credits.txt`，列出用到的素材與攝影師：
   - **Unsplash（必須標註）**：把 `credits.txt` 裡「必貼的標註」那幾行（`Photo by <攝影師> on Unsplash`）加到 `caption.txt` 最後，並在發文前檢查項目列一條「確認文案最後有 Unsplash 標註」。文案因此超過 2200 字時，改成提醒使用者放在置頂留言，並列為必做。
   - **Pexels（不強制）**：建議一行可貼在留言區的標註文字，由使用者決定要不要放。

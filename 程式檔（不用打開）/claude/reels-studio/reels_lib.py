@@ -18,7 +18,7 @@ CLI of a clip script:
   python clip.py audio            build clip_audio.wav from seg.wav + KEEPS (prints dB at every cut)
   python clip.py sheet            preview frame at 70% of every scene -> sheet_*.png contact sheets (read them!)
   python clip.py preview 3.2 7.5  specific seconds -> preview_XX.XX.png
-  python clip.py render           full MP4 (+ verify)
+  python clip.py render           full MP4 (+ verify), then deletes the sheet / preview images (remake them to check again)
 """
 import math, os, sys, random, glob, json, re
 import numpy as np, skia, av, soundfile as sf
@@ -1190,6 +1190,16 @@ class Reel:
         cont.close()
         s.verify()
         s.report_missing()
+        s.tidy()
+
+    def tidy(s):
+        """after a render: drop the check images (sheet, preview, stock search previews); `sheet` / `preview` remake them.
+        clip.py, the audio and the stock files the clip uses stay, so the clip can still be changed and rendered again"""
+        junk = [f for pat in ("sheetframe_*.png", "sheet_*.png", "preview_*.png", os.path.join("assets", "_previews", "*"))
+                for f in glob.glob(os.path.join(s.dir, pat)) if os.path.isfile(f)]
+        size = sum(os.path.getsize(f) for f in junk)
+        for f in junk: os.remove(f)
+        if junk: print(f"tidy: removed {len(junk)} check images ({size / 1e6:.0f} MB)")
 
     def verify(s):
         c = av.open(s.out)

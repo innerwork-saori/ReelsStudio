@@ -30,10 +30,10 @@
   <錄音或影片>                    （或 <主題>_口播稿.md ← studio-script-writer，錄好後放進來）
   <檔名>_逐字稿.txt               ← studio-transcriber
   <檔名>_Reels精華片段.md          ← studio-clip-picker（長素材才有）
-  _reels_work\clipN\              ← studio-reels-editor 的工作檔（seg.wav、clip.py、sheet 圖，可刪）
+  _reels_work\clipN\              ← studio-reels-editor 的工作檔（seg.wav、clip.py、素材；sheet／preview 圖在 render 後自動刪掉；整個資料夾可刪，只是之後不能修改重剪）
   <檔名>_Reels_片段N.mp4           ← studio-reels-editor
   <檔名>_Reels_文案.md             ← studio-caption-writer
-  發文包\                          ← studio-publish-prep
+  發文包\                          ← studio-publish-prep（reels.mp4 是外面成品的硬連結，不多佔空間）
 ```
 
 ## 環境需求（安裝程式會處理）

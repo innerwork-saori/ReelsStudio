@@ -167,6 +167,8 @@
   .pick:last-of-type { border-bottom: none; }
   .pickhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; cursor: pointer; }
   .pickhead input { width: 18px; height: 18px; }
+  .coverrow { margin-top: 8px; }
+  .coverrow .actions { margin-top: 4px; }
   .extra { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-top: 8px; }
   .extra-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .extra pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 6px 0 0; font-family: inherit; }
@@ -1310,7 +1312,7 @@ const STEP_LABELS = { source: "素材（錄音、影片或口播稿）", transcr
                       captions: "寫貼文文案", pack: "整理發文包" };
 function nextStep(r) {
   // [what is going on (may be ""), what to tell Claude, the step it belongs to]
-  const p = r.project || {}, step = k => r.steps.find(s => s.key === k);
+  const p = r.project || {}, step = k => r.steps.find(s => s.key === k) || { done: true };   // 純字卡 has no transcript / picks steps
   const confirmed = p.picks && p.picks.confirmed ? p.picks.items : [];
   const cut = new Set(r.clips.map(c => c.n));
   if (!step("source").done) return ["這個資料夾還沒有錄音或影片。有的話放進來，再按「重新讀取」；還沒錄的話，先請 Claude 幫你寫稿：先選要不要錄音，再把下面括號裡的字換成你想講的主題。", SAY_SCRIPT, "source", SCRIPT_KINDS];
@@ -1499,6 +1501,7 @@ async function loadProject(path) {
       "這支影片現在讀不到。如果放在外接硬碟上，請確認硬碟有接好，再按上面的「重新讀取」。")), { once: true });
     return h("div", { class: "card clip" },
       video,
+      coverRow(r, c, video),
       h("h3", {}, title || `片段 ${c.n}`),
       h("div", { class: "muted small" }, c.size_mb === null ? c.name : `${c.name}・${c.size_mb} MB`),
       c.caption ? [h("pre", {}, c.caption), h("div", { class: "actions" }, h("button", { class: "btn small", onclick: () => copy(c.caption) }, "複製文案"),
@@ -1506,6 +1509,35 @@ async function loadProject(path) {
         : [h("p", { class: "muted small" }, "還沒有文案。跟 Claude 說「幫我寫文案」。"),
            h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: c.path, reveal: true }).catch(e => toast(e.message)) }, "在資料夾中顯示")]);
   })));
+}
+
+// which frame a clip's cover uses: the title card (default), the frame the video is paused on, or Claude's pick.
+// The panel remakes the cover itself when the clip already has a publish pack; otherwise the pack will use the choice.
+function coverRow(r, c, video) {
+  const at = ((r.project || {}).covers || {})[String(c.n)];
+  const b = projectBrand(r);
+  const noTitle = b && b.exists && b.brand.layout && b.brand.layout.title_card === false;
+  const now = typeof at === "number" ? `第 ${at.toFixed(1)} 秒那一格` : at === "auto" ? "交給 Claude 挑最醒目的一格" : noTitle ? "預設（這個風格沒有標題卡，由 Claude 挑）" : "標題卡（預設）";
+  const note = h("div", { class: "muted small" });
+  const set = async (val, label) => {
+    try {
+      const res = await api("/api/cover", { folder: r.folder, n: c.n, at: val });
+      r.project = res.project;
+      if (res.made) { c.cover = res.cover; video.poster = res.cover; }
+      row.replaceWith(coverRow(r, c, video));
+      toast(res.made ? "封面換好了，發文包裡的封面也更新了" :res.auto && res.pack ? "已記下。跟 Claude 說「重新挑片段" + c.n + "的封面」" : "已記下，做發文包時會照這個");
+    } catch (err) { toast(err.message); }
+  };
+  const btn = (label, val, tip) => h("button", { type: "button", class: "btn ghost small", title: tip, onclick: () => set(typeof val === "function" ? val() : val, label) }, label);
+  const row = h("div", { class: "coverrow" },
+    h("div", { class: "small" }, h("b", {}, "封面："), now),
+    h("div", { class: "actions" },
+      btn("用目前這一格", () => Math.round(video.currentTime * 100) / 100, "先把影片播放或拖到想要的畫面，再按這裡"),
+      at !== undefined ? btn(noTitle ? "改回預設" : "改回標題卡", "title") : "",
+      at !== "auto" ? btn("交給 Claude 挑", "auto") : ""),
+    c.pack ? "" : note);
+  if (!c.pack) note.textContent = "還沒做發文包，做的時候會照這個設定。";
+  return row;
 }
 
 // 常見問題: some answers take you straight to the place they talk about

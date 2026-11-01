@@ -561,7 +561,8 @@ def scan_project(folder):
         cover = os.path.join(pack, "cover_9x16.jpg")
         size = try_read(os.path.getsize, os.path.join(folder, n), problems=problems)
         clips.append({"name": n, "n": k, "prefix": prefix, "video": file_url(os.path.join(folder, n)),
-                      "path": os.path.join(folder, n), "cover": file_url(cover) if os.path.exists(cover) else None,
+                      "path": os.path.join(folder, n), "cover": file_url(cover) + f"&v={os.path.getmtime(cover):.0f}" if os.path.exists(cover) else None,
+                      "pack": os.path.isdir(pack),
                       "caption": cap.strip() if cap else None, "caption_from": cap_src,
                       "size_mb": round(size / 1e6, 1) if size is not None else None})
     clips.sort(key=lambda c: (c["prefix"], c["n"]))
@@ -629,6 +630,13 @@ def save_project(body):
     if "picks" in body:
         items = [{"n": int(x["n"]), "title": " ".join(str(x.get("title", "")).split())[:80]} for x in body["picks"]]
         p["picks"] = {"confirmed": bool(items), "items": items, "updated": time.strftime("%Y-%m-%d %H:%M")}
+    if "cover" in body:                       # one clip's cover: seconds, "auto" (Claude picks), or "title" (the default)
+        n, at = str(int(body["cover"]["n"])), body["cover"]["at"]
+        covers = dict(p.get("covers") or {})
+        if at == "title": covers.pop(n, None)
+        else: covers[n] = "auto" if at == "auto" else round(max(0.0, float(at)), 2)
+        if covers: p["covers"] = covers
+        else: p.pop("covers", None)
     p["updated"] = time.strftime("%Y-%m-%d %H:%M")
     p["_說明"] = "Reels Studio 控制台寫的這個資料夾的設定；Claude 開工時會照這裡做。"
     try:
@@ -636,6 +644,48 @@ def save_project(body):
     except OSError as e:
         raise ValueError(friendly_os_error(e, folder))
     return p
+
+TITLE_COVER_AT = 2.0      # the title card is fully in by then (studio-publish-prep uses the same second)
+
+def make_cover(mp4, at, pack):
+    """the publish pack's cover from one frame: cover_9x16.jpg + the profile-grid check (IG's grid is 3:4 since 2025)"""
+    import av
+    with av.open(mp4) as c:
+        s = c.streams.video[0]
+        c.seek(int(max(0.0, at - 1) / s.time_base), stream=s)
+        img = None
+        for f in c.decode(s):
+            img = f.to_image()
+            if f.time is not None and f.time >= at: break
+    if img is None: raise ValueError("讀不到這支影片的畫面")
+    img = img.convert("RGB")
+    img.save(os.path.join(pack, "cover_9x16.jpg"), quality=92)
+    w, h = img.size; gh = round(w * 4 / 3)
+    img.crop((0, (h - gh) // 2, w, (h - gh) // 2 + gh)).save(os.path.join(pack, "cover_grid_3x4_preview.jpg"), quality=92)
+    old = os.path.join(pack, "cover_grid_4x5_preview.jpg")          # older packs: IG's grid was 4:5
+    if os.path.exists(old): os.remove(old)
+
+def brand_dir_for(p):
+    """the channel folder a project file points at (folder name inside the toolkit, or a full path), if it exists"""
+    ref = p.get("brand")
+    d = (ref if os.path.isabs(ref) else os.path.join(HERE, ref)) if ref else None
+    return d if d and os.path.isdir(d) else None
+
+def set_cover(body):
+    """save which frame one clip's cover uses; when the clip has a publish pack and the frame is known, remake the cover"""
+    folder = check_project(body["folder"])
+    n, at = int(body["n"]), body["at"]
+    p = save_project({"folder": folder, "cover": {"n": n, "at": at}})
+    clip = next(iter(glob.glob(os.path.join(glob.escape(folder), f"*_Reels_片段{n}.mp4"))), None)
+    pack = os.path.join(folder, "發文包", f"片段{n}")
+    if at == "title":
+        b = load_brand(brand_dir_for(p)) if brand_dir_for(p) else None
+        at = TITLE_COVER_AT if not b or resolved_layout(b["brand"].get("layout"))["title_card"] else "auto"
+    if at == "auto" or not clip or not os.path.isdir(pack):
+        return {"project": p, "made": False, "auto": at == "auto", "pack": os.path.isdir(pack)}
+    make_cover(clip, float(at), pack)
+    return {"project": p, "made": True, "cover": file_url(os.path.join(pack, "cover_9x16.jpg")) + f"&v={time.time():.0f}"}
+
 
 def parse_picks(md):
     """the clip picker's sections: ## 片段 N｜主題 / **時間碼：…** / transcript / **為什麼適合：** bullets / **建議標題：** …"""
@@ -935,6 +985,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/delete-brand": out = delete_brand(body)
             elif path == "/api/logo": out = save_logo(body)
             elif path == "/api/md-extra-delete": out = delete_md_extra(body)
+            elif path == "/api/cover": out = set_cover(body)
             elif path == "/api/new-brand":
                 d = new_brand(body); save_state(brand=d)
                 out = dict(preview({"dir": d}, real=True), brand=load_brand(d))
