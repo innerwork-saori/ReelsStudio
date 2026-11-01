@@ -30,7 +30,8 @@
   nav { display: flex; gap: 4px; flex-wrap: wrap; }
   nav button { border: none; background: none; padding: 6px 14px; border-radius: 999px; cursor: pointer; color: var(--muted); font-weight: 700; }
   nav button[aria-selected="true"] { background: var(--accent-soft); color: var(--accent); }
-  .bar .right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .bar .right { margin-left: auto; display: flex; gap: 8px; align-items: center;
+    flex: 1 1 320px; min-width: 0; justify-content: flex-end; }   /* shrinks (folder name ellipsizes) before wrapping */
 
   main { max-width: 1160px; margin: 0 auto; padding: 24px 16px 80px; }
   section[hidden] { display: none; }
@@ -113,6 +114,24 @@
   .pal .desc { color: var(--muted); font-size: 14px; line-height: 1.5; margin-top: 2px; }
   .pal .mock { height: 54px; border-radius: 8px; margin-bottom: 8px; position: relative; overflow: hidden; border: 1px solid var(--line); }
   .pal .sw i { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); display: inline-block; }
+  /* 配色：先挑大方向，再挑一組 */
+  .paldirs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .paldir { border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px 9px; background: #fff; cursor: pointer; text-align: left; }
+  .paldir:hover { border-color: var(--accent); }
+  .paldir[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+  .paldir b { display: block; }
+  .paldir .muted { font-size: 14px; line-height: 1.5; }
+  .paldir .fan { display: flex; margin-bottom: 6px; }
+  .paldir .fan i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; margin-right: -5px; display: inline-block; }
+  .paldir[aria-pressed="true"] .fan i { border-color: var(--accent-soft); }
+  .paldir:focus-visible, .pal:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .paldir .chosen { display: block; margin-top: 6px; font-size: 14px; font-weight: 700; color: var(--accent); }
+  .pal[aria-pressed="true"]::after { content: "✓ 目前用這組"; display: block; width: fit-content; margin-top: 6px; background: var(--accent);
+    color: #fff; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; }
+  .palnow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 8px; padding: 8px 12px;
+    border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  .palnow .sw { display: flex; gap: 3px; }
+  .palnow .sw i { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); display: inline-block; }
   .colorrow { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
   .colorrow input[type=color] { width: 44px; height: 32px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: #fff; }
   .icons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
@@ -141,9 +160,21 @@
   ol.steps .stepbody { margin: 8px 0 4px; }
   ol.steps .stepbody .note { margin-top: 0; }
 
-  /* header channel picker */
-  .chpick { display: flex; align-items: center; gap: 6px; font-size: 15px; color: var(--muted); font-weight: 700; }
-  .chpick select { width: auto; max-width: 220px; margin: 0; padding: 3px 10px; font-weight: 700; color: var(--accent); }
+  /* header: the open folder and the channel picker share one box, read as "this folder, in this style" */
+  .ctx { display: flex; align-items: center; min-width: 0; border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 2px; }
+  .ctx > * { min-width: 0; }
+  #quit { flex-shrink: 0; white-space: nowrap; }
+  .chpick { flex-shrink: 0; }
+  .ctx:focus-within { border-color: var(--accent); }
+  .chfolder { display: flex; align-items: center; border: none; border-right: 1px solid var(--line); background: none;
+    padding: 4px 12px 4px 10px; cursor: pointer; font-weight: 700; color: var(--ink); }
+  .chfolder span { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chfolder:hover span { color: var(--accent); }
+  .chfolder:focus-visible { outline: 2px solid var(--accent-soft); border-radius: 9px; }
+  .chpick { display: flex; align-items: center; gap: 2px; padding-left: 12px; font-size: 14px; color: var(--muted); font-weight: 700; }
+  .chpick select { width: auto; max-width: 180px; margin: 0; padding: 4px 8px; border: none; background: transparent;
+    font-size: 15px; font-weight: 700; color: var(--accent); cursor: pointer; }
+  .chpick select:focus { outline: 2px solid var(--accent-soft); }
 
   /* welcome (first open only) */
   .welcome { max-width: 760px; margin: 24px auto 0; }
@@ -309,7 +340,10 @@
       <button role="tab" data-tab="faq">❓ 常見問題</button>
     </nav>
     <div class="right">
-      <label class="chpick" title="做影片和風格分頁都用這個風格">目前風格<select id="chpick"></select></label>
+      <div class="ctx">
+        <button class="chfolder" id="chfolder" hidden>📁&nbsp;<span id="chfolder-name"></span></button>
+        <label class="chpick" title="做影片和風格分頁都用這個風格">目前風格<select id="chpick"></select></label>
+      </div>
       <button class="btn ghost small" id="quit" title="關掉這個控制台（之後可以從桌面捷徑再打開）">關閉</button>
     </div>
   </div>
@@ -449,6 +483,9 @@
 
       <div class="card">
         <h2>配色</h2>
+        <p class="muted small" style="margin:0 0 8px">先選一個大方向，再從下面挑一組顏色。</p>
+        <div class="paldirs" id="paldirs"></div>
+        <div class="small palnow" id="palnow"></div>
         <div class="palettes" id="palettes"></div>
         <div class="colorrow">
           <label><input type="checkbox" id="c-accent-on"> 自己選強調色</label>
@@ -456,7 +493,7 @@
           <label style="margin-left:12px"><input type="checkbox" id="c-hl-on"> 自己選亮點色</label>
           <input type="color" id="c-hl">
         </div>
-        <p class="muted small" style="margin:6px 0 0">強調色用在標題重點字和按鈕；亮點色用在字幕的重點底色。深夜藍、可可深棕是深色背景，字幕框會維持清楚。</p>
+        <p class="muted small" style="margin:6px 0 0">強調色用在標題重點字和按鈕；亮點色用在字幕的重點底色。選「深色背景」那組時，字幕框會維持清楚。</p>
       </div>
 
       <div class="card">
@@ -692,6 +729,7 @@ function showTab(name) {
   if (name === "brand") headerHeight();
 }
 document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+$("#chfolder").addEventListener("click", () => showTab("make"));
 
 // ---------------- data ----------------
 let S = null;          // /api/state
@@ -699,6 +737,28 @@ let cur = null;        // current brand object from the server
 let dirty = false;
 const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色", night: "深夜藍（深色）", cocoa: "可可深棕（深色）", leaf: "植葉米白（植物手帳）",
   berry: "漿果紅＋湖藍", rouge: "胭脂粉＋墨黑（深色）", violet: "霓堇紫＋櫻粉", periwinkle: "長春花藍＋可可棕", nude: "裸桃粉＋苔青", fuchsia: "桃緋粉＋薄荷青", pine: "淺松色＋艾草青", persimmon: "柿橙＋蜜金", wine: "酒紅＋芥末黃", midnight: "午夜藍＋珊瑚橘（深色）", forest: "森林綠＋蜜桃粉", klein: "克萊因藍＋檸檬黃", lavender: "薰衣草紫＋橄欖綠", tomato: "番茄紅＋奶油白", peacock: "孔雀綠＋杏桃橘", berrylime: "莓果紫＋萊姆綠", caramel: "焦糖棕＋霧藍", navy: "海軍藍＋向日葵黃（深色）", rosewood: "玫瑰粉＋墨綠（深色）", brick: "天空藍＋磚紅", matcha: "抹茶綠＋葡萄紫", milktea: "奶茶色＋靛青", electric: "活力橘＋電光藍", dusty: "灰粉＋鐵灰" };
+// 配色的大方向；reels_lib 之後新增、這裡還沒分到的配色，會先放在第一組
+const PAL_GROUPS = [
+  { name: "溫暖柔和", desc: "米色底、暖色系，溫柔耐看", keys: ["cream", "blush", "leaf", "nude", "persimmon", "wine", "milktea", "caramel", "dusty"] },
+  { name: "清新冷調", desc: "藍綠紫為主，乾淨清爽", keys: ["mint", "sky", "pine", "forest", "lavender", "matcha", "periwinkle", "peacock"] },
+  { name: "大膽撞色", desc: "對比強，一眼抓住目光", keys: ["mono", "berry", "violet", "fuchsia", "klein", "tomato", "berrylime", "brick", "electric"] },
+  { name: "深色背景", desc: "深底亮字，夜晚感、有質感", fan: "bg", keys: ["night", "cocoa", "rouge", "midnight", "navy", "rosewood"] },
+];
+const palGroupOf = key => Math.max(0, PAL_GROUPS.findIndex(g => g.keys.includes(key)));
+function showPalGroup(i) {
+  document.querySelectorAll("#paldirs .paldir").forEach((b, j) => b.setAttribute("aria-pressed", i === j));
+  document.querySelectorAll("#palettes .pal").forEach(b => b.hidden = palGroupOf(b.dataset.key) !== i);
+  const key = selectedPalette(), g = palGroupOf(key), p = S.palettes[key], name = PAL_NAMES[key] || key;
+  // 選定的那組要一直看得到：方向卡上標「目前用」，下面一行寫出名字和顏色，看別的方向時可以一鍵回去
+  document.querySelectorAll("#paldirs .paldir").forEach((b, j) => {
+    b.querySelector(".chosen")?.remove();
+    if (j === g) b.append(h("span", { class: "chosen" }, `✓ 目前用：${name}`));
+  });
+  $("#palnow").replaceChildren(
+    h("span", { class: "sw" }, ["bg", "ink", "accent", "highlight"].map(r => h("i", { style: `background:${p[r]}` }))),
+    h("span", {}, "目前用的配色：", h("b", {}, name)),
+    g === i ? "" : h("button", { type: "button", class: "btn ghost small", onclick: () => showPalGroup(g) }, `回到「${PAL_GROUPS[g].name}」`));
+}
 const ICONS = [["mic", "🎙 麥克風"], ["play", "▶ 播放"], ["heart", "♥ 愛心"], ["star", "★ 星星"], ["logo", "🖼 我的 logo"], ["none", "不要圖示"]];
 const LOGO_SHAPES = [["original", "原本的形狀"], ["circle", "圓形"], ["rounded", "圓角方形"]];
 const MD = [
@@ -935,11 +995,15 @@ function fillBrand(b) {
   const pals = $("#palettes"); pals.replaceChildren();
   for (const [key, p] of Object.entries(S.palettes)) {
     pals.append(h("button", { type: "button", class: "pal", "aria-pressed": key === br.palette, "data-key": key,
-      onclick: ev => { pals.querySelectorAll(".pal").forEach(x => x.setAttribute("aria-pressed", x === ev.currentTarget)); syncColors(); markDirty();
+      onclick: ev => { pals.querySelectorAll(".pal").forEach(x => x.setAttribute("aria-pressed", x === ev.currentTarget)); showPalGroup(palGroupOf(key)); syncColors(); markDirty();
         document.querySelectorAll("#presets .pal").forEach(b => b.querySelector(".mock").replaceWith(presetMock(b.dataset.preset))); } },
       h("div", { class: "sw" }, ["bg", "ink", "accent", "highlight"].map(r => h("i", { style: `background:${p[r]}` }))),
       h("b", {}, PAL_NAMES[key] || key), h("div", { class: "muted small" }, key)));
   }
+  $("#paldirs").replaceChildren(...PAL_GROUPS.map((g, i) => h("button", { type: "button", class: "paldir", onclick: () => showPalGroup(i) },
+    h("span", { class: "fan" }, g.keys.filter(k => S.palettes[k]).map(k => h("i", { style: `background:${S.palettes[k][g.fan || "accent"]}` }))),
+    h("b", {}, g.name), h("span", { class: "muted" }, g.desc))));
+  showPalGroup(palGroupOf(br.palette));
   const colors = br.colors || {};
   $("#c-accent-on").checked = !!colors.accent; $("#c-hl-on").checked = !!colors.highlight;
   $("#c-accent").value = colors.accent || ""; $("#c-hl").value = colors.highlight || "";
@@ -1466,6 +1530,10 @@ async function loadProject(path) {
   try { r = await api("/api/project", { path: $("#w-path").value }); }
   catch (err) { body.replaceChildren(h("div", { class: "note" }, err.message)); return; }
   $("#w-path").value = ""; S.recent = r.recent; openFolder = r.folder;
+  $("#chfolder").hidden = false; $("#chfolder").title = r.folder + "\n點一下回到「做影片」";
+  $("#chfolder-name").textContent = r.folder.split("\\").pop();
+  $("#chfolder").setAttribute("aria-label", "目前資料夾：" + r.folder.split("\\").pop());
+  headerHeight();
   // a folder that already chose its channel brings the header along (not while the channel form has unsaved edits)
   const saved = (r.project || {}).brand && S.brands.find(b => b.exists && (b.folder === r.project.brand || b.dir === r.project.brand));
   if (saved && saved.dir !== S.current && !dirty) { try { await switchChannel(saved.dir); } catch {} }
