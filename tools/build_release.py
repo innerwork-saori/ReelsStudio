@@ -30,8 +30,21 @@ def files():
                 yield os.path.relpath(os.path.join(d, n), ROOT)
 
 
+def check_version(version):
+    """the version shows up in four places; a release with any of them left behind is refused"""
+    places = {
+        "README.md (line 3)": (open(os.path.join(ROOT, "README.md"), encoding="utf-8").read().splitlines()[2], f"v{version}，"),
+        "① 先看我.html (badge)": (open(os.path.join(ROOT, "① 先看我.html"), encoding="utf-8").read(), f"v{version}</span>"),
+        "CHANGELOG.md (first entry)": (next(l for l in open(os.path.join(ROOT, "CHANGELOG.md"), encoding="utf-8") if l.startswith("## ")),
+                                       f"## v{version} "),
+    }
+    stale = [where for where, (text, want) in places.items() if want not in text]
+    if stale: sys.exit(f"VERSION is {version}, but these still show another version: " + ", ".join(stale))
+
+
 def main():
     version = open(os.path.join(ROOT, PROGRAM, "VERSION"), encoding="utf-8").read().strip()
+    check_version(version)
     bat = open(os.path.join(ROOT, "② 雙擊安裝.bat"), "rb").read()
     if b"\n" in bat.replace(b"\r\n", b""): sys.exit("② 雙擊安裝.bat must use CRLF line endings")
     if not bat.isascii(): sys.exit("② 雙擊安裝.bat must stay ASCII (cmd reads it in the system codepage)")
