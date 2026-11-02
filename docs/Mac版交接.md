@@ -3,6 +3,31 @@
 > 評估日期：2026-10-29（評估當時版本：v1.5.0）
 > 狀態：**只做了評估，程式都還沒改。** 等有 Mac 可以實際測試時再開始做。
 > 這份文件只放在 GitHub repo 的 `docs/`，不會被 `tools/build_release.py` 打包進使用者下載的 zip。
+> 2026-11-02 更新：在正式移植之前，先加了一個「請 Claude 代為安裝」的臨時做法，對外稱為 **Mac 試用階段**，見下面〈目前的臨時做法〉。
+
+## 目前的臨時做法：Mac 試用階段
+
+正式的 Mac 版還沒做。在那之前，先讓用 Mac 的人請自己的 Claude（Claude 桌面 App 的 Claude Code）照說明代為安裝：
+
+- **`INSTALL_MAC.md`**（repo 根目錄，會打包進 zip）：分成兩部分。第一部分給使用者看，說明要準備什麼、在哪裡要自己動手，以及 Mac 上不能用的功能。第二部分是給 Claude 的 10 個安裝步驟，每一步對應 `install.ps1` 的一段。
+- **`程式檔（不用打開）/mac_copy.py`**：做 `install.ps1` 第 1 步（複製、備份、替換 `{{STUDIO}}`／`{{HOME}}`）。替換時會把路徑裡的 `\` 換成 `/`，並在工具包資料夾放一份粉圓字型檔，讓 `_find_font()` 不用改就找得到。
+- **README** 的「需要什麼」寫的是「Mac 還在試用階段」。分享頁（https://lab.heysaori.com/reelsstudio.html，不在這個 repo）的說法要跟著一致。
+
+臨時做法**完全不改程式碼**，只靠安裝步驟和一段 Mac 注意事項繞過去。它跟下面〈要改的部分〉的對應如下：
+
+| 問題 | 臨時做法怎麼處理 | 正式版要做的 |
+|---|---|---|
+| 安裝程式（第 1 點） | Claude 照 `INSTALL_MAC.md` 一步一步做；Python 由使用者自己按 python.org 的安裝視窗，裝完後補裝 SSL 憑證（`Install Certificates.command`） | 寫 `.command` 安裝程式 |
+| `python` 指令 | 建 `~/.local/bin/python` 指向 `python3.13`，並把 `~/.local/bin` 加進 `~/.zshenv` 的 PATH | 一樣，或在安裝時替換說明檔裡的指令 |
+| 控制台的 Windows 功能（第 2 點） | 不能用。在「Mac 上不能用的地方」表格裡告訴使用者，Claude 改用 `open` 幫忙 | 依系統分支處理 |
+| 字型樣本標籤（第 3 點，`fonts.py` 微軟正黑體） | 標籤可能變成方框。請 Claude 改用文字說明每一列是哪個字型 | 改用 `PingFang TC` |
+| 金鑰（第 4 點） | 存在 `~/.zshenv`（權限 600）。每個 zsh 都會讀這個檔，包括桌面捷徑開的控制台和 Claude Code 的指令。用終端機裡的 `mac_set_keys.command` 輸入，不經過「文字編輯」 | 決定要沿用 `~/.zshenv` 還是改用 `keys.env`，兩種只留一種 |
+| agent 說明裡的 Windows 寫法（第 5 點） | 安裝時在 `~/.claude/CLAUDE.md` 加一段 `<!-- Reels Studio Mac -->` 注意事項，告訴 Claude 怎麼把 `\`、`$env:`、`setx`、explorer 換成 Mac 的寫法 | 改原始檔 |
+| Gatekeeper | 碰不到：使用者不用執行任何下載來的腳本，桌面捷徑和金鑰程式都是 Claude 在本機建立的 | 見〈風險〉第 2 點 |
+
+**做正式版時要收掉的東西**：`INSTALL_MAC.md`（或改寫成正式版的安裝說明）、`mac_copy.py`、`tools/build_release.py` 裡 `TOP` 的 `INSTALL_MAC.md`，還有 README 的「試用階段」說法。也要告訴試用過的人：正式版的安裝程式要清掉 `~/.claude/CLAUDE.md` 裡的 `<!-- Reels Studio Mac -->` 區塊、`~/.local/bin/python`、`~/.claude/reels-studio/mac_set_keys.command`、`~/.claude/reels-studio/jf-openhuninn-1.1.ttf`，以及桌面上的 `Reels Studio.command`（或直接覆蓋）。
+
+**試用期間要收集的回報**（正好補上〈風險〉第 1 點的測試清單）：Mac 機型和晶片、`pip install` 有沒有失敗、`fonts.py list` 列出的字型名稱、聽打速度、插圖模式和露臉模式能不能輸出、Pexels／Unsplash 搜尋能不能用。
 
 ## 結論
 
@@ -104,4 +129,4 @@
 
 ## 在 Mac 版做好之前
 
-在分享頁（https://lab.heysaori.com/reelsstudio.html）和索取表單上註明「目前只支援 Windows」，免得用 Mac 的人填了表單卻裝不起來。
+對外說法統一為「**Mac 試用階段**」（2026-11-02 決定，取代原本建議的「目前只支援 Windows」）。在分享頁（https://lab.heysaori.com/reelsstudio.html）和索取表單上註明：Mac 可以試用，要請 Claude 照 zip 裡的 `INSTALL_MAC.md` 安裝，控制台有部分功能不能用。

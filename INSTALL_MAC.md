@@ -27,7 +27,7 @@
    - **允許 Claude 執行指令**：Claude 每次要執行指令都會先問你，看得懂就按允許。
    - **安裝 Python**：會跳出 Python 的安裝視窗，一直按「繼續」→「同意」→「安裝」，輸入你的 Mac 登入密碼。裝完會打開一個 Finder 視窗，關掉就好。
    - **允許存取「桌面」**：如果 Mac 問「Claude 想要取用『桌面』資料夾中的檔案」，按「好」。Claude 要在桌面放控制台的捷徑。
-   - **素材庫金鑰（可略過）**：如果要用 Pexels／Unsplash 的免費實拍素材，Claude 會打開一個文字檔讓你把金鑰貼進去。**不要把金鑰貼在對話裡。**
+   - **素材庫金鑰（可略過）**：如果要用 Pexels／Unsplash 的免費實拍素材，Claude 會打開一個「終端機」視窗，你把金鑰貼進去按 Enter 就好（貼上時畫面不會顯示，這是正常的）。**不要把金鑰貼在對話裡。**
 5. 裝好後，把 Claude 桌面 App **完全關掉**（選單列的 Claude → 結束 Claude，或按 ⌘Q），再重新打開。
 6. 雙擊桌面上的 **`Reels Studio.command`** 就會打開控制台。會先跳出一個「終端機」黑色視窗，控制台用的時候不要把它關掉。
 
@@ -39,6 +39,7 @@
 |---|---|---|
 | 控制台裡「打開資料夾」「在資料夾中顯示」「打開 BRAND.md」 | 按了沒反應或出現錯誤 | 請 Claude 幫你打開，或自己到 Finder 找 |
 | 控制台裡「刪除頻道」 | 會失敗 | 到 Finder 自己把那個頻道資料夾丟到垃圾桶（位置請 Claude 告訴你） |
+| 建立頻道時的字型樣本圖 | 每個字型上面的「字型名稱」標籤可能變成方框（□□□），因為標籤用的是 Windows 的微軟正黑體。字型本身的示範字是正常的 | 請 Claude 用文字告訴你每一列是哪個字型 |
 | `① 先看我.html` 和控制台的說明 | 寫的是 Windows 的操作（例如「解壓縮全部」「C 槽」） | 照意思換成 Mac 的做法 |
 | 更新版本 | 控制台的「下載新版」只給 Windows 用 | 下載新的 zip，再跟 Claude 說一次第 3 步那段話（頻道設定不會被蓋掉） |
 
@@ -141,20 +142,39 @@ cp -n "$SRC/font/jf-openhuninn-1.1.ttf" ~/Library/Fonts/
 
 先問使用者要不要用 Pexels（免費實拍照片和影片，<https://www.pexels.com/api/>）或 Unsplash（只有照片，發文時必須標註攝影師，<https://unsplash.com/developers>）。兩個都不用也可以，影片會全部改用插圖。
 
-要用的話：
+要用的話，讓使用者在終端機裡輸入金鑰。你沒辦法替他輸入，也不能讓金鑰經過對話；不要用「文字編輯」（`open -e`）開設定檔，它可能把引號自動換成彎引號，或存成 RTF，金鑰就會讀不到。
 
-1. 你先在 `~/.zshenv` 的 `# Reels Studio` 區塊加上空白的設定行：
+1. 執行下面的指令，建立金鑰輸入程式：
 
    ```bash
-   export PEXELS_API_KEY=""
-   export UNSPLASH_ACCESS_KEY=""
+   cat > ~/.claude/reels-studio/mac_set_keys.command <<'EOF'
+   #!/bin/zsh
+   # Reels Studio：把 Pexels／Unsplash 金鑰存進 ~/.zshenv（輸入時不會顯示，也不會經過 Claude）
+   f="$HOME/.zshenv"; touch "$f"; chmod 600 "$f"
+   save() {   # $1 環境變數名稱  $2 給使用者看的名稱
+     local k
+     read -rs "k?請貼上 $2，再按 Enter（畫面不會顯示；不用的話直接按 Enter 跳過）：" ; echo
+     k="${k//[[:space:]]/}"
+     if [[ -z "$k" ]]; then echo "  跳過 $2"; return; fi
+     grep -v "^export $1=" "$f" > "$f.tmp"; cat "$f.tmp" > "$f"; rm -f "$f.tmp"
+     printf 'export %s=%q\n' "$1" "$k" >> "$f"
+     echo "  OK  $2 已存好"
+   }
+   save PEXELS_API_KEY "Pexels API 金鑰"
+   save UNSPLASH_ACCESS_KEY "Unsplash Access Key"
+   echo; echo "完成！可以關掉這個視窗，回到 Claude 跟它說「好了」。"
+   EOF
+   chmod +x ~/.claude/reels-studio/mac_set_keys.command
    ```
 
-2. 執行 `chmod 600 ~/.zshenv`，讓其他使用者讀不到這個檔案。
-3. 執行 `open -e ~/.zshenv`，請使用者把金鑰貼在引號中間，存檔後關掉。
-4. 用 `zsh -c '[ -n "$PEXELS_API_KEY" ] && echo 已設定'` 確認有設定好。**不要把金鑰印出來。**
+2. 執行 `open ~/.claude/reels-studio/mac_set_keys.command`，會打開一個終端機視窗。請使用者在網站上複製金鑰，貼進那個視窗再按 Enter。不用的那一個直接按 Enter 跳過。等使用者說好了再繼續。
+3. 用下面的指令確認有存好，只會印出「已設定／沒有設定」，**不會把金鑰印出來**：
 
-工具包的說明檔寫的是「用 `setx` 設定金鑰」，那是 Windows 的做法。在 Mac 上一律改成編輯 `~/.zshenv`。
+   ```bash
+   zsh -c 'for v in PEXELS_API_KEY UNSPLASH_ACCESS_KEY; do [ -n "${(P)v}" ] && echo "$v 已設定" || echo "$v 沒有設定"; done'
+   ```
+
+以後要新增或換金鑰，再執行一次 `open ~/.claude/reels-studio/mac_set_keys.command` 就好，舊的會被取代。工具包的說明檔寫的是「用 `setx` 設定金鑰」，那是 Windows 的做法。在 Mac 上一律改成執行這個程式。
 
 ### 7. 寫下 Mac 注意事項
 
@@ -166,7 +186,8 @@ Reels Studio 的 agents 和 skill 說明是照 Windows 寫的。在 `~/.claude/C
 Reels Studio 的 agents、skill 和工具包說明是照 Windows 寫的，在這台 Mac 上要這樣換：
 - 路徑一律用 `/`。說明裡的 `_reels_work\clipN\`、`assets\_previews\` 這類寫法，換成 `_reels_work/clipN/`、`assets/_previews/`。
 - 說明寫 `$env:REELS_BRAND='<頻道資料夾>'; python clip.py …`（PowerShell）時，改成 `REELS_BRAND='<頻道資料夾>' python clip.py …`。
-- 說明寫用 `setx` 設定金鑰時，改成請使用者編輯 `~/.zshenv`（`open -e ~/.zshenv`）。金鑰不要貼在對話裡。
+- 說明寫用 `setx` 設定金鑰時，改成執行 `open ~/.claude/reels-studio/mac_set_keys.command`，請使用者在跳出的終端機視窗貼上金鑰。金鑰存在 `~/.zshenv`，不要貼在對話裡，也不要用「文字編輯」開這個檔。
+- `fonts.py list` 產生的字型樣本圖，每列上方的字型名稱標籤可能變成方框（標籤寫死用 Windows 的微軟正黑體）。字型名稱以 `fonts.py list` 印出的文字為準，用文字告訴使用者每一列是哪個字型。
 - 要讓使用者看到資料夾或檔案時，用 `open <資料夾>` 或 `open -R <檔案>`，不要用 explorer、notepad。
 - 控制台的「打開資料夾／在資料夾中顯示／打開 BRAND.md」和「刪除頻道」在 Mac 上不能用。使用者需要時改用 `open` 幫他打開；刪除頻道就告訴他資料夾位置，請他自己在 Finder 丟到垃圾桶。
 - 不要修改 `~/.claude/reels-studio/` 裡的 `.py` 程式檔來配合 Mac。不能用的功能如實告訴使用者。
