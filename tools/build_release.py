@@ -11,7 +11,7 @@ import os, sys, zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROGRAM = "程式檔（不用打開）"
-TOP = ["① 先看我.html", "② 雙擊安裝.bat", PROGRAM]
+TOP = ["① 先看我.html", "② 雙擊安裝.bat", "INSTALL_MAC.md", PROGRAM]   # INSTALL_MAC.md: Mac users hand it to Claude
 SKIP_DIRS = {"__pycache__"}
 SKIP_EXT = {".pyc", ".bak", ".log"}
 SKIP_NAMES = {"ui_state.json"}
