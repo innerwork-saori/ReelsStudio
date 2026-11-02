@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Reels Studio 安裝說明</title>
+<script>
+  // Windows／Mac：先猜這台電腦的系統，選過一次就記住；在畫面出來前設定，才不會閃一下另一邊的內容
+  (function () {
+    var os; try { os = localStorage.getItem("reels-studio-guide-os"); } catch (e) {}
+    if (os !== "win" && os !== "mac") os = /^Mac/.test(navigator.platform || "") ? "mac" : "win";
+    document.documentElement.dataset.os = os;
+  })();
+</script>
 <style>
   /* 莫蘭迪色：低彩度、帶灰的柔和色，固定淺色 */
   :root {
@@ -36,6 +44,7 @@
   h1 { font-size: 34px; margin: 12px 0 8px; }
   header p { color: var(--muted); margin: 0 auto; max-width: 560px; }
   h2 { font-size: 24px; margin: 48px 0 16px; display: flex; align-items: center; gap: 10px; }
+  h2[id] { scroll-margin-top: 130px; } /* 跳到 #start 時，標題不會被上面的進度列擋住 */
   h2 .num { background: var(--accent-soft); color: var(--accent); width: 36px; height: 36px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center; font-size: 18px; flex: none; }
   .card { background: var(--card); border: 1px solid var(--line); box-shadow: 0 2px 10px rgba(75,70,67,.05); border-radius: 20px; padding: 20px 24px; margin: 14px 0; }
@@ -68,6 +77,15 @@
   ul.check { list-style: none; padding: 0; margin: 0; }
   ul.check li { padding-left: 28px; position: relative; margin: 8px 0; }
   ul.check li::before { content: "•"; position: absolute; left: 8px; color: var(--accent); font-weight: 700; }
+  /* Windows／Mac 切換：只顯示目前選的系統的內容 */
+  html[data-os="win"] [data-only="mac"], html[data-os="mac"] [data-only="win"] { display: none; }
+  .os { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 28px 0 0; }
+  .os > span { color: var(--muted); font-size: 16px; }
+  .os-pick { display: inline-flex; background: var(--code); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+  .os-pick button { border: none; background: none; color: var(--muted); font: inherit; font-size: 17px; font-weight: 700;
+    padding: 6px 24px; border-radius: 999px; cursor: pointer; }
+  .os-pick button[aria-pressed="true"] { background: var(--accent); color: #fff; box-shadow: 0 2px 6px rgba(140,95,90,.25); }
+  .os-pick button:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
   /* checklist */
   .lead { color: var(--muted); margin: -6px 0 8px; }
   .progress { position: sticky; top: 0; z-index: 5; background: rgba(243,239,234,.96); backdrop-filter: blur(6px);
@@ -147,6 +165,11 @@
   <p class="demos-hint">做出來的影片長這樣，點一下會在 YouTube 播放。</p>
 </header>
 
+<div class="os" role="group" aria-label="你用的電腦">
+  <span>你用的電腦</span>
+  <div class="os-pick"><button type="button" data-os="win">Windows</button><button type="button" data-os="mac">Mac</button></div>
+</div>
+
 <div class="progress" id="progress">
   <div class="ptop"><b>你的進度</b><span id="ptext">已完成 0 項</span><button type="button" id="preset">全部重來</button></div>
   <div class="bar"><i id="pbar"></i></div>
@@ -159,12 +182,20 @@
 
 <h2><span class="num">0</span>安裝前，先確認<span class="cnt" data-for="sec0"></span></h2>
 <ol class="todos" id="sec0">
-  <li class="todo"><label class="tick"><input type="checkbox" id="c-pre-win"><span></span></label><div>
+  <li class="todo" data-only="win"><label class="tick"><input type="checkbox" id="c-pre-win"><span></span></label><div>
     <strong><label for="c-pre-win">Windows 電腦，已經裝好 Claude 桌面 App</label></strong>
     需要可以使用 Claude Code 的方案。
   </div></li>
+  <li class="todo" data-only="mac"><label class="tick"><input type="checkbox" id="c-pre-mac"><span></span></label><div>
+    <strong><label for="c-pre-mac">Mac 電腦（macOS 11 Big Sur 以上），已經裝好 Claude 桌面 App</label></strong>
+    需要可以使用 Claude Code 的方案，還沒裝的話到 <a href="https://claude.ai/download" target="_blank" rel="noopener">claude.ai/download</a> 下載。M 系列晶片（M1–M4）比較沒問題，Intel 晶片的 Mac 沒試過。
+  </div></li>
+  <li class="todo" data-only="mac"><label class="tick"><input type="checkbox" id="c-pre-macpw"><span></span></label><div>
+    <strong><label for="c-pre-macpw">記得你的 Mac 登入密碼</label></strong>
+    安裝 Python 時會用到。
+  </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-pre-disk"><span></span></label><div>
-    <strong><label for="c-pre-disk">C 槽（放使用者資料夾的那顆硬碟）至少空出 3 GB</label></strong>
+    <strong><label for="c-pre-disk"><span data-only="win">C 槽（放使用者資料夾的那顆硬碟）至少空出 3 GB</span><span data-only="mac">至少空出 3 GB 的空間</span></label></strong>
     <table class="disk">
       <tr><td>Python 和需要的套件</td><td>約 0.4 GB</td></tr>
       <tr><td>語音辨識模型（第一次聽打時自動下載，只要一次）</td><td>約 1.6 GB</td></tr>
@@ -172,7 +203,8 @@
       <tr><td><b>合計</b></td><td><b>約 3 GB</b></td></tr>
     </table>
     之後每做一支影片：成品約 15–30 MB，加上約 30–50 MB 的工作檔（有用實拍素材會多一些；影片做好後，素材資料夾裡的 <span class="file">_reels_work</span> 可以刪掉）。錄音和影片素材本身可以放在任何一顆硬碟。
-    <div class="note ok"><b class="t">怎麼看還剩多少空間？</b>按 <kbd>Win</kbd> + <kbd>E</kbd> 打開檔案總管，點左邊的「本機」，C 槽下面會寫「可用 ○○ GB」。</div>
+    <div class="note ok" data-only="win"><b class="t">怎麼看還剩多少空間？</b>按 <kbd>Win</kbd> + <kbd>E</kbd> 打開檔案總管，點左邊的「本機」，C 槽下面會寫「可用 ○○ GB」。</div>
+    <div class="note ok" data-only="mac"><b class="t">怎麼看還剩多少空間？</b>按左上角的蘋果選單 →「關於這台 Mac」，在「儲存空間」可以看到還剩多少（較新的 macOS 要再按「更多資訊」）。</div>
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-pre-net"><span></span></label><div>
     <strong><label for="c-pre-net">網路連線正常</label></strong>
@@ -189,19 +221,47 @@
 </ol>
 
 <h2><span class="num">1</span>安裝<span class="cnt" data-for="sec1"></span></h2>
+<div class="note warn" data-only="mac"><b class="t">Mac 還在試用階段</b>Reels Studio 是為 Windows 做的，還沒有在 Mac 上正式測試過，所以要請 Claude 照著安裝包裡的說明幫你裝。聽打、挑片段、剪片、寫文案應該都能用，控制台還有少數地方是 Windows 的做法（見這一段最下面）。遇到問題請截圖回報給 Saori。</div>
 <ol class="todos" id="sec1">
-  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-unzip"><span></span></label><div>
+  <li class="todo" data-only="mac"><label class="tick"><input type="checkbox" id="c-mac-open"><span></span></label><div>
+    <strong><label for="c-mac-open">1. 打開 Claude 桌面 App，切到「Code」，選這份說明所在的資料夾</label></strong>
+    就是解壓縮出來的 <span class="file">ReelsStudio</span> 資料夾。裡面的 <span class="file">② 雙擊安裝.bat</span> 是 Windows 用的，不用理它。
+  </div></li>
+  <li class="todo" data-only="mac"><label class="tick"><input type="checkbox" id="c-mac-say"><span></span></label><div>
+    <strong><label for="c-mac-say">2. 把下面這段話貼給 Claude</label></strong>
+    <div class="copy"><code>請照著這個資料夾裡的 INSTALL_MAC.md，幫我在這台 Mac 上安裝 Reels Studio。每一步做之前先用簡單的話告訴我要做什麼。</code><button type="button" data-copy="請照著這個資料夾裡的 INSTALL_MAC.md，幫我在這台 Mac 上安裝 Reels Studio。每一步做之前先用簡單的話告訴我要做什麼。">複製</button></div>
+    <span class="file">INSTALL_MAC.md</span> 是寫給 Claude 看的，你不用打開它。
+  </div></li>
+  <li class="todo" data-only="mac"><label class="tick"><input type="checkbox" id="c-mac-follow"><span></span></label><div>
+    <strong><label for="c-mac-follow">3. 照 Claude 的指示操作</label></strong>
+    過程中有幾個地方要你自己動手：
+    <ul>
+      <li><b>允許 Claude 執行指令</b>：Claude 每次要執行指令都會先問你，看得懂就按允許。</li>
+      <li><b>安裝 Python</b>：會跳出 Python 的安裝視窗，一直按「繼續」→「同意」→「安裝」，再輸入你的 Mac 登入密碼。裝完會打開一個 Finder 視窗，關掉就好。</li>
+      <li><b>允許存取「桌面」</b>：如果 Mac 問「Claude 想要取用『桌面』資料夾中的檔案」，按「好」。Claude 要在桌面放控制台的捷徑。</li>
+      <li><b>素材庫金鑰</b><span class="opt">可略過</span>：Claude 會打開一個「終端機」視窗，你把金鑰貼進去按 <kbd>return</kbd> 就好（貼上時畫面不會顯示，這是正常的）。<b>不要把金鑰貼在對話裡。</b></li>
+    </ul>
+  </div></li>
+  <li class="todo" data-only="mac"><label class="tick"><input type="checkbox" id="c-mac-restart"><span></span></label><div>
+    <strong><label for="c-mac-restart">4. 把 Claude 桌面 App 完全關掉，再重新打開</label></strong>
+    在選單列按 Claude →「結束 Claude」，或按 <kbd>⌘</kbd> + <kbd>Q</kbd>。這樣 Claude 才會認得剛裝好的小幫手。
+  </div></li>
+  <li class="todo" data-only="mac"><label class="tick"><input type="checkbox" id="c-mac-panel"><span></span></label><div>
+    <strong><label for="c-mac-panel">5. 雙擊桌面上的 <span class="file">Reels Studio.command</span>，打開控制台</label></strong>
+    會先跳出一個「終端機」視窗，接著瀏覽器打開控制台。用控制台的時候，不要關掉終端機視窗。
+  </div></li>
+  <li class="todo" data-only="win"><label class="tick"><input type="checkbox" id="c-inst-unzip"><span></span></label><div>
     <strong><label for="c-inst-unzip">1. 把壓縮檔解壓縮</label></strong>
     在壓縮檔（<span class="file">.zip</span>）上按右鍵 → <b>「解壓縮全部」</b>，放在哪裡都可以（例如桌面）。
     <div class="note warn"><b class="t">⚠️ 不要直接在壓縮檔裡面點兩下</b>那樣安裝會失敗。要先解壓縮，再打開解壓縮出來的資料夾。</div>
   </div></li>
-  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-run"><span></span></label><div>
+  <li class="todo" data-only="win"><label class="tick"><input type="checkbox" id="c-inst-run"><span></span></label><div>
     <strong><label for="c-inst-run">2. 雙擊 <span class="file">② 雙擊安裝</span></label></strong>
     在解壓縮出來的資料夾裡，就在這份說明的旁邊（有些電腦會顯示成 <span class="file">② 雙擊安裝.bat</span>）。會跳出一個黑色視窗，畫面上的字會顯示進度。
     <figure class="shot"><a href="程式檔（不用打開）/說明圖片/1-安裝中.png" target="_blank" rel="noopener"><img src="程式檔（不用打開）/說明圖片/1-安裝中.png" alt="安裝中的黑色視窗：依序顯示 1/6 到 6/6 的步驟" loading="lazy"></a><figcaption>安裝中的畫面長這樣：會依序跑 [1/6] 到 [6/6]。路徑裡會是你自己的使用者名稱。</figcaption></figure>
     <div class="note warn"><b class="t">如果出現藍色的「Windows 已保護您的電腦」</b>點 <b>「其他資訊」</b>，再點 <b>「仍要執行」</b>。這是 Windows 對所有從網路來的檔案都會跳的提醒。</div>
   </div></li>
-  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-answer"><span></span></label><div>
+  <li class="todo" data-only="win"><label class="tick"><input type="checkbox" id="c-inst-answer"><span></span></label><div>
     <strong><label for="c-inst-answer">3. 照畫面回答問題</label></strong>
     <ul>
       <li><b>「要自動安裝 Python 嗎？(Y/n)」</b>：直接按 <kbd>Enter</kbd> 就是要。它會從 Python 官方網站下載，只裝給你自己，不需要管理員權限，約 1–3 分鐘。</li>
@@ -209,29 +269,39 @@
     </ul>
     安裝套件那一步會跑出很多英文字，那是正常的，等它跑完就好（約幾分鐘）。
   </div></li>
-  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-done"><span></span></label><div>
+  <li class="todo" data-only="win"><label class="tick"><input type="checkbox" id="c-inst-done"><span></span></label><div>
     <strong><label for="c-inst-done">4. 看到綠色的「全部完成！」</label></strong>
     按任意鍵關掉黑色視窗。
     <figure class="shot"><a href="程式檔（不用打開）/說明圖片/2-安裝完成.png" target="_blank" rel="noopener"><img src="程式檔（不用打開）/說明圖片/2-安裝完成.png" alt="安裝完成：檢查都是綠色的字，最後一行是「全部完成！」" loading="lazy"></a><figcaption>看到最下面綠色的「全部完成！」就成功了。版本號這類細節可能跟你的畫面有一點不同。</figcaption></figure>
     <div class="note ok"><b class="t">出現黃色或紅色的問題清單？</b>照畫面上的提示處理，再雙擊一次 <span class="file">② 雙擊安裝</span> 就好。重複執行不會弄壞東西。</div>
   </div></li>
-  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-panel"><span></span></label><div>
+  <li class="todo" data-only="win"><label class="tick"><input type="checkbox" id="c-inst-panel"><span></span></label><div>
     <strong><label for="c-inst-panel">5. 瀏覽器打開了 Reels Studio 控制台，桌面多了一個 <span class="file">Reels Studio</span> 圖示</label></strong>
     之後點這個圖示就能再打開控制台（控制台右上角也有這份說明）。沒看到的話，見最下面的「常見問題」。
     <figure class="shot"><a href="程式檔（不用打開）/說明圖片/3-桌面圖示.png" target="_blank" rel="noopener"><img src="程式檔（不用打開）/說明圖片/3-桌面圖示.png" alt="桌面上的 Reels Studio 圖示（紅框處）" loading="lazy"></a><figcaption>桌面上紅框裡的就是 Reels Studio 圖示。</figcaption></figure>
   </div></li>
-  <li class="todo"><label class="tick"><input type="checkbox" id="c-inst-restart"><span></span></label><div>
+  <li class="todo" data-only="win"><label class="tick"><input type="checkbox" id="c-inst-restart"><span></span></label><div>
     <strong><label for="c-inst-restart">6. 把 Claude 桌面 App 完全關掉，再重新打開</label></strong>
     這樣 Claude 才會認得剛裝好的小幫手。
   </div></li>
 </ol>
+
+<div class="card" data-only="mac">
+  <b>Mac 上不能用的地方</b>
+  <table>
+    <tr><th>功能</th><th>Mac 上會怎樣</th><th>怎麼辦</th></tr>
+    <tr><td>控制台裡的說明文字</td><td>有些寫的是 Windows 的操作（例如「C 槽」「記事本」「資源回收筒」）</td><td>照意思換成 Mac 的做法：「記事本」會用「文字編輯」打開，刪掉的風格會在垃圾桶</td></tr>
+    <tr><td>更新版本</td><td>控制台的「下載新版」只給 Windows 用</td><td>見下面「常見問題」的「怎麼知道有沒有新版？」</td></tr>
+  </table>
+</div>
+<div class="note warn" data-only="mac"><b class="t">遇到問題時</b>先跟 Claude 說哪裡怪怪的，它通常能找出原因。但請 Claude <b>不要修改 Reels Studio 的程式檔</b>（<span class="file">.py</span> 檔）：改了之後下次更新會被蓋掉，Saori 也很難幫你看問題。真的不能用時，請截圖回報給 Saori。</div>
 
 <h2 id="start"><span class="num">2</span>建立你的風格<span class="cnt" data-for="sec2"></span></h2>
 <p class="lead">設定一次，之後每支影片都會自動套用。全部在控制台用點的就好。</p>
 <ol class="todos" id="sec2">
   <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-open"><span></span></label><div>
     <strong><label for="c-brand-open">1. 打開控制台，點上面的「🎨 風格」</label></strong>
-    點桌面的 <span class="file">Reels Studio</span> 圖示就會打開。
+    <span data-only="win">點桌面的 <span class="file">Reels Studio</span> 圖示就會打開。</span><span data-only="mac">雙擊桌面的 <span class="file">Reels Studio.command</span> 就會打開，跳出的終端機視窗不要關。</span>
   </div></li>
   <li class="todo"><label class="tick"><input type="checkbox" id="c-brand-name"><span></span></label><div>
     <strong><label for="c-brand-name">2. 填風格名稱（通常用頻道或帳號名稱）</label></strong>
@@ -321,46 +391,49 @@
 </div>
 
 <h2><span class="num">?</span>常見問題</h2>
-<details>
+<details data-only="win">
   <summary>跳出「找不到需要的檔案」，或黑色視窗一閃就不見了</summary>
   <p>通常是還在壓縮檔裡面執行。請先「解壓縮全部」，再到解壓縮出來的資料夾雙擊 <span class="file">② 雙擊安裝</span>。</p>
 </details>
-<details>
+<details data-only="win">
   <summary>Python 自動安裝失敗</summary>
   <p>到 <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org/downloads</a> 下載 Python 3.13 自己安裝。安裝畫面第一頁<b>一定要勾選「Add python.exe to PATH」</b>，裝好之後再雙擊一次 <span class="file">② 雙擊安裝</span>。</p>
 </details>
 <details>
   <summary>安裝時跳過了 Pexels 或 Unsplash 金鑰，之後想加</summary>
+  <div data-only="win">
   <p>按鍵盤的 <kbd>Win</kbd>，搜尋「PowerShell」並打開，貼上下面這行（把「你的金鑰」換成真的金鑰），按 <kbd>Enter</kbd>，再重開 Claude。</p>
   <p>Pexels：</p>
   <div class="copy"><code>setx PEXELS_API_KEY "你的金鑰"</code><button type="button" data-copy='setx PEXELS_API_KEY "你的金鑰"'>複製</button></div>
   <p>Unsplash：</p>
   <div class="copy"><code>setx UNSPLASH_ACCESS_KEY "你的金鑰"</code><button type="button" data-copy='setx UNSPLASH_ACCESS_KEY "你的金鑰"'>複製</button></div>
+  </div>
+  <p data-only="mac">跟 Claude 說 <span class="say">幫我打開輸入素材庫金鑰的視窗</span>，它會打開一個「終端機」視窗。把金鑰貼進去按 <kbd>return</kbd>（畫面不會顯示是正常的），不用的那一個直接按 <kbd>return</kbd> 跳過，再重開 Claude。<b>不要把金鑰貼在對話裡。</b></p>
 </details>
 <details>
   <summary>輸入 /reels-studio 沒有反應</summary>
-  <p>確認安裝最後有出現「全部完成！」，而且有把 Claude 桌面 App <b>完全關掉再打開</b>。還是不行的話，直接說「幫我做 reels」試試看。</p>
+  <p>確認安裝最後<span data-only="win">有出現「全部完成！」</span><span data-only="mac">Claude 有說安裝完成</span>，而且有把 Claude 桌面 App <b>完全關掉再打開</b>。還是不行的話，直接說「幫我做 reels」試試看。</p>
 </details>
 <details>
   <summary>我的風格設定存在哪裡？可以自己改嗎？</summary>
-  <p>在 <span class="file">C:\Users\你的名字\.claude\reels-studio\my-brand\</span>。裡面的 <span class="file">brand.json</span> 是配色、字型、結尾卡；<span class="file">BRAND.md</span> 是文案語氣和 hashtag。最簡單的方式是在控制台的「風格」分頁修改，或直接跟 Claude 說你想改什麼。控制台只會改你動過的那幾項，Claude 依你的要求記下的其他規則不會被洗掉。</p>
+  <p><span data-only="win">在 <span class="file">C:\Users\你的名字\.claude\reels-studio\my-brand\</span>。</span><span data-only="mac">在你的使用者資料夾裡的 <span class="file">.claude/reels-studio/my-brand/</span>（<span class="file">.claude</span> 是隱藏資料夾，在 Finder 按 <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>.</kbd> 才看得到）。</span>裡面的 <span class="file">brand.json</span> 是配色、字型、結尾卡；<span class="file">BRAND.md</span> 是文案語氣和 hashtag。最簡單的方式是在控制台的「風格」分頁修改，或直接跟 Claude 說你想改什麼。控制台只會改你動過的那幾項，Claude 依你的要求記下的其他規則不會被洗掉。</p>
 </details>
 <details>
   <summary>我有好幾個頻道或帳號，怎麼分開設定？</summary>
   <p>在控制台的「風格」分頁按 <b>「＋ 新增風格」</b>，輸入名稱，選「從空白開始」或「沿用某個風格的配色、字型、版面風格和結尾卡」，建好後照平常一樣填寫、儲存。之後在「做影片」打開素材資料夾，再用右上角的「目前風格」選它，這個資料夾就會改用那個風格，Claude 和剪片程式都會自動套用。沒有選的資料夾會用預設風格。</p>
-  <p>不要的風格：用右上角的「目前風格」選它，在「風格」分頁按 <b>「刪除這個風格」</b>。它會移到資源回收筒，刪錯了可以從那裡還原。預設風格不能刪除。</p>
+  <p>不要的風格：用右上角的「目前風格」選它，在「風格」分頁按 <b>「刪除這個風格」</b>。它會移到<span data-only="win">資源回收筒</span><span data-only="mac">垃圾桶</span>，刪錯了可以從那裡還原。預設風格不能刪除。<span data-only="mac">第一次刪除時，Mac 會問是否允許控制「Finder」，請按「好」。</span></p>
 </details>
 <details>
   <summary>點桌面的 Reels Studio 沒有反應</summary>
-  <p>等 5 秒左右，瀏覽器應該會自己打開。如果還是沒有，直接跟 Claude 說「打開控制台」。控制台只在你自己的電腦上執行，不會上傳任何東西；關掉分頁 15 分鐘後它會自己結束，也可以按右上角的「關閉」。</p>
+  <p><span data-only="mac">雙擊 <span class="file">Reels Studio.command</span> 會先跳出終端機視窗，用控制台時不要關掉它。</span>等 5 秒左右，瀏覽器應該會自己打開。如果還是沒有，直接跟 Claude 說「打開控制台」。控制台只在你自己的電腦上執行，不會上傳任何東西；關掉分頁 15 分鐘後它會自己結束，也可以按右上角的「關閉」。</p>
 </details>
 <details>
   <summary>怎麼知道有沒有新版？</summary>
-  <p>每次打開控制台，它會連到 Reels Studio 的 GitHub 頁面看最新版是哪一版（只讀版本號，不會傳送你的設定或檔案）。有新版時，控制台最上面會出現提示，照著按「下載新版」、解壓縮、雙擊「② 雙擊安裝.bat」就好。沒有網路的話不會檢查，也不影響使用。已經是最新版時，控制台最下面的版本號旁會寫「已是最新版」。</p>
+  <p>每次打開控制台，它會連到 Reels Studio 的 GitHub 頁面看最新版是哪一版（只讀版本號，不會傳送你的設定或檔案）。有新版時，控制台最上面會出現提示，<span data-only="win">照著按「下載新版」、解壓縮、雙擊「② 雙擊安裝.bat」就好。</span><span data-only="mac">但「下載新版」只給 Windows 用。Mac 請到 <a href="https://github.com/innerwork-saori/ReelsStudio/releases/latest" target="_blank" rel="noopener">Saori 的 GitHub 頁面</a> 下載新的 zip、解壓縮，在 Claude 選新的資料夾，再把「1 安裝」第 2 步那段話貼給 Claude 一次。</span>沒有網路的話不會檢查，也不影響使用。已經是最新版時，控制台最下面的版本號旁會寫「已是最新版」。</p>
 </details>
 <details>
   <summary>重新安裝會不會把我的設定洗掉？</summary>
-  <p>不會。重新安裝只會更新程式，你的風格設定會保留；被替換的舊檔也會先備份到 <span class="file">.claude\backup-reels-studio-日期時間\</span>。</p>
+  <p>不會。重新安裝只會更新程式，你的風格設定會保留；被替換的舊檔也會先備份到 <span class="file" data-only="win">.claude\backup-reels-studio-日期時間\</span><span class="file" data-only="mac">.claude/backup-reels-studio-日期時間/</span>。</p>
 </details>
 
 <h2><span class="num">!</span>使用須知與免責聲明</h2>
@@ -369,7 +442,7 @@
     <li><b>成品請自己檢查</b>：逐字稿、字幕、精華片段和貼文文案都是 AI 產生的，可能有錯字、聽錯或斷句不對。發布前請完整看過影片、讀過文案。</li>
     <li><b>哪些資料會交給 Claude</b>：聽打在你自己的電腦上執行；但逐字稿、文案，以及剪片時用來檢查畫面的截圖，會在對話中交給 Claude（Anthropic）處理，適用 Anthropic 的使用條款與隱私政策。含有不公開內容的素材請自行斟酌。</li>
     <li><b>素材的權利由你負責</b>：請確認你有權使用錄音、影片、照片與音樂，來賓或入鏡的人同意公開，並遵守 Pexels／Unsplash 素材授權（Unsplash 照片發文時必須標註攝影師）和各社群平台的規範。</li>
-    <li><b>安裝會改動這台電腦</b>：會下載安裝 Python 與套件、安裝字型、寫入 <span class="file">.claude</span> 資料夾，選填的 Pexels、Unsplash 金鑰會存成使用者環境變數。</li>
+    <li><b>安裝會改動這台電腦</b>：會下載安裝 Python 與套件、安裝字型、寫入 <span class="file">.claude</span> 資料夾，選填的 Pexels、Unsplash 金鑰<span data-only="win">會存成使用者環境變數</span><span data-only="mac">會存在使用者資料夾的 <span class="file">.zshenv</span>，並在 <span class="file">.claude/CLAUDE.md</span> 加一段給 Claude 的 Mac 注意事項</span>。</li>
     <li><b>請確認來源</b>：只有從 Saori 的 GitHub 頁面或作品頁下載的才是 Saori 本人提供的版本。從其他來源取得的檔案可能被修改過，使用前請注意來源；非 Saori 本人提供的版本，Saori 不負任何責任。</li>
     <li><b>非官方工具</b>：Reels Studio 是個人作品，與 Anthropic、Meta（Instagram）、TikTok、Google（YouTube）沒有關係。</li>
     <li><b>不提供任何保證</b>：本工具依「現狀」提供，作者不保證它沒有錯誤或適合特定用途；因使用本工具或其成品造成的任何損失，作者不負責任。</li>
@@ -395,15 +468,18 @@
     var KEY = "reels-studio-guide-checklist-v1", done = {};
     try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) {}
     var boxes = Array.prototype.slice.call(document.querySelectorAll(".todo input[type=checkbox]"));
+    // only the steps for the chosen system (Windows / Mac) count toward progress
+    function shown(b) { var os = b.closest("[data-only]"); return !os || os.dataset.only === document.documentElement.dataset.os; }
     function save() { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} }
     function update() {
-      var n = 0;
-      boxes.forEach(function (b) { b.closest(".todo").classList.toggle("done", b.checked); if (b.checked) n++; });
-      document.getElementById("ptext").textContent = n === boxes.length ? "全部完成了！🎉" : "已完成 " + n + " / " + boxes.length + " 項";
-      document.getElementById("pbar").style.width = (100 * n / boxes.length) + "%";
+      var n = 0, mine = boxes.filter(shown);
+      boxes.forEach(function (b) { b.closest(".todo").classList.toggle("done", b.checked); });
+      mine.forEach(function (b) { if (b.checked) n++; });
+      document.getElementById("ptext").textContent = n === mine.length ? "全部完成了！🎉" : "已完成 " + n + " / " + mine.length + " 項";
+      document.getElementById("pbar").style.width = (100 * n / mine.length) + "%";
       document.querySelectorAll("h2 .cnt").forEach(function (c) {
-        var list = document.getElementById(c.dataset.for).querySelectorAll("input[type=checkbox]");
-        var k = Array.prototype.filter.call(list, function (b) { return b.checked; }).length;
+        var list = Array.prototype.filter.call(document.getElementById(c.dataset.for).querySelectorAll("input[type=checkbox]"), shown);
+        var k = list.filter(function (b) { return b.checked; }).length;
         c.textContent = k === list.length ? "✓ 完成" : k + " / " + list.length;
         c.classList.toggle("all", k === list.length);
       });
@@ -416,7 +492,21 @@
       if (!confirm("要把所有打勾都清掉，從頭開始嗎？")) return;
       done = {}; save(); boxes.forEach(function (b) { b.checked = false; }); update();
     });
-    update();
+
+    // Windows／Mac switch (the starting choice is set in <head>)
+    var picks = Array.prototype.slice.call(document.querySelectorAll(".os-pick button"));
+    function showOS() {
+      picks.forEach(function (p) { p.setAttribute("aria-pressed", p.dataset.os === document.documentElement.dataset.os ? "true" : "false"); });
+      update();
+    }
+    picks.forEach(function (p) {
+      p.addEventListener("click", function () {
+        document.documentElement.dataset.os = p.dataset.os;
+        try { localStorage.setItem("reels-studio-guide-os", p.dataset.os); } catch (e) {}
+        showOS();
+      });
+    });
+    showOS();
   })();
 
   document.querySelectorAll("button[data-copy]").forEach(function (b) {

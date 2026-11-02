@@ -1,56 +1,10 @@
-# Reels Studio：Mac 安裝說明（試用版）
+# Reels Studio：Mac 安裝步驟（給 Claude 看的）
 
-> Reels Studio 是為 Windows 做的，**還沒有在 Mac 上正式測試過**。這份說明是讓你 Mac 上的 Claude 照著步驟幫你安裝。聽打、挑片段、剪片、寫文案這些主要功能應該可以用，但控制台有幾個按鈕在 Mac 上不能用（見下面的清單）。遇到問題請截圖回報給 Saori。
-
----
-
-## 第一部分：給你看的
-
-### 需要什麼
-
-- Mac 電腦，macOS 11（Big Sur）以上。M 系列晶片（M1–M4）比較沒問題；Intel 晶片的 Mac 沒試過。
-- [Claude 桌面 App](https://claude.ai/download)，而且你的方案可以使用 Claude Code。
-- 網路連線。
-- 至少空出 **3 GB** 空間。
-- 你的 Mac 登入密碼（安裝 Python 時會用到）。
-
-### 安裝步驟
-
-1. 下載 [ReelsStudio.zip](https://github.com/innerwork-saori/ReelsStudio/releases/latest/download/ReelsStudio.zip)，在「下載項目」裡雙擊它，會解壓縮出一個 `ReelsStudio` 資料夾。
-   - 資料夾裡的 `② 雙擊安裝.bat` 是 Windows 用的，**不用理它**。
-2. 打開 Claude 桌面 App，切到 **Code**，選擇剛剛解壓縮出來的 `ReelsStudio` 資料夾。
-3. 把下面這段話貼給 Claude：
-
-   > 請照著這個資料夾裡的 `INSTALL_MAC.md`「第二部分：給 Claude 的安裝步驟」，幫我在這台 Mac 上安裝 Reels Studio。每一步做之前先用簡單的話告訴我要做什麼。
-
-4. 照 Claude 的指示操作。過程中**需要你自己動手**的地方有：
-   - **允許 Claude 執行指令**：Claude 每次要執行指令都會先問你，看得懂就按允許。
-   - **安裝 Python**：會跳出 Python 的安裝視窗，一直按「繼續」→「同意」→「安裝」，輸入你的 Mac 登入密碼。裝完會打開一個 Finder 視窗，關掉就好。
-   - **允許存取「桌面」**：如果 Mac 問「Claude 想要取用『桌面』資料夾中的檔案」，按「好」。Claude 要在桌面放控制台的捷徑。
-   - **素材庫金鑰（可略過）**：如果要用 Pexels／Unsplash 的免費實拍素材，Claude 會打開一個「終端機」視窗，你把金鑰貼進去按 Enter 就好（貼上時畫面不會顯示，這是正常的）。**不要把金鑰貼在對話裡。**
-5. 裝好後，把 Claude 桌面 App **完全關掉**（選單列的 Claude → 結束 Claude，或按 ⌘Q），再重新打開。
-6. 雙擊桌面上的 **`Reels Studio.command`** 就會打開控制台。會先跳出一個「終端機」黑色視窗，控制台用的時候不要把它關掉。
-
-接下來的用法跟 Windows 一樣，看 `① 先看我.html` 從「建立你的風格」開始做就好。
-
-### Mac 上不能用的地方
-
-| 功能 | Mac 上會怎樣 | 怎麼辦 |
-|---|---|---|
-| 控制台裡「打開這個資料夾」「在資料夾中顯示」「用記事本打開說明檔（BRAND.md）」 | 按了沒反應或出現錯誤 | 請 Claude 幫你打開，或自己到 Finder 找 |
-| 「風格」分頁的刪除風格 | 會失敗（它是搬到 Windows 的資源回收筒） | 到 Finder 自己把那個風格的資料夾丟到垃圾桶（位置請 Claude 告訴你） |
-| 建立風格時的字型樣本圖 | 每個字型上面的「字型名稱」標籤可能變成方框（□□□），因為標籤用的是 Windows 的微軟正黑體。字型本身的示範字是正常的 | 請 Claude 用文字告訴你每一列是哪個字型 |
-| `① 先看我.html` 和控制台的說明 | 寫的是 Windows 的操作（例如「解壓縮全部」「C 槽」） | 照意思換成 Mac 的做法 |
-| 更新版本 | 控制台的「下載新版」只給 Windows 用 | 下載新的 zip，再跟 Claude 說一次第 3 步那段話（風格設定不會被蓋掉） |
-
-### 遇到問題
-
-- 先跟 Claude 說哪裡怪怪的，它通常能找出原因。
-- 請 Claude **不要修改 Reels Studio 的程式檔**（`.py` 檔）。改了之後下次更新會被蓋掉，Saori 也很難幫你看問題。真的不能用時，請截圖回報給 Saori。
+> **使用者不用打開這份檔案。** 給你看的 Mac 安裝說明在 `① 先看我.html`：用瀏覽器打開，在上面選「Mac」就能看。這份是給 Claude 照著做的。
 
 ---
 
-## 第二部分：給 Claude 的安裝步驟
+## 安裝步驟
 
 你正在幫使用者把 Reels Studio（原本只支援 Windows）安裝到 macOS 上。Windows 版的安裝程式是 `程式檔（不用打開）/install.ps1`，下面每一步都對應到它的其中一段，有疑問時以它為準。
 
@@ -187,9 +141,8 @@ Reels Studio 的 agents、skill 和工具包說明是照 Windows 寫的，在這
 - 路徑一律用 `/`。說明裡的 `_reels_work\clipN\`、`assets\_previews\` 這類寫法，換成 `_reels_work/clipN/`、`assets/_previews/`。
 - 說明寫 `$env:REELS_BRAND='<頻道資料夾>'; python clip.py …`（PowerShell）時，改成 `REELS_BRAND='<頻道資料夾>' python clip.py …`。
 - 說明寫用 `setx` 設定金鑰時，改成執行 `open ~/.claude/reels-studio/mac_set_keys.command`，請使用者在跳出的終端機視窗貼上金鑰。金鑰存在 `~/.zshenv`，不要貼在對話裡，也不要用「文字編輯」開這個檔。
-- `fonts.py list` 產生的字型樣本圖，每列上方的字型名稱標籤可能變成方框（標籤寫死用 Windows 的微軟正黑體）。字型名稱以 `fonts.py list` 印出的文字為準，用文字告訴使用者每一列是哪個字型。
 - 要讓使用者看到資料夾或檔案時，用 `open <資料夾>` 或 `open -R <檔案>`，不要用 explorer、notepad。
-- 控制台的「打開這個資料夾／在資料夾中顯示／用記事本打開說明檔（BRAND.md）」和刪除風格在 Mac 上不能用。使用者需要時改用 `open` 幫他打開（BRAND.md 用 `open -t`）；刪除風格就告訴他資料夾位置，請他自己在 Finder 丟到垃圾桶。
+- 控制台的「打開這個資料夾／在資料夾中顯示／用記事本打開說明檔（BRAND.md）」在 Mac 上會用 Finder 和「文字編輯」打開；刪除風格會把資料夾丟到垃圾桶（第一次 macOS 會問是否允許控制 Finder，請使用者按「好」；拒絕的話會改搬到工具包裡的 `_已刪除的風格/`）。
 - 不要修改 `~/.claude/reels-studio/` 裡的 `.py` 程式檔來配合 Mac。不能用的功能如實告訴使用者。
 <!-- /Reels Studio Mac -->
 ```
@@ -233,5 +186,16 @@ EOF
 1. 把 Claude 桌面 App 完全結束（⌘Q）再打開，它才會認得剛裝好的小幫手。
 2. 之後雙擊桌面上的 `Reels Studio.command` 打開控制台，跳出的終端機視窗不要關。
 3. 接著照 `① 先看我.html` 從「建立你的風格」開始。第一次聽打會下載約 1.6 GB 的語音辨識模型，需要等一下。
-4. 第一部分「Mac 上不能用的地方」那張表的內容。
+4. 下面附錄「Mac 上不能用的地方」那張表的內容。
 5. 這次安裝哪幾步沒成功（如果有的話）。
+
+---
+
+## 附錄：Mac 上不能用的地方
+
+完成時（第 10 步）要告訴使用者。`① 先看我.html` 選「Mac」時，「1 安裝」下面也有同一張表，兩邊要一起更新。
+
+| 功能 | Mac 上會怎樣 | 怎麼辦 |
+|---|---|---|
+| 控制台裡的說明文字 | 有些寫的是 Windows 的操作（例如「C 槽」「記事本」「資源回收筒」） | 照意思換成 Mac 的做法：「記事本」會用「文字編輯」打開，刪掉的風格會在垃圾桶 |
+| 更新版本 | 控制台的「下載新版」只給 Windows 用 | 下載新的 zip，再把 `① 先看我.html`（選 Mac）「1 安裝」第 2 步那段話貼給 Claude 一次（風格設定不會被蓋掉） |

@@ -90,12 +90,23 @@ def tc_families(include_other=False):
     return sorted(out, key=lambda x: (region(x[0]) != "台灣字形", x[0].lower()))
 
 
+LABEL_FONTS = ("Microsoft JhengHei", "PingFang TC", "Heiti TC")   # Windows, then Mac (蘋方 / 黑體-繁)
+
+def label_typeface():
+    """a system font that can draw the sheet's labels; asked for by name, a missing font would quietly become a
+    default face without Chinese (boxes)"""
+    for name in LABEL_FONTS:
+        tf = load(name, 700)
+        if tf and not missing(tf, "台灣香港字形其他預設"): return tf
+    return skia.Typeface.MakeDefault()
+
+
 def sheet(fams, out):
     row, w = 150, 1400
     surf = skia.Surface(w, row * len(fams) + 20)
     with surf as c:
         c.clear(skia.ColorWHITE)
-        label = skia.Font(skia.Typeface.MakeFromName("Microsoft JhengHei", skia.FontStyle.Bold()) or skia.Typeface.MakeDefault(), 24)
+        label = skia.Font(label_typeface(), 24)
         for i, (name, ws) in enumerate(fams):
             y = 20 + i * row
             c.drawString(f"{i + 1}. {name}（{region(name)}）" + ("　← 預設" if "粉圓" in name or "huninn" in name.lower() else ""),

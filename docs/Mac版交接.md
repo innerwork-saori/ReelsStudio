@@ -9,7 +9,8 @@
 
 正式的 Mac 版還沒做。在那之前，先讓用 Mac 的人請自己的 Claude（Claude 桌面 App 的 Claude Code）照說明代為安裝：
 
-- **`INSTALL_MAC.md`**（repo 根目錄，會打包進 zip）：分成兩部分。第一部分給使用者看，說明要準備什麼、在哪裡要自己動手，以及 Mac 上不能用的功能。第二部分是給 Claude 的 10 個安裝步驟，每一步對應 `install.ps1` 的一段。
+- **`① 先看我.html` 的 Windows／Mac 切換**：頁首有「你用的電腦」切換鈕（依 `navigator.platform` 預設，選過會記在 localStorage）。只適用其中一邊的內容標 `data-only="win"` 或 `data-only="mac"`，進度只算目前這一邊的打勾項目。選 Mac 時，「0 安裝前，先確認」和「1 安裝」換成 Mac 的步驟（要貼給 Claude 的那句話、哪裡要自己動手），下面接「Mac 上不能用的地方」表；常見問題和免責聲明裡跟系統有關的句子也分成兩邊。放在 HTML 裡，是因為 Mac 用「文字編輯」打開 `.md` 會看到原始的 Markdown 符號。
+- **`INSTALL_MAC.md`**（repo 根目錄，會打包進 zip）：只給 Claude 看，是 10 個安裝步驟，每一步對應 `install.ps1` 的一段；最後附一張「Mac 上不能用的地方」表，跟 HTML 那張要一起更新。
 - **`程式檔（不用打開）/mac_copy.py`**：做 `install.ps1` 第 1 步（複製、備份、替換 `{{STUDIO}}`／`{{HOME}}`）。替換時會把路徑裡的 `\` 換成 `/`，並在工具包資料夾放一份粉圓字型檔，讓 `_find_font()` 不用改就找得到。
 - **README** 的「需要什麼」寫的是「Mac 還在試用階段」。分享頁（https://lab.heysaori.com/reelsstudio.html，不在這個 repo）的說法要跟著一致。
 
@@ -19,13 +20,13 @@
 |---|---|---|
 | 安裝程式（第 1 點） | Claude 照 `INSTALL_MAC.md` 一步一步做；Python 由使用者自己按 python.org 的安裝視窗，裝完後補裝 SSL 憑證（`Install Certificates.command`） | 寫 `.command` 安裝程式 |
 | `python` 指令 | 建 `~/.local/bin/python` 指向 `python3.13`，並把 `~/.local/bin` 加進 `~/.zshenv` 的 PATH | 一樣，或在安裝時替換說明檔裡的指令 |
-| 控制台的 Windows 功能（第 2 點） | 不能用。在「Mac 上不能用的地方」表格裡告訴使用者，Claude 改用 `open` 幫忙 | 依系統分支處理 |
-| 字型樣本標籤（第 3 點，`fonts.py` 微軟正黑體） | 標籤可能變成方框。請 Claude 改用文字說明每一列是哪個字型 | 改用 `PingFang TC` |
+| 控制台的 Windows 功能（第 2 點） | 打開資料夾、在資料夾中顯示、打開 BRAND.md、刪除風格已經用 `MAC` 分支改好（`open`、`open -R`、`open -t`、Finder 丟垃圾桶的 `to_trash()`），要在真的 Mac 上確認。說明文字和「下載新版」還沒改 | 說明文字依系統切換；Mac 安裝程式做好後再處理更新 |
+| 字型樣本標籤（第 3 點） | 已改好：`fonts.py` 的 `label_typeface()` 依序找微軟正黑體、`PingFang TC`、`Heiti TC`，要在真的 Mac 上確認 | 同左 |
 | 金鑰（第 4 點） | 存在 `~/.zshenv`（權限 600）。每個 zsh 都會讀這個檔，包括桌面捷徑開的控制台和 Claude Code 的指令。用終端機裡的 `mac_set_keys.command` 輸入，不經過「文字編輯」 | 決定要沿用 `~/.zshenv` 還是改用 `keys.env`，兩種只留一種 |
 | agent 說明裡的 Windows 寫法（第 5 點） | 安裝時在 `~/.claude/CLAUDE.md` 加一段 `<!-- Reels Studio Mac -->` 注意事項，告訴 Claude 怎麼把 `\`、`$env:`、`setx`、explorer 換成 Mac 的寫法 | 改原始檔 |
 | Gatekeeper | 碰不到：使用者不用執行任何下載來的腳本，桌面捷徑和金鑰程式都是 Claude 在本機建立的 | 見〈風險〉第 2 點 |
 
-**做正式版時要收掉的東西**：`INSTALL_MAC.md`（或改寫成正式版的安裝說明）、`mac_copy.py`、`tools/build_release.py` 裡 `TOP` 的 `INSTALL_MAC.md`，還有 README 的「試用階段」說法。也要告訴試用過的人：正式版的安裝程式要清掉 `~/.claude/CLAUDE.md` 裡的 `<!-- Reels Studio Mac -->` 區塊、`~/.local/bin/python`、`~/.claude/reels-studio/mac_set_keys.command`、`~/.claude/reels-studio/jf-openhuninn-1.1.ttf`，以及桌面上的 `Reels Studio.command`（或直接覆蓋）。
+**做正式版時要收掉的東西**：`INSTALL_MAC.md`（或改寫成正式版的安裝說明）、`① 先看我.html` 裡 `data-only="mac"` 的試用說明（「Mac 還在試用階段」提示、不能用的地方表、要貼給 Claude 的那句話；切換鈕本身可以留著）、`mac_copy.py`、`tools/build_release.py` 裡 `TOP` 的 `INSTALL_MAC.md`，還有 README 的「試用階段」說法。也要告訴試用過的人：正式版的安裝程式要清掉 `~/.claude/CLAUDE.md` 裡的 `<!-- Reels Studio Mac -->` 區塊、`~/.local/bin/python`、`~/.claude/reels-studio/mac_set_keys.command`、`~/.claude/reels-studio/jf-openhuninn-1.1.ttf`，以及桌面上的 `Reels Studio.command`（或直接覆蓋）。
 
 **試用期間要收集的回報**（正好補上〈風險〉第 1 點的測試清單）：Mac 機型和晶片、`pip install` 有沒有失敗、`fonts.py list` 列出的字型名稱、聽打速度、插圖模式和露臉模式能不能輸出、Pexels／Unsplash 搜尋能不能用。
 
@@ -129,4 +130,4 @@
 
 ## 在 Mac 版做好之前
 
-對外說法統一為「**Mac 試用階段**」（2026-11-02 決定，取代原本建議的「目前只支援 Windows」）。在分享頁（https://lab.heysaori.com/reelsstudio.html）和索取表單上註明：Mac 可以試用，要請 Claude 照 zip 裡的 `INSTALL_MAC.md` 安裝，控制台有部分功能不能用。
+對外說法統一為「**Mac 試用階段**」（2026-11-02 決定，取代原本建議的「目前只支援 Windows」）。在分享頁（https://lab.heysaori.com/reelsstudio.html）和索取表單上註明：Mac 可以試用，打開 zip 裡的 `① 先看我.html` 選「Mac」，照著請 Claude 安裝，控制台的「下載新版」只給 Windows 用。

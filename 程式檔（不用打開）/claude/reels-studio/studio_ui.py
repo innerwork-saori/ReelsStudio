@@ -32,6 +32,7 @@ VERSION = __import__("hashlib").sha1(open(os.path.abspath(__file__), "rb").read(
 IDLE_EXIT = 15 * 60
 RELEASES = "https://github.com/innerwork-saori/ReelsStudio/releases"
 NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+MAC = sys.platform == "darwin"   # Mac trial: Finder / `open` instead of Explorer, Notepad and the Recycle Bin
 MEDIA_EXT = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".mp4": "video/mp4",
              ".mov": "video/quicktime", ".webm": "video/webm", ".m4a": "audio/mp4", ".mp3": "audio/mpeg"}
 SOURCE_EXT = (".mp3", ".m4a", ".wav", ".mp4", ".mov")
@@ -712,8 +713,20 @@ def projects_using(d):
     refs = {os.path.normcase(brand_ref(d)), os.path.normcase(os.path.abspath(d))}
     return [p for p in recent_projects() if os.path.normcase(str(read_project(p).get("brand") or "")) in refs]
 
+def to_trash(path):
+    """Mac: ask Finder to move a folder to the Trash (so 「放回原處」 works); False if Finder refused — e.g. the user
+    said no when macOS asked whether Python may control Finder"""
+    target = os.path.abspath(path).replace("\\", "\\\\").replace('"', '\\"')
+    try:
+        subprocess.run(["osascript", "-e", f'tell application "Finder" to delete (POSIX file "{target}" as alias)'],
+                       capture_output=True, timeout=120)   # the first time, macOS waits for the user to allow it
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return not os.path.exists(path)
+
 def to_recycle_bin(path):
     """move a folder to the Windows Recycle Bin (so the user can restore it); False if the shell refused"""
+    if MAC: return to_trash(path)
     import ctypes
     from ctypes import wintypes
     class SHFILEOPSTRUCTW(ctypes.Structure):
@@ -733,7 +746,7 @@ def delete_brand(body):
         raise ValueError("這個風格是用環境變數 REELS_BRAND 指定的，請先移除那個設定再刪除。")
     if not os.path.isdir(d): raise ValueError("這個風格已經不存在了")
     used = projects_using(d)
-    where = "資源回收筒"
+    where = "垃圾桶" if MAC else "資源回收筒"
     if not to_recycle_bin(d):                     # e.g. a drive without a Recycle Bin: keep a copy beside the toolkit
         keep = os.path.join(HERE, "_已刪除的風格", f"{os.path.basename(d)}-{time.strftime('%Y%m%d-%H%M%S')}")
         os.makedirs(os.path.dirname(keep), exist_ok=True)
@@ -857,10 +870,13 @@ def open_path(p, reveal=False):
     """open a folder in Explorer, show a file in its folder, or open a channel's BRAND.md — nothing else"""
     p = os.path.abspath(clean_path(p))
     if reveal and os.path.isfile(p) and under(p, recent_projects()):
+        if MAC: return subprocess.Popen(["open", "-R", p])        # `open` brings Finder / the editor to the front itself
         return _launch_in_front(lambda: subprocess.Popen(["explorer", "/select,", p]), os.path.basename(os.path.dirname(p)))
     if os.path.isdir(p) and (under(p, recent_projects()) or under(p, brand_dirs())):
+        if MAC: return subprocess.Popen(["open", p])
         return _launch_in_front(lambda: os.startfile(p), os.path.basename(p))
     if os.path.basename(p) in ("BRAND.md", "brand.json") and under(p, brand_dirs()) and os.path.exists(p):
+        if MAC: return subprocess.Popen(["open", "-t", p])        # the default plain-text editor (TextEdit)
         return _launch_in_front(lambda: subprocess.Popen(["notepad", p]), os.path.basename(p))
     raise ValueError("這個位置不能從控制台打開")
 

@@ -13,7 +13,7 @@
 
 ## 需要什麼
 
-- Windows 電腦（Mac 還在試用階段：下載同一個 zip，照裡面的 [INSTALL_MAC.md](INSTALL_MAC.md) 請 Claude 幫你安裝，部分控制台功能不能用）
+- Windows 電腦（Mac 還在試用階段：下載同一個 zip，打開裡面的 `① 先看我.html`、在上面選「Mac」，照著請 Claude 幫你安裝，控制台的「下載新版」只給 Windows 用）
 - [Claude 桌面 App](https://claude.ai/download)，而且你的方案可以使用 Claude Code
 - 網路連線（安裝時會下載 Python 和需要的套件）
 - C 槽至少空出 **3 GB**：Python 和套件約 0.4 GB、語音辨識模型約 1.6 GB（第一次聽打時下載），其餘留給安裝暫存和前幾支影片。之後每支影片約 50–80 MB（成品＋可刪的工作檔）。

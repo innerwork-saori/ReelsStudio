@@ -940,7 +940,7 @@ $("#db-open").addEventListener("click", async () => {
           renderBrandPicker(); renderPhrases(); fillBrand(S.brands.find(x => x.dir === S.current) || S.brands[0]);
           if (openFolder) loadProject(openFolder);
           $("#pv-msg").replaceChildren(h("div", { class: "note ok" }, h("b", { class: "t" }, `已刪除「${name}」`),
-            r.where === "資源回收筒" ? "已移到資源回收筒，需要的話可以從那裡還原。" : ["已移到 ", h("span", { class: "file" }, r.where), "，需要的話可以搬回來。"]));
+            ["資源回收筒", "垃圾桶"].includes(r.where) ? `已移到${r.where}，需要的話可以從那裡還原。` :["已移到 ", h("span", { class: "file" }, r.where), "，需要的話可以搬回來。"]));
           toast("風格已刪除");
         } catch (err) { toast(err.message); btn.disabled = false; }
       } }, "刪除"),
