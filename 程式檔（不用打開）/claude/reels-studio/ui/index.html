@@ -748,14 +748,14 @@ $("#chfolder").addEventListener("click", () => showTab("make"));
 let S = null;          // /api/state
 let cur = null;        // current brand object from the server
 let dirty = false;
-const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色", night: "深夜藍（深色）", cocoa: "可可深棕（深色）", leaf: "植葉米白（植物手帳）",
+const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色", night: "深夜藍（深色）", cocoa: "可可深棕（深色）", leaf: "植葉米白（植物手帳）", tech: "冷白＋電光藍（科技明亮）", film: "暗夜膠卷（電影質感，深色）",
   berry: "漿果紅＋湖藍", rouge: "胭脂粉＋墨黑（深色）", violet: "霓堇紫＋櫻粉", periwinkle: "長春花藍＋可可棕", nude: "裸桃粉＋苔青", fuchsia: "桃緋粉＋薄荷青", pine: "淺松色＋艾草青", persimmon: "柿橙＋蜜金", wine: "酒紅＋芥末黃", midnight: "午夜藍＋珊瑚橘（深色）", forest: "森林綠＋蜜桃粉", klein: "克萊因藍＋檸檬黃", lavender: "薰衣草紫＋橄欖綠", tomato: "番茄紅＋奶油白", peacock: "孔雀綠＋杏桃橘", berrylime: "莓果紫＋萊姆綠", caramel: "焦糖棕＋霧藍", navy: "海軍藍＋向日葵黃（深色）", rosewood: "玫瑰粉＋墨綠（深色）", brick: "天空藍＋磚紅", matcha: "抹茶綠＋葡萄紫", milktea: "奶茶色＋靛青", electric: "活力橘＋電光藍", dusty: "灰粉＋鐵灰" };
 // 配色的大方向；reels_lib 之後新增、這裡還沒分到的配色，會先放在第一組
 const PAL_GROUPS = [
   { name: "溫暖柔和", desc: "米色底、暖色系，溫柔耐看", keys: ["cream", "blush", "leaf", "nude", "persimmon", "wine", "milktea", "caramel", "dusty"] },
-  { name: "清新冷調", desc: "藍綠紫為主，乾淨清爽", keys: ["mint", "sky", "pine", "forest", "lavender", "matcha", "periwinkle", "peacock"] },
+  { name: "清新冷調", desc: "藍綠紫為主，乾淨清爽", keys: ["mint", "sky", "tech", "pine", "forest", "lavender", "matcha", "periwinkle", "peacock"] },
   { name: "大膽撞色", desc: "對比強，一眼抓住目光", keys: ["mono", "berry", "violet", "fuchsia", "klein", "tomato", "berrylime", "brick", "electric"] },
-  { name: "深色背景", desc: "深底亮字，夜晚感、有質感", fan: "bg", keys: ["night", "cocoa", "rouge", "midnight", "navy", "rosewood"] },
+  { name: "深色背景", desc: "深底亮字，夜晚感、有質感", fan: "bg", keys: ["night", "cocoa", "film", "rouge", "midnight", "navy", "rosewood"] },
 ];
 const palGroupOf = key => Math.max(0, PAL_GROUPS.findIndex(g => g.keys.includes(key)));
 function showPalGroup(i) {
@@ -1068,15 +1068,17 @@ const PRESET_INFO = {
   notebook: ["筆記本", "方格紙背景、便條紙標題、淡淡的細線插圖、柔和動畫"],
   street:   ["街頭活力", "滿版大字標題、描邊字幕、純色背景、彈跳感"],
   botanical: ["植物手帳", "米白紙＋手繪蕨葉、細框字幕、宋體標題、磚紅重點底線、深綠結尾"],
+  tech:     ["科技明亮", "冷白點陣＋光暈、發光面板標題＋框角、霧白字幕卡、電光藍重點、俐落動畫"],
+  cinema:   ["電影質感", "深色畫面＋上下黑邊、暗角和底片顆粒、寬字距標題、電影字幕、緩慢淡入、片尾名單結尾"],
   free:     ["自由創作", "不套版：你描述想要的感覺，剪輯師每支自己設計標題、字幕、背景和轉場"],
 };
 const PART_INFO = {
-  subtitle: ["字幕", { box: "白色框（原本）", outline: "描邊大字、沒有框", pill: "每行一條白色膠囊", dark: "深色半透明框", frame: "白底細線框" }],
-  title: ["開頭標題卡", { note: "膠帶便條紙（原本）", bold: "滿版大字、沒有卡片", line: "細框卡＋側邊色條", magazine: "斜斜的色塊帶", leaf: "大字直接放背景＋葉子分隔線" }],
-  background: ["背景與裝飾", { blobs: "手繪色塊＋星光（原本）", plain: "乾淨純色", grid: "方格筆記紙", gradient: "柔和漸層光暈", leaves: "手繪蕨葉" }],
+  subtitle: ["字幕", { box: "白色框（原本）", outline: "描邊大字、沒有框", pill: "每行一條白色膠囊", dark: "深色半透明框", frame: "白底細線框", glass: "霧白卡＋左側色條", film: "電影字幕：沒有框、淡淡的陰影" }],
+  title: ["開頭標題卡", { note: "膠帶便條紙（原本）", bold: "滿版大字、沒有卡片", line: "細框卡＋側邊色條", magazine: "斜斜的色塊帶", leaf: "大字直接放背景＋葉子分隔線", hud: "發光面板＋四個框角＋閃爍游標", cinema: "寬字距大字＋細金線、慢慢淡入" }],
+  background: ["背景與裝飾", { blobs: "手繪色塊＋星光（原本）", plain: "乾淨純色", grid: "方格筆記紙", gradient: "柔和漸層光暈", leaves: "手繪蕨葉", tech: "點陣＋光暈＋線路", film: "暗角＋底片顆粒＋上下黑邊" }],
   line: ["插圖線條", { bold: "粗墨線（原本）", thin: "細線", soft: "淡淡的細線" }],
   motion: ["動畫", { bouncy: "活潑彈跳（原本）", snappy: "俐落、輕微回彈", gentle: "柔和、不彈跳" }],
-  end: ["結尾卡", { classic: "大圖示＋按鈕（原本）", minimal: "極簡：大字＋外框按鈕", card: "名片卡", deep: "整頁深色＋圓形圖示" }],
+  end: ["結尾卡", { classic: "大圖示＋按鈕（原本）", minimal: "極簡：大字＋外框按鈕", card: "名片卡", deep: "整頁深色＋圓形圖示", hud: "發光圖示框＋實心按鈕", credits: "電影片尾：深色、寬字距、金色外框按鈕" }],
 };
 function resolveStyle(s) {
   s = s || {};
@@ -1085,7 +1087,8 @@ function resolveStyle(s) {
   return out;
 }
 function presetMock(key) {           // a tiny drawing of the look in the current palette
-  const p = S.palettes[selectedPalette()] || S.palettes.cream, st = S.style_presets[key];
+  const look = PRESET_LOOK[key], st = S.style_presets[key];
+  const p = (look && S.palettes[look.palette]) || S.palettes[basePalette()] || S.palettes.cream;
   if (key === "free")                // no fixed look to draw: a few loose shapes in the palette
     return h("div", { class: "mock", style: `background:${p.bg}` },
       h("i", { style: `position:absolute;left:12%;top:18%;width:26px;height:26px;border-radius:50%;background:${p.accent}` }),
@@ -1095,17 +1098,22 @@ function presetMock(key) {           // a tiny drawing of the look in the curren
   const bg = { blobs: `radial-gradient(circle at 10% 20%, ${p.peach} 0 26%, transparent 27%), radial-gradient(circle at 95% 90%, ${p.highlight}66 0 30%, transparent 31%), ${p.bg}`,
                plain: p.bg, grid: `repeating-linear-gradient(0deg, ${p.ink}14 0 1px, transparent 1px 9px), repeating-linear-gradient(90deg, ${p.ink}14 0 1px, transparent 1px 9px), ${p.bg}`,
                gradient: `radial-gradient(circle at 80% 20%, ${p.highlight}66, transparent 55%), linear-gradient(${p.bg}, ${p.peach})`,
-               leaves: `radial-gradient(ellipse 18% 8% at 92% 10%, ${p.sage} 0 60%, transparent 62%), radial-gradient(ellipse 16% 7% at 6% 62%, ${p.sage} 0 60%, transparent 62%), radial-gradient(ellipse 10% 5% at 12% 18%, ${p.accent}88 0 60%, transparent 62%), ${p.bg}` }[st.background];
+               leaves: `radial-gradient(ellipse 18% 8% at 92% 10%, ${p.sage} 0 60%, transparent 62%), radial-gradient(ellipse 16% 7% at 6% 62%, ${p.sage} 0 60%, transparent 62%), radial-gradient(ellipse 10% 5% at 12% 18%, ${p.accent}88 0 60%, transparent 62%), ${p.bg}`,
+               tech: `radial-gradient(circle, ${p.ink}22 1px, transparent 1.5px) 0 0/9px 9px, radial-gradient(circle at 85% 15%, ${p.accent}33, transparent 45%), radial-gradient(circle at 10% 90%, ${p.highlight}44, transparent 50%), ${p.bg}`,
+               film: `linear-gradient(#000 0 14%, transparent 14% 86%, #000 86%), radial-gradient(ellipse at 50% 50%, transparent 40%, #0009 100%), radial-gradient(circle at 70% 30%, ${p.accent}30, transparent 55%), ${p.bg}` }[st.background];
   const sub = { box: `background:#fff;border:2px solid ${p.ink};border-radius:6px`,
                 outline: `background:transparent;color:#fff;-webkit-text-stroke:3px ${p.ink};paint-order:stroke fill;font-size:13px`,
                 pill: `background:#fff;border-radius:99px;box-shadow:0 1px 4px ${p.ink}40`, dark: `background:${p.ink};color:#fff;border-radius:5px`,
-                frame: `background:#fff;border:1px solid ${p.ink};border-radius:4px` }[st.subtitle];
+                frame: `background:#fff;border:1px solid ${p.ink};border-radius:4px`,
+                glass: `background:#fffffff0;border:1px solid ${p.accent}88;border-left:4px solid ${p.accent};border-radius:6px;box-shadow:0 2px 8px ${p.accent}40`,
+                film: `background:transparent;color:${p.fg || "#fff"};text-shadow:0 1px 3px #000;letter-spacing:2px;font-weight:500;bottom:16px` }[st.subtitle];
   const txtCol = "";
   return h("div", { class: "mock", style: `background:${bg}` },
     h("span", { style: `position:absolute;left:50%;bottom:7px;transform:translateX(-50%);font-size:11px;padding:1px 8px;white-space:nowrap;font-weight:700;${sub};${txtCol}` }, "字幕長這樣"));
 }
 function renderStyle(style) {
   const preset = (style && style.preset) || "handmade";
+  lookPrev = null;                      // a freshly loaded style starts from its saved palette
   const box = $("#presets"); box.replaceChildren();
   for (const key of Object.keys(S.style_presets)) {
     const [name, desc] = PRESET_INFO[key] || [key, ""];
@@ -1120,12 +1128,37 @@ function renderStyle(style) {
   showFreeBox();
 }
 // presets drawn after one particular look: picking them also picks its palette and (if installed) its font
-const PRESET_LOOK = { botanical: { palette: "leaf", fonts: ["Noto Serif TC", "思源宋體"], weight: 700 } };
-function suggestLook(key) {
-  const look = PRESET_LOOK[key]; if (!look) return;
-  const pal = document.querySelector(`#palettes .pal[data-key="${look.palette}"]`);
+const PRESET_LOOK = { botanical: { palette: "leaf", fonts: ["Noto Serif TC", "思源宋體"], weight: 700 },
+  tech: { palette: "tech", fonts: ["Noto Sans TC", "思源黑體", "Microsoft JhengHei", "微軟正黑體"], weight: 700 },
+  cinema: { palette: "film", fonts: ["Noto Serif TC", "思源宋體"], weight: 600 } };
+// the palette / font the channel had before a look preset swapped them in, so leaving that preset puts them back
+let lookPrev = null;
+const LOOK_PALETTES = Object.values(PRESET_LOOK).map(l => l.palette);
+function basePalette() {             // what the cards without a look of their own are drawn in
+  const key = selectedPalette();
+  if (lookPrev) return key === lookPrev.applied ? lookPrev.palette : key;
+  return LOOK_PALETTES.includes(key) ? "cream" : key;
+}
+function clickPalette(key) {
+  const pal = document.querySelector(`#palettes .pal[data-key="${key}"]`);
   if (pal) pal.click();
-  const sel = $("#b-font"), name = look.fonts.find(n => [...sel.options].some(o => o.value === n));
+}
+function suggestLook(key) {
+  const look = PRESET_LOOK[key], sel = $("#b-font");
+  // the user changed the palette by hand after the swap: theirs now, nothing to put back
+  if (lookPrev && selectedPalette() !== lookPrev.applied) lookPrev = null;
+  if (!look) {
+    if (lookPrev) {
+      const prev = lookPrev; lookPrev = null;
+      clickPalette(prev.palette);
+      if ([...sel.options].some(o => o.value === prev.font)) { sel.value = prev.font; fillWeights(prev.weight); }
+    }
+    return;
+  }
+  if (!lookPrev) lookPrev = { palette: selectedPalette(), font: sel.value, weight: $("#b-weight").value };
+  lookPrev.applied = look.palette;
+  clickPalette(look.palette);
+  const name = look.fonts.find(n => [...sel.options].some(o => o.value === n));
   if (name) { sel.value = name; fillWeights(look.weight); }
 }
 function showFreeBox() {             // free style: the description fields instead of the element-by-element choices

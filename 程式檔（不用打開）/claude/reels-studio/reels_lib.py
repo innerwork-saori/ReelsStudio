@@ -66,6 +66,12 @@ PALETTES = {   # bg may be light or dark; text straight on the background uses F
     # botanical: rice paper, fern green, terracotta keywords; deep = the forest-green end card (style end "deep")
     "leaf":  dict(bg="#F1F0EA", ink="#2B3428", accent="#9E4E2A", highlight="#E6CBB0", peach="#EED9C4", rose="#D49A84",
                   sage="#A9C19B", sky="#B9CFD3", lilac="#CFC8DA", alert="#B5462B", ok="#5E8F55", gray="#CFCDC2", deep="#2D5A26"),
+    # tech: cool white, electric blue, cyan highlighter (tech preset)
+    "tech":  dict(bg="#F5F8FF", ink="#0E1B33", accent="#2563EB", highlight="#22D3EE", peach="#FFD6C2", rose="#FF8FA3",
+                  sage="#9BE3C4", sky="#A9D8FF", lilac="#C9C2FF", alert="#FF4D4F", ok="#16B981", gray="#C5CDDB", deep="#0B1B3F"),
+    # film: warm near-black, cream type, brass-gold keywords (cinema preset); deep = the credits page
+    "film":  dict(bg="#17130F", ink="#0B0907", fg="#F1E7D6", accent="#D8A657", highlight="#E9C98A", peach="#E8C2A0", rose="#D98C7A",
+                  sage="#A7BFA0", sky="#9EB8C9", lilac="#BDB1D6", alert="#E05A44", ok="#8FBF8A", gray="#5E554A", deep="#0B0907"),
     # clash pairs (8組經典撞色 + 16 more): the deeper colour is the accent, the brighter one the highlight
     "berry": dict(bg="#EEFBFC", ink="#3A0106", accent="#65020A", highlight="#18D5E7", peach="#F9C9B0", rose="#E98A7E",
                    sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CAC9CB"),
@@ -148,12 +154,16 @@ LAYOUT_OPTIONS = {
 # so channels made before free existed keep theirs. "free" = the editor designs each clip from BRAND.md's
 # 自由創作方向; its element values are only the fallback the built-in title_card / end_card / subtitles use.
 STYLE_OPTIONS = {
-    "subtitle":   ["box", "outline", "pill", "dark", "frame"],          # white framed box / outlined text, no box / a pill per line / dark box / thin-line box
-    "title":      ["note", "bold", "line", "magazine", "leaf"],         # taped note card / big text, no card / thin-frame card / colour slab / text on the paper + leaf rule
-    "background": ["blobs", "plain", "grid", "gradient", "leaves"],     # hand-drawn blobs + sparkles / flat / notebook grid / soft gradient / fern sprigs in the corners
+    # subtitle: white framed box / outlined text, no box / a pill per line / dark box / thin-line box / frosted card + accent bar / movie subtitle on a soft shade
+    "subtitle":   ["box", "outline", "pill", "dark", "frame", "glass", "film"],
+    # title: taped note card / big text, no card / thin-frame card / colour slab / text on the paper + leaf rule / glowing panel + corner brackets / letter-spaced type between thin rules
+    "title":      ["note", "bold", "line", "magazine", "leaf", "hud", "cinema"],
+    # background: hand-drawn blobs + sparkles / flat / notebook grid / soft gradient / fern sprigs / dot grid + glows + circuit trace / dark vignette + grain + letterbox bars
+    "background": ["blobs", "plain", "grid", "gradient", "leaves", "tech", "film"],
     "line":       ["bold", "thin", "soft"],                             # illustration outlines: thick ink / thin ink / thin and faded
     "motion":     ["bouncy", "snappy", "gentle"],                       # overshoot of every pop-in + transition length
-    "end":        ["classic", "minimal", "card", "deep"],               # end card layout (deep: full deep-colour page, round badge)
+    # end card layout (deep: full deep-colour page, round badge; hud: icon on a bracketed tile; credits: dark film-credits page)
+    "end":        ["classic", "minimal", "card", "deep", "hud", "credits"],
 }
 STYLE_PRESETS = {
     "free":     {"subtitle": "pill", "title": "bold", "background": "plain", "line": "thin", "motion": "snappy", "end": "minimal"},
@@ -163,6 +173,8 @@ STYLE_PRESETS = {
     "notebook": {"subtitle": "pill", "title": "note", "background": "grid", "line": "soft", "motion": "gentle", "end": "card"},
     "street":   {"subtitle": "outline", "title": "bold", "background": "plain", "line": "bold", "motion": "bouncy", "end": "classic"},
     "botanical": {"subtitle": "frame", "title": "leaf", "background": "leaves", "line": "thin", "motion": "gentle", "end": "deep"},
+    "tech":     {"subtitle": "glass", "title": "hud", "background": "tech", "line": "thin", "motion": "snappy", "end": "hud"},
+    "cinema":   {"subtitle": "film", "title": "cinema", "background": "film", "line": "thin", "motion": "gentle", "end": "credits"},
 }
 
 def load_brand():
@@ -355,6 +367,25 @@ def text(c, s, x, y, sz, color=INK, a=1.0, align="c", bold=0):
     c.drawString(s, xx, y, f, P(color, a))
     return w
 
+def text_spaced(c, s, x, y, sz, color=INK, a=1.0, sp=0.18, bold=0, maxw=None):
+    """centred text with extra letter spacing (sp x size between characters; the cinema look), shrunk to maxw"""
+    _note(s)
+    def width(z): return sum(font(z).measureText(ch) for ch in s) + z * sp * (len(s) - 1)
+    if maxw and width(sz) > maxw: sz = max(24, int(sz * maxw / width(sz)))
+    f = font(sz); xx = x - width(sz) / 2
+    for ch in s:
+        if bold: c.drawString(ch, xx, y, f, P(color, a, stroke=bold, raw=True))
+        c.drawString(ch, xx, y, f, P(color, a)); xx += f.measureText(ch) + sz * sp
+    return width(sz)
+
+def brackets(c, x, y, w, h, ln, col, a=1.0, k=1.0, sw=6):
+    """four L-shaped corner marks around the box (x, y, w, h), drawn in by k (0..1): the tech look's frame"""
+    L = ln * clamp(k)
+    if L < 1: return
+    p = P(col, a, stroke=sw, raw=True)
+    for cx, cy, dx, dy in ((x, y, 1, 1), (x + w, y, -1, 1), (x, y + h, 1, -1), (x + w, y + h, -1, -1)):
+        c.drawLine(cx, cy, cx + dx * L, cy, p); c.drawLine(cx, cy, cx, cy + dy * L, p)
+
 def rich_line(c, s, cx, y, sz, base=INK, acc=ACC, a=1.0, hi=True, bold=2.2, outline=0, under=False):
     """「【關鍵字】」 segments get the accent colour + a mustard highlighter swipe.
     outline: width of a dark rim drawn behind the letters (outlined captions on any background).
@@ -503,6 +534,18 @@ def deco(c, t, a=1.0):
     """the channel's decoration layer (style "background"): sparkles + rings / none / a few pencil marks / soft glints"""
     bgs = STYLE["background"]
     if bgs in ("plain", "leaves"): return    # leaves: the sprigs are part of paper_bg
+    if bgs == "tech":                        # small crosshairs + blinking data dots in the margins
+        for i, (x, y) in enumerate([(70, 470), (1010, 760), (90, 1240)]):
+            r = 14; yy = y + 4 * math.sin(t * 1.3 + i); pl = P(ACC, 0.45 * a, stroke=3, raw=True)
+            c.drawLine(x - r, yy, x + r, yy, pl); c.drawLine(x, yy - r, x, yy + r, pl)
+        for i, x in enumerate((985, 1003, 1021)):
+            c.drawRect(skia.Rect.MakeXYWH(x, 430, 10, 10), P(SUN if i == 1 else ACC, a * (0.25 + 0.6 * (math.sin(t * 4 + i * 1.4) > 0))))
+        return
+    if bgs == "film":                        # a few dust motes drifting through the light
+        for i in range(7):
+            x = (130 + i * 157 + t * (9 + i * 3)) % W; y = 420 + (i * 233 + 40 * math.sin(t * 0.5 + i)) % 1100
+            c.drawCircle(x, y, 2.2 + (i % 3), P(FG, (0.10 + 0.08 * math.sin(t * 1.7 + i)) * a, blur=1.5))
+        return
     if bgs == "blobs":
         for i, (x, y, r, col) in enumerate(SPARKS):
             star4(c, x, y + 6 * math.sin(t * 1.4 + i), r * (0.65 + 0.35 * math.sin(t * 2.6 + i * 1.3)), col, a)
@@ -533,11 +576,39 @@ def paper_bg(c, t, base=BG):
         for i, (x, y, ang, ln, col) in enumerate(LEAVES):
             sprig(c, x, y, ang + 2.5 * math.sin(t * 0.8 + i * 1.7), ln, green if col == "sage" else mix(ACC, BG, 0.25),
                   0.9 if col == "sage" else 0.75, n=8 if ln > 300 else 5)
+    elif bgs == "tech":                      # cool dot grid, two slow glows, thin circuit traces with a running light
+        c.drawPaint(P(base, shader=lin(0, 0, 0, H, [mix(base, WHITE, 0.6), base])))
+        for x, y, r, col, a in ((900 + 40 * math.sin(t * 0.35), 420, 560, ACC, 0.13), (160, 1500 + 40 * math.cos(t * 0.3), 600, SUN, 0.20)):
+            c.drawCircle(x, y, r, P(col, shader=skia.GradientShader.MakeRadial(skia.Point(x, y), r, [hx(col, a), hx(col, 0)])))
+        dot = P(FG, 0.10)
+        for yy in range(42, H, 54):
+            for xx in range(27, W, 54): c.drawCircle(xx, yy, 2.2, dot)
+        trace = P(ACC, 0.22, stroke=3, raw=True)
+        for i, (x0, y0, x1, x2, yb) in enumerate(((W, 560, 930, 860, 630), (0, 1380, 140, 210, 1310))):
+            c.drawLine(x0, y0, x1, y0, trace); c.drawLine(x1, y0, x2, yb, trace)
+            c.drawCircle(x2, yb, 9, P(ACC, 0.30, stroke=3, raw=True))
+            run = (t * 0.35 + i * 0.5) % 1
+            c.drawCircle(lerp(x0, x1, run), y0, 6, P(ACC, 0.55 * math.sin(run * math.pi)))
+    elif bgs == "film":                      # dark warm page, a drifting light leak, vignette, grain, letterbox bars
+        if base != BG: c.drawColor(hx(mix(base, BG, 0.8)))   # a contrasting scene stays dark, just tinted
+        x, y, r = 760 + 120 * math.sin(t * 0.18), 520 + 60 * math.cos(t * 0.23), 820
+        c.drawCircle(x, y, r, P(ACC, shader=skia.GradientShader.MakeRadial(skia.Point(x, y), r, [hx(ACC, 0.16), hx(ACC, 0)])))
+        c.drawRect(skia.Rect.MakeWH(W, H), skia.Paint(Shader=skia.GradientShader.MakeRadial(
+            skia.Point(W / 2, H / 2), 1200, [hx("#000000", 0), hx("#000000", 0), hx("#000000", 0.6)], [0, 0.5, 1])))
+        rnd = random.Random(int(t * 24))
+        c.drawPoints(skia.Canvas.kPoints_PointMode, [skia.Point(rnd.random() * W, rnd.random() * H) for _ in range(420)],
+                     P(FG, 0.05, stroke=2.4, raw=True))
+        letterbox(c)
     elif bgs == "gradient":
         top, bot =(mix(base, WHITE, 0.08), mix(base, ACC, 0.12)) if DARK else (mix(base, WHITE, 0.5), mix(base, PEACH, 0.4))
         c.drawPaint(P(base, shader=lin(0, 0, 0, H, [top, bot])))
         for x, y, r, col, a in ((860 + 30 * math.sin(t * 0.4), 520, 520, SUN, 0.30), (180, 1450 + 30 * math.cos(t * 0.35), 560, SKY, 0.26)):
             c.drawCircle(x, y, r, P(col, shader=skia.GradientShader.MakeRadial(skia.Point(x, y), r, [hx(col, a), hx(col, 0)])))
+
+def letterbox(c):
+    """the cinema look's black bars, top and bottom (inside the area IG's own buttons cover anyway)"""
+    bars = P("#000000", 0.92)
+    c.drawRect(skia.Rect.MakeXYWH(0, 0, W, 200), bars); c.drawRect(skia.Rect.MakeXYWH(0, H - 200, W, 200), bars)
 
 def cool_bg(c, t):
     """hospital / low-mood variant of paper_bg — same blobs, cooler colours"""
@@ -762,6 +833,13 @@ def draw_subtitle(c, t, s, t0, who="r"):
                 shadow(c, -lw / 2 - 32, yy, lw + 64, ph, ph / 2, 0.12)
                 rrect(c, -lw / 2 - 32, yy, lw + 64, ph, ph / 2, P(WHITE, 0.96))
                 if chip: rrect(c, -lw / 2 - 32, yy, lw + 64, ph, ph / 2, P(SAGE, stroke=5, raw=True))
+        elif st == "glass":                  # frosted white card, accent bar on the left, soft blue glow
+            rrect(c, -bw / 2, -bh / 2 + 10, bw, bh, 20, P(ACC, 0.16, blur=26))
+            rrect(c, -bw / 2, -bh / 2, bw, bh, 20, P(WHITE, 0.93))
+            rrect(c, -bw / 2, -bh / 2, bw, bh, 20, P(SAGE if chip else ACC, 0.45, stroke=4 if chip else 2.5, raw=True))
+            rrect(c, -bw / 2 + 16, -bh / 2 + 22, 8, bh - 44, 4, P(ACC))
+        elif st == "film":                   # no box: a soft shade behind light type, like a movie subtitle
+            rrect(c, -bw / 2 + 10, -bh / 2 + 6, bw - 20, bh - 12, bh / 2, P("#000000", 0.42, blur=34))
         # outline: nothing behind the letters
         if chip:
             cw = font(32).measureText(chip) + 36
@@ -772,9 +850,15 @@ def draw_subtitle(c, t, s, t0, who="r"):
             if st == "dark": rich_line(c, l, 0, y0 + i * lh, sz, base=WHITE, acc=SUN, hi=False)
             elif st == "outline": rich_line(c, l, 0, y0 + i * lh, sz, base=WHITE, acc=SUN, hi=False, outline=sz * 0.13)
             elif st == "frame": rich_line(c, l, 0, y0 + i * lh, sz, acc=RED if big else ACC, hi=False, under=True)
+            elif st == "film": rich_line(c, l, 0, y0 + i * lh, sz, base=FG if DARK else WHITE, acc=SUN, hi=False, bold=1.2, outline=sz * 0.05)
             else: rich_line(c, l, 0, y0 + i * lh, sz, acc=RED if big else ACC)
 
 def top_tag(c, t, label):
+    if STYLE["background"] == "film":        # letter-spaced label between two thin rules, no pill
+        with Xf(c, W / 2, 318):
+            w = text_spaced(c, label, 0, 10, fit(label, 32, 640), FG, a=0.8, sp=0.22, maxw=640)
+            for d in (-1, 1): c.drawLine(d * (w / 2 + 26), 0, d * (w / 2 + 86), 0, P(SUN, 0.7, stroke=2, raw=True))
+        return
     with Xf(c, W / 2, 318):
         sz = fit(label, 36, 860); w = font(sz).measureText(label)
         rrect(c, -w / 2 - 30, -38, w + 60, 64, 32, P(WHITE, 0.88)); rrect(c, -w / 2 - 30, -38, w + 60, 64, 32, P(INK, 0.6, stroke=3))
@@ -821,6 +905,8 @@ def title_wash(c):
     style = STYLE["title"]
     if style == "leaf":
         c.drawRect(skia.Rect.MakeWH(W, H), P(BG, 0.62))
+    elif style == "cinema":                  # light type straight on the picture: darken it like a film still
+        c.drawRect(skia.Rect.MakeWH(W, H), P("#000000", 0.5))
     else:
         a = 0.42 if style == "bold" else 0.22
         c.drawRect(skia.Rect.MakeWH(W, H), skia.Paint(Shader=skia.GradientShader.MakeLinear(
@@ -836,7 +922,7 @@ def _title_rows(c, lt, rows, y_first, step, sz, maxw, **kw):
         with Xf(c, 0, y_first + i * step, lerp(0.3, 1, kk), 0, clamp(kk * 1.5)): rich_line(c, s, 0, 30, size, **kw)
 
 def _title_styled(c, t, lt, rows, punch, punch_bg, y, k, style):
-    """title_card for the bold / line / leaf / magazine looks (note is drawn inline in title_card)"""
+    """title_card for the bold / line / leaf / hud / cinema / magazine looks (note is drawn inline in title_card)"""
     n = len(rows)
     kk = eback(prog(lt, 0.7, 0.4), 2.5)
     shake = 6 * math.sin(lt * 40) * prog(lt, 1.3, 0.1) * (1 - prog(lt, 1.7, 0.2))
@@ -873,6 +959,41 @@ def _title_styled(c, t, lt, rows, punch, punch_bg, y, k, style):
                 text(c, punch, 0, 10, sz, ACC, bold=2.5)
                 uw = w * eo(prog(lt, 0.9, 0.4))
                 c.drawLine(-w / 2, 36, -w / 2 + uw, 36, P(ACC, stroke=5, raw=True))
+    elif style == "hud":                     # glowing panel, corner brackets drawing in, status row, blinking caret
+        with Xf(c, W / 2, y, lerp(0.94, 1, k), 0, clamp(k * 1.5)):
+            rrect(c, -420, -316, 840, 660, 26, P(ACC, 0.18, blur=40))
+            rrect(c, -420, -330, 840, 660, 26, P(WHITE, 0.94)); rrect(c, -420, -330, 840, 660, 26, P(ACC, 0.35, stroke=2.5, raw=True))
+            brackets(c, -446, -356, 892, 712, 70, ACC, k=eo(prog(lt, 0.05, 0.4)))
+            c.drawCircle(-366, -268, 9, P(ACC, 0.5 + 0.5 * math.sin(lt * 6)))
+            label = BRAND["tag"] or BRAND["name"]
+            text(c, label, -344, -256, fit(label, 32, 520), ACC, align="l", bold=1)
+            rrect(c, 230, -276, 140, 12, 6, P(GRAY, 0.6)); rrect(c, 230, -276, 140 * eo(prog(lt, 0.1, 1.2)), 12, 6, P(ACC))
+            c.drawLine(-370, -222, 370, -222, P(GRAY, 0.8, stroke=2, raw=True))
+            _title_rows(c, lt, rows, -150 if n == 3 else -95, 108, 88, 740, bold=2)
+            sz = fit(punch, 124, 680); w = font(sz).measureText(punch)
+            with Xf(c, shake, 222, lerp(0.7, 1, kk), 0, clamp(kk * 1.5)):
+                text(c, punch, -14, 12, sz, ACC, bold=3)
+                if kk > 0.5 and math.sin(lt * 7) > -0.2: c.drawRect(skia.Rect.MakeXYWH(w / 2 - 2, -sz * 0.62, 10, sz * 0.78), P(SUN))
+                bw_ = w * eo(prog(lt, 0.9, 0.35))
+                c.drawRect(skia.Rect.MakeXYWH(-w / 2 - 14, 38, bw_, 8), P(ACC, shader=lin(-w / 2, 0, w / 2, 0, [ACC, SUN])))
+    elif style == "cinema":                  # no card: slow fade-ins, letter-spaced type between thin brass rules
+        label = BRAND["tag"] or BRAND["name"]
+        top = -270 if n == 3 else -210
+        with Xf(c, W / 2, y):
+            ka = eo(prog(lt, 0.0, 0.8))
+            with Xf(c, 0, top, 1, 0, ka):
+                w = text_spaced(c, label, 0, 10, fit(label, 30, 560), FG, a=0.75, sp=0.3, maxw=560)
+                for d in (-1, 1): c.drawLine(d * (w / 2 + 28), 0, d * (w / 2 + 28 + 120 * ka), 0, P(SUN, 0.8, stroke=2, raw=True))
+            for i, s in enumerate(rows):
+                a = eo(prog(lt, 0.25 + i * 0.22, 0.6))
+                with Xf(c, 0, top + 120 + i * 118 + (1 - a) * 18, 1, 0, a):
+                    rich_line(c, s, 0, 30, fit(_plain(s), 88, 860), base=FG, acc=SUN, hi=False, bold=1.5)
+            ka = eo(prog(lt, 0.8, 0.9)); py = top + 120 + n * 118 + 90
+            with Xf(c, 0, py, lerp(1.08, 1, ka), 0, ka):
+                sz = fit(punch, 128, 820)
+                w = text_spaced(c, punch, 0, sz * 0.36, sz, SUN, sp=0.12, bold=2, maxw=860)
+                rw = w * 0.5 * eo(prog(lt, 1.2, 0.8))
+                c.drawLine(-rw, sz * 0.36 + 44, rw, sz * 0.36 + 44, P(SUN, 0.7, stroke=2, raw=True))
     else:                                    # magazine: a tilted colour slab sliding in, white type, punch on a label
         slide = (1 - eo(prog(lt, 0.0, 0.4))) * -W
         with Xf(c, W / 2 + slide, y, 1, -5):
@@ -967,7 +1088,7 @@ def _cta(c, cta, filled=True, width=560):
     text(c, cta, max(-bw / 2 + 320, -bw / 2 + 160 + tw / 2), 25, sz, col, bold=2.5)
 
 def _end_styled(c, t, lt, show, line, is_ep, cta, sub, badge, draw_icon, style):
-    """end_card for the minimal / deep / card looks (classic is drawn inline in end_card)"""
+    """end_card for the minimal / deep / hud / credits / card looks (classic is drawn inline in end_card)"""
     k = eback(prog(lt, 0, 0.5), 1.6)
     kt2 = eo(prog(lt, 0.35, 0.4))
     if style == "minimal":                   # small icon, big name, a thin rule, outlined button
@@ -1007,6 +1128,50 @@ def _end_styled(c, t, lt, show, line, is_ep, cta, sub, badge, draw_icon, style):
             text(c, cta, max(-bw / 2 + 300, -bw / 2 + 150 + tw / 2), 24, sz, DEEP, bold=2.5)
         if sub:
             with Xf(c, 540, 1490, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 42, 900), WHITE, a=0.75)
+    elif style == "hud":                     # icon on a bracketed, glowing tile, scan ring, filled button
+        with Xf(c, 540, 700, lerp(0.8, 1, k), 0, clamp(k * 1.5)):
+            ph = (lt * 0.6) % 1; c.drawCircle(0, 0, 230 + ph * 140, P(ACC, (1 - ph) * 0.35, stroke=3, raw=True))
+            rrect(c, -190, -175, 380, 380, 56, P(ACC, 0.22, blur=40))
+            rrect(c, -190, -190, 380, 380, 56, P(WHITE, 0.95)); rrect(c, -190, -190, 380, 380, 56, P(ACC, 0.4, stroke=3, raw=True))
+            brackets(c, -222, -222, 444, 444, 60, ACC, k=eo(prog(lt, 0.1, 0.4)))
+            if draw_icon:
+                with Xf(c, 0, 0, 0.85 if draw_icon is brand_logo else 0.55): draw_icon(c)
+        if badge:
+            with Xf(c, 540, 990, eback(prog(lt, 0.2, 0.4), 1.6)):
+                bw = font(48).measureText(badge) + 60
+                rrect(c, -bw / 2, -44, bw, 72, 36, P(SUN, 0.85)); text(c, badge, 0, 6, fit(badge, 48, 600), INK, bold=1.5)
+        with Xf(c, 540, 1135 + (1 - kt2) * 30, 1, 0, kt2):
+            text(c, show, 0, 0, fit(show, 100, 940), FG, bold=2.5)
+            if line: text(c, line, 0, 74, fit(line, 44, 900), FG, a=0.75)
+        with Xf(c, 540, 1350, lerp(0.85, 1, eback(prog(lt, 0.6, 0.4))), 0, eo(prog(lt, 0.6, 0.3))):
+            rrect(c, -300, -56, 600, 132, 66, P(ACC, 0.25, blur=30)); _cta(c, cta)
+        if sub:
+            with Xf(c, 540, 1505, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 42, 900), FG, a=0.7)
+    elif style == "credits":                 # film credits: dark page, brass rules, letter-spaced name, outlined button
+        c.drawColor(hx(DEEP))
+        c.drawRect(skia.Rect.MakeWH(W, H), skia.Paint(Shader=skia.GradientShader.MakeRadial(
+            skia.Point(W / 2, 900), 900, [hx(SUN, 0.10), hx(SUN, 0)])))
+        light = "#F1E7D6" if _lum(DEEP) < 0.45 else INK
+        letterbox(c)
+        ka = eo(prog(lt, 0.0, 0.8))
+        if draw_icon:
+            with Xf(c, 540, 650, lerp(0.92, 1, ka), 0, ka):
+                c.drawCircle(0, 0, 150, P(SUN, 0.7, stroke=2.5, raw=True))
+                with Xf(c, 0, 0, 0.7 if draw_icon is brand_logo else 0.42): draw_icon(c)
+        if badge:
+            with Xf(c, 540, 885, 1, 0, eo(prog(lt, 0.3, 0.7))): text_spaced(c, badge, 0, 0, fit(badge, 50, 700), SUN, sp=0.25, maxw=700)
+        with Xf(c, 540, 1040 + (1 - kt2) * 20, 1, 0, eo(prog(lt, 0.45, 0.8))):
+            text_spaced(c, show, 0, 0, fit(show, 92, 900), light, sp=0.14, bold=1.5, maxw=900)
+            if line: text_spaced(c, line, 0, 78, fit(line, 40, 860), light, a=0.7, sp=0.15, maxw=860)
+        rw = 260 * eo(prog(lt, 0.8, 0.8))
+        c.drawLine(540 - rw, 1175, 540 + rw, 1175, P(SUN, 0.75, stroke=2, raw=True))
+        with Xf(c, 540, 1320, 1, 0, eo(prog(lt, 1.0, 0.7))):
+            sz = fit(cta, 60, 420); tw = text_spaced(c, cta, 30, 21, sz, SUN, sp=0.18, maxw=420); bw = max(460, tw + 200)
+            rrect(c, -bw / 2, -58, bw, 116, 58, P(SUN, 0.9, stroke=2.5, raw=True))
+            x0 = 30 - tw / 2 - 58
+            tri = skia.Path(); tri.moveTo(x0, -20); tri.lineTo(x0, 20); tri.lineTo(x0 + 34, 0); tri.close(); c.drawPath(tri, P(SUN))
+        if sub:
+            with Xf(c, 540, 1470, 1, 0, eo(prog(lt, 1.2, 0.7))): text(c, sub, 0, 0, fit(sub, 40, 900), light, a=0.6)
     else:                                    # card: everything on one profile-style card
         with Xf(c, 540, 985, lerp(0.85, 1, k), 0, clamp(k * 1.5)):
             shadow(c, -390, -470, 780, 880, 48, 0.16)

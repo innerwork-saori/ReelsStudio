@@ -219,17 +219,17 @@ def md_set(md, section, label, value):
     return md[:sec.end()] + body + f"\n- {label}：{value}\n\n" + md[end:].lstrip("\n")
 
 STYLE_NAMES = {"handmade": "手作便條", "clean": "俐落簡約", "magazine": "雜誌感", "notebook": "筆記本", "street": "街頭活力",
-               "botanical": "植物手帳", "free": "自由創作"}
+               "botanical": "植物手帳", "tech": "科技明亮", "cinema": "電影質感", "free": "自由創作"}
 LAYOUT_NAMES = {"subtitle_pos": {"low": "下方", "middle": "畫面中間"}, "subtitle_size": {"s": "小", "m": "中", "l": "大"},
                 "pace": {"fast": "快（每 2–3 秒換畫面）", "medium": "中（每 3–4 秒）", "slow": "慢（每 4–6 秒，留白多）"}}
 STYLE_PART_NAMES = {"subtitle": "字幕", "title": "標題卡", "background": "背景", "line": "線條", "motion": "動畫", "end": "結尾卡"}
 STYLE_OPTION_NAMES = {
-    "subtitle": {"box": "白框", "outline": "描邊字", "pill": "膠囊條", "dark": "深色框", "frame": "細線框"},
-    "title": {"note": "便條紙", "bold": "大字", "line": "細框卡", "magazine": "色塊斜帶", "leaf": "葉子分隔線"},
-    "background": {"blobs": "手繪色塊", "plain": "純色", "grid": "方格紙", "gradient": "柔和漸層", "leaves": "手繪蕨葉"},
+    "subtitle": {"box": "白框", "outline": "描邊字", "pill": "膠囊條", "dark": "深色框", "frame": "細線框", "glass": "霧白卡＋色條", "film": "電影字幕"},
+    "title": {"note": "便條紙", "bold": "大字", "line": "細框卡", "magazine": "色塊斜帶", "leaf": "葉子分隔線", "hud": "發光面板＋框角", "cinema": "字距寬的電影標題"},
+    "background": {"blobs": "手繪色塊", "plain": "純色", "grid": "方格紙", "gradient": "柔和漸層", "leaves": "手繪蕨葉", "tech": "點陣＋光暈＋線路", "film": "暗角＋顆粒＋黑邊"},
     "line": {"bold": "粗墨線", "thin": "細線", "soft": "淡細線"},
     "motion": {"bouncy": "活潑彈跳", "snappy": "俐落", "gentle": "柔和"},
-    "end": {"classic": "經典", "minimal": "極簡", "card": "名片卡", "deep": "整頁深色"}}
+    "end": {"classic": "經典", "minimal": "極簡", "card": "名片卡", "deep": "整頁深色", "hud": "發光圖示框", "credits": "電影片尾"}}
 
 NOTES_SECTION = "其他補充（控制台填寫）"   # the panel's 「其他」 box owns this section; Claude's 其他偏好 is left alone
 

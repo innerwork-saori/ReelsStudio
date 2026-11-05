@@ -25,7 +25,7 @@
 | `PEACH` `ROSE` `SAGE` `SKY` `LILAC` `GRAY` | 同名 | 輔助色 |
 | `COOL` `MINT` `STEEL` | 固定 | 冷色段落（醫院、低潮） |
 
-預設組合：`cream` 奶油暖橘、`mint` 清新薄荷、`sky` 晴空藍、`blush` 蜜桃粉、`mono` 極簡＋一個亮色；深色背景：`night` 深夜藍、`cocoa` 可可深棕。`leaf` 植葉米白是給 `botanical` 植物手帳配的（多一個 `deep` 深綠，給結尾卡 `deep` 用；其他配色的 `deep` 由 accent 和 ink 混出來）。
+預設組合：`cream` 奶油暖橘、`mint` 清新薄荷、`sky` 晴空藍、`blush` 蜜桃粉、`mono` 極簡＋一個亮色；深色背景：`night` 深夜藍、`cocoa` 可可深棕。`leaf` 植葉米白是給 `botanical` 植物手帳配的（多一個 `deep` 深綠，給結尾卡 `deep` 用；其他配色的 `deep` 由 accent 和 ink 混出來）。`tech` 冷白＋電光藍是給 `tech` 科技明亮配的，`film` 暗夜膠卷（深色）是給 `cinema` 電影質感配的。
 
 撞色組合（深的當 accent、亮的當 highlight）：`berry` 漿果紅＋湖藍、`violet` 霓堇紫＋櫻粉、`periwinkle` 長春花藍＋可可棕、`nude` 裸桃粉＋苔青、`fuchsia` 桃緋粉＋薄荷青、`pine` 淺松色＋艾草青、`persimmon` 柿橙＋蜜金、`wine` 酒紅＋芥末黃、`forest` 森林綠＋蜜桃粉、`klein` 克萊因藍＋檸檬黃、`lavender` 薰衣草紫＋橄欖綠、`tomato` 番茄紅＋奶油白、`peacock` 孔雀綠＋杏桃橘、`berrylime` 莓果紫＋萊姆綠、`caramel` 焦糖棕＋霧藍、`brick` 天空藍＋磚紅、`matcha` 抹茶綠＋葡萄紫、`milktea` 奶茶色＋靛青、`electric` 活力橘＋電光藍、`dusty` 灰粉＋鐵灰；深色背景的撞色：`rouge` 胭脂粉＋墨黑、`midnight` 午夜藍＋珊瑚橘、`navy` 海軍藍＋向日葵黃、`rosewood` 玫瑰粉＋墨綠。
 
@@ -33,7 +33,7 @@
 
 - 字體：全片只用 brand.json 的 `font`＋`font_weight`（預設 jf open 粉圓）。`python fonts.py list` 列出可用的字型，`fonts.py check "<字型>" "<文字>"` 檢查缺字。字型沒有的字或符號（例如 ▶、emoji）不能直接打字，要換字或自己畫。
 - **版面風格**：brand.json 的 `style` 決定字幕、標題卡、背景與裝飾、插圖線條、動畫、結尾卡的樣子。`preset` 分兩類：
-  - **快速套版**：`handmade` 手作便條（brand.json 沒寫 `style` 的舊頻道就是這個）、`clean` 俐落簡約、`magazine` 雜誌感、`notebook` 筆記本、`street` 街頭活力、`botanical` 植物手帳（米白紙＋手繪蕨葉、細框字幕、關鍵字磚紅底線、深綠結尾；搭配配色 `leaf` 和宋體字最像）；其他 key 是逐項改過的元素，選項見 `reels_lib.STYLE_OPTIONS`。照下面的規則用內建函式。
+  - **快速套版**：`handmade` 手作便條（brand.json 沒寫 `style` 的舊頻道就是這個）、`clean` 俐落簡約、`magazine` 雜誌感、`notebook` 筆記本、`street` 街頭活力、`botanical` 植物手帳（米白紙＋手繪蕨葉、細框字幕、關鍵字磚紅底線、深綠結尾；搭配配色 `leaf` 和宋體字最像）、`tech` 科技明亮（冷白點陣＋光暈與線路、發光面板標題＋框角、霧白字幕卡＋左側色條、電光藍重點＋青色螢光筆、發光圖示框結尾；搭配配色 `tech` 和黑體）、`cinema` 電影質感（深色畫面＋上下黑邊、暗角和底片顆粒、寬字距標題＋細金線、沒有框的電影字幕、緩慢淡入、片尾名單式結尾；搭配配色 `film` 和宋體）；其他 key 是逐項改過的元素，選項見 `reels_lib.STYLE_OPTIONS`。照下面的規則用內建函式。
   - **自由創作** `free`（新頻道的預設）：不套版，剪輯師依 BRAND.md 的「自由創作方向」「參考帳號或影片」每支自己設計，規則見**第 12 節**；下面「不要自己重畫」那幾條不適用。
   BRAND.md「影片」的「版面風格」那行是同一份設定的說明。快速套版時剪片引擎會自動套用，所以：
   - 背景用 `paper_bg()`、裝飾用 `deco()`、標題卡用 `title_card()`、字幕交給 `Reel`、結尾用 `end_card()`，不要自己重畫成固定的樣子，也不要另外發明新的裝飾風格。
