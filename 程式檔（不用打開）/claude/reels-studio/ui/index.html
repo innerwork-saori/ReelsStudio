@@ -6,22 +6,23 @@
 <title>Reels Studio 控制台</title>
 <link rel="icon" href="/icon.ico">
 <style>
-  /* 跟使用說明同一套莫蘭迪色，固定淺色 */
+  /* 預設是跟使用說明同一套莫蘭迪色，固定淺色；選了風格之後，applyTheme() 會照那個風格的配色換掉強調色和底色 */
   :root {
     color-scheme: light;
     --bg: #F3EFEA; --card: #FBF9F6; --ink: #4B4643; --muted: #6F6862;
     --accent: #8C5F5A; --accent-soft: #EBDFDB; --highlight: #DCCBB8;
     --ok: #93A391; --ok-soft: #E6EBE4; --warn: #C3A19C; --warn-soft: #F3E7E4;
     --say: #E2E7EC; --line: #E3DBD3; --code: #EEE8E2;
+    --font-main: "jf open 粉圓 1.1", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }   /* .folderbar / .brandlayout set their own display */
   body { margin: 0; background: var(--bg); color: var(--ink); font-size: 17px; line-height: 1.7;
-    font-family: "jf open 粉圓 1.1", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif; }
+    font-family: var(--font-main); }
   button, input, select, textarea { font: inherit; color: inherit; }
   a { color: var(--accent); }
 
-  header.top { position: sticky; top: 0; z-index: 5; background: rgba(243,239,234,.94); backdrop-filter: blur(6px);
+  header.top { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(6px);
     border-bottom: 1px solid var(--line); }
   .bar { max-width: 1160px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .logo { font-weight: 700; font-size: 19px; display: flex; align-items: center; gap: 8px; margin-right: 8px; }
@@ -74,7 +75,7 @@
   /* 快速前往: one chip per settings card, pinned under the header while 風格 scrolls */
   .toc { position: sticky; top: calc(var(--hdr, 58px) + 8px); z-index: 4; display: flex; align-items: center; gap: 4px;
     overflow-x: auto; scrollbar-width: none; margin: 0 0 16px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 999px;
-    background: rgba(243,239,234,.94); backdrop-filter: blur(6px); box-shadow: 0 4px 14px rgba(75,70,67,.08); }
+    background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(6px); box-shadow: 0 4px 14px rgba(75,70,67,.08); }
   .toc::-webkit-scrollbar { display: none; }
   .toc .lab { flex: none; color: var(--muted); font-size: 14px; padding: 0 6px 0 8px; }
   .toc button { flex: none; border: none; background: none; padding: 3px 12px; border-radius: 999px; cursor: pointer;
@@ -905,11 +906,40 @@ function renderRouteMap() {
 
 // ---------------- brand form ----------------
 const brandLabel = b => `${b.exists ? b.brand.name : "（還沒設定）"}${b.folder === "my-brand" ? "（預設）" : ""}`;
+// The console takes its colours and font from the current style's saved settings, toned down so the page stays light and readable
+const hexRgb = x => { x = String(x || "").replace("#", ""); if (x.length === 3) x = [...x].map(c => c + c).join("");
+  return [0, 2, 4].map(i => parseInt(x.slice(i, i + 2), 16) || 0); };
+const rgbHex = a => "#" + a.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0")).join("");
+const mixHex = (a, b, t) => { const A = hexRgb(a), B = hexRgb(b); return rgbHex(A.map((v, i) => v + (B[i] - v) * t)); };
+const lum = x => { const c = hexRgb(x).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; });
+  return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + .05) / (y + .05); };
+const THEME_VARS = ["--bg", "--card", "--accent", "--accent-soft", "--highlight", "--line", "--code", "--say", "--font-main"];
+function applyTheme(b) {
+  const root = document.documentElement.style;
+  const br = b && b.exists ? b.brand : null, p = br && S.palettes[br.palette || "cream"];
+  if (!p) { THEME_VARS.forEach(v => root.removeProperty(v)); return; }
+  const colors = br.colors || {};
+  let accent = colors.accent || p.accent;
+  for (let i = 0; i < 12 && contrast(accent, "#FBF9F6") < 4.5; i++) accent = mixHex(accent, "#2E2A28", .15);   // buttons and links stay readable
+  const hl = colors.highlight || p.highlight || accent;
+  const paper = lum(p.bg) > .7 ? mixHex(p.bg, "#F2F0ED", .25) : mixHex("#F6F4F1", accent, .08);   // light palettes lend their paper colour; dark ones just a tint
+  const set = { "--accent": accent, "--bg": paper, "--card": mixHex("#FFFFFF", paper, .35),
+    "--accent-soft": mixHex("#FFFFFF", accent, .16), "--highlight": mixHex("#FFFFFF", hl, .45), "--line": mixHex("#ECE9E5", accent, .14),
+    "--code": mixHex("#F3F1EE", accent, .08), "--say": mixHex("#F1F3F5", accent, .10) };
+  const font = br.font || "";   // an installed font's family name; the page falls back to 粉圓 when this computer doesn't have it
+  if (font && !/粉圓|huninn|\.(ttf|otf|ttc)$/i.test(font))
+    set["--font-main"] = `"${font.replace(/["\\]/g, "")}", "jf open 粉圓 1.1", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif`;
+  else root.removeProperty("--font-main");
+  for (const [k, v] of Object.entries(set)) root.setProperty(k, v);
+}
+
 function renderBrandPicker() {       // the header's 目前風格 is the only style picker on the page
   const sel = $("#chpick");
   sel.replaceChildren(...S.brands.map(b => h("option", { value: b.dir, selected: b.dir === S.current, title: b.folder }, brandLabel(b))));
   $("#nb-copy").replaceChildren(...S.brands.filter(b => b.exists).map(b => h("option", { value: b.dir, selected: b.dir === S.current }, b.brand.name)));
   const cur = S.brands.find(b => b.dir === S.current);
+  applyTheme(cur);
   $("#brandpick-name").textContent = cur ? brandLabel(cur) : "";
   const isDefault = !cur || cur.folder === "my-brand";
   $("#db-open").disabled = isDefault;
