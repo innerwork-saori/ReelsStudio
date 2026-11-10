@@ -28,7 +28,7 @@ effort: medium
 2. `cover_9x16.jpg`：1080×1920 封面。用哪一格看素材資料夾 `_reels_studio.json` 的 `covers`（使用者在控制台每支影片下面選的，鍵是片段編號）：
    - 數字：就用那一秒的畫面（使用者自己挑的，不要改）。
    - `"auto"`：從整支影片均勻抽 8–12 格（避開轉場中間），用 Read 看過後挑最醒目、字最完整、在格狀牆裁切後還看得懂的一格；回報時寫出選了第幾秒和原因。
-   - 沒有設定：約 2.0 秒處（標題卡完整出現）。頻道的 brand.json `layout.title_card` 是 false（沒有標題卡）時，照 `"auto"` 的方式挑。
+   - 沒有設定：約 2.0 秒處（標題卡完整出現）。素材資料夾 `_reels_studio.json` 的 `cut.settings.card_title` 是 `"off"`（這個剪法沒有標題卡），或舊頻道 brand.json 的 `layout.title_card` 是 false 時，照 `"auto"` 的方式挑。
    使用者只說「重新挑片段 N 的封面」時，只重做這支的第 2、3 項，其他檔案不動。
 3. `cover_grid_3x4_preview.jpg`：裁切中央 1080×1440（IG 個人主頁的格狀牆從 2025 年起是 3:4），用來預覽在格狀牆上的樣子；檢查標題字有沒有被裁掉，被裁到就在清單中提醒。舊版留下的 `cover_grid_4x5_preview.jpg` 刪掉。
 4. `caption.txt`：只含可貼上的文案，UTF-8。

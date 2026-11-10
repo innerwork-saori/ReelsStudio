@@ -56,6 +56,9 @@ def _lib_constants():
     return out["PALETTES"], out["BRAND_DEFAULTS"], out["STYLE_OPTIONS"], out["STYLE_PRESETS"], out["LAYOUT_OPTIONS"]
 
 PALETTES, BRAND_DEFAULTS, STYLE_OPTIONS, STYLE_PRESETS, LAYOUT_OPTIONS = _lib_constants()
+sys.path.insert(0, HERE)
+import cut_recipe as CR   # 剪法: 片型, 心法, 模組, 字卡 (kept apart from the channel's look)
+MOVED_LAYOUT = ("pace", "title_card", "title_bg")   # brand.json layout keys that now live in a 剪法
 
 def resolved_style(s):
     """the look a brand.json "style" produces (same rule as reels_lib._style)"""
@@ -219,17 +222,17 @@ def md_set(md, section, label, value):
     return md[:sec.end()] + body + f"\n- {label}：{value}\n\n" + md[end:].lstrip("\n")
 
 STYLE_NAMES = {"handmade": "手作便條", "clean": "俐落簡約", "magazine": "雜誌感", "notebook": "筆記本", "street": "街頭活力",
-               "botanical": "植物手帳", "tech": "科技明亮", "cinema": "電影質感", "free": "自由創作"}
+               "botanical": "植物手帳", "tech": "科技明亮", "cinema": "電影質感", "memo": "便利貼牆", "free": "自由創作"}
 LAYOUT_NAMES = {"subtitle_pos": {"low": "下方", "middle": "畫面中間"}, "subtitle_size": {"s": "小", "m": "中", "l": "大"},
                 "pace": {"fast": "快（每 2–3 秒換畫面）", "medium": "中（每 3–4 秒）", "slow": "慢（每 4–6 秒，留白多）"}}
 STYLE_PART_NAMES = {"subtitle": "字幕", "title": "標題卡", "background": "背景", "line": "線條", "motion": "動畫", "end": "結尾卡"}
 STYLE_OPTION_NAMES = {
-    "subtitle": {"box": "白框", "outline": "描邊字", "pill": "膠囊條", "dark": "深色框", "frame": "細線框", "glass": "霧白卡＋色條", "film": "電影字幕"},
-    "title": {"note": "便條紙", "bold": "大字", "line": "細框卡", "magazine": "色塊斜帶", "leaf": "葉子分隔線", "hud": "發光面板＋框角", "cinema": "字距寬的電影標題"},
-    "background": {"blobs": "手繪色塊", "plain": "純色", "grid": "方格紙", "gradient": "柔和漸層", "leaves": "手繪蕨葉", "tech": "點陣＋光暈＋線路", "film": "暗角＋顆粒＋黑邊"},
+    "subtitle": {"box": "白框", "outline": "描邊字", "pill": "膠囊條", "dark": "深色框", "frame": "細線框", "glass": "霧白卡＋色條", "film": "電影字幕", "sticky": "膠帶便利貼"},
+    "title": {"note": "便條紙", "bold": "大字", "line": "細框卡", "magazine": "色塊斜帶", "leaf": "葉子分隔線", "hud": "發光面板＋框角", "cinema": "字距寬的電影標題", "pinboard": "大字＋黃色便利貼"},
+    "background": {"blobs": "手繪色塊", "plain": "純色", "grid": "方格紙", "gradient": "柔和漸層", "leaves": "手繪蕨葉", "tech": "點陣＋光暈＋線路", "film": "暗角＋顆粒＋黑邊", "notes": "米色紙＋一張便利貼"},
     "line": {"bold": "粗墨線", "thin": "細線", "soft": "淡細線"},
     "motion": {"bouncy": "活潑彈跳", "snappy": "俐落", "gentle": "柔和"},
-    "end": {"classic": "經典", "minimal": "極簡", "card": "名片卡", "deep": "整頁深色", "hud": "發光圖示框", "credits": "電影片尾"}}
+    "end": {"classic": "經典", "minimal": "極簡", "card": "名片卡", "deep": "整頁深色", "hud": "發光圖示框", "credits": "電影片尾", "pinned": "膠帶便利貼"}}
 
 NOTES_SECTION = "其他補充（控制台填寫）"   # the panel's 「其他」 box owns this section; Claude's 其他偏好 is left alone
 
@@ -270,9 +273,9 @@ def brand_summary(b):
             f"{STYLE_PART_NAMES[k]} {STYLE_OPTION_NAMES[k].get(v, v)}" for k, v in st.items()) + "。剪片引擎會自動套用，不要另外改畫成其他風格"
     return {
         "版面風格": look,
-        "版面規則": f"開頭標題卡 {onoff(lay['title_card'])}、結尾卡 {onoff(lay['end_card'])}、上方標籤 {onoff(lay['top_tag'])}、"
-                    f"字幕在{LAYOUT_NAMES['subtitle_pos'][lay['subtitle_pos']]}・{LAYOUT_NAMES['subtitle_size'][lay['subtitle_size']]}、"
-                    f"節奏 {LAYOUT_NAMES['pace'][lay['pace']]}",
+        "版面規則": f"結尾卡 {onoff(lay['end_card'])}、上方標籤 {onoff(lay['top_tag'])}、"
+                    f"字幕在{LAYOUT_NAMES['subtitle_pos'][lay['subtitle_pos']]}・{LAYOUT_NAMES['subtitle_size'][lay['subtitle_size']]}；"
+                    f"節奏和開頭標題卡在剪法「{b.get('recipe') or CR.DEFAULT}」",
         "配色": f"`{pal}`" + (f"，改色：{over}" if over else ""),
         "字型": f"{font}" + (f"，粗細 {b['font_weight']}" if b.get("font_weight") else ""),
         "結尾卡": f"{icon}圖示、貼紙「{e.get('badge') or '無'}」、按鈕「{e.get('cta', '')}」、小字「{e.get('sub', '')}」",
@@ -375,8 +378,8 @@ def merge_brand(d, form):
             if st.get(k) in opts and st[k] != STYLE_PRESETS[preset][k]: style[k] = st[k]
         if style == {"preset": "handmade"} and not old.get("style"): b.pop("style", None)   # untouched original look
         else: b["style"] = style
-    if isinstance(f.get("layout"), dict):        # store only the rules changed from the defaults
-        lay = {k: v for k, v in resolved_layout(f["layout"]).items() if v != BRAND_DEFAULTS["layout"][k]}
+    if isinstance(f.get("layout"), dict):        # store only the rules changed from the defaults (pace and the title card are in 剪法)
+        lay = {k: v for k, v in resolved_layout(f["layout"]).items() if v != BRAND_DEFAULTS["layout"][k] and k not in MOVED_LAYOUT}
         if lay: b["layout"] = lay
         else: b.pop("layout", None)
     return old, b
@@ -405,7 +408,7 @@ def save_brand(form):
                "字型": (old.get("font"), old.get("font_weight")) != (b["font"], b.get("font_weight")),
                "結尾卡": old.get("end_card") != b["end_card"],
                "版面風格": (old.get("style") or {}) != (b.get("style") or {}),
-               "版面規則": resolved_layout(old.get("layout")) != resolved_layout(b.get("layout"))}
+               "版面規則": resolved_layout(old.get("layout")) != resolved_layout(b.get("layout")) or old.get("recipe") != b.get("recipe")}
     for lab, ch in changed.items():
         if new_md or ch: md = md_set(md, "影片", lab, summ[lab])
     for sec, lab, al in MD_FIELDS:                           # only lines the user actually changed
@@ -591,7 +594,9 @@ def scan_project(folder):
         try_read(lambda p: open(p, "rb").read(16), clips[0]["path"], problems=problems)
     picks_md = has("_Reels精華片段.md")
     md = try_read(read_text, os.path.join(folder, picks_md[0]), problems=problems) if picks_md else None
-    return {"folder": folder, "steps": steps, "clips": clips, "recent": rec[:8], "problems": problems,
+    # the 剪法 snapshot Claude reads: kept current once there is material (an empty folder is left untouched)
+    cut = sync_cut(folder, write=steps[0]["done"] and not problems)
+    return {"folder": folder, "steps": steps, "clips": clips, "recent": rec[:8], "problems": problems, "cut": cut,
             "sources": sources, "scripts": scripts, "cards": cards, "project": read_project(folder),
             "picks": parse_picks(md) if md else [], "picks_file": picks_md[0] if picks_md else None}
 
@@ -628,6 +633,14 @@ def save_project(body):
         p["face"] = "no" if body["face"] == "no" else "auto"
     if "notes" in body:
         p["notes"] = (body["notes"] or "").strip()[:2000]
+    if "cut" in body:                         # this folder's 剪法: which one, and its own changes on top
+        c, recipes = body["cut"] or {}, CR.load_recipes()
+        cut = {}
+        if c.get("recipe") in recipes: cut["recipe"] = c["recipe"]
+        if CR.clean_format(c.get("format")): cut["format"] = c["format"]
+        if CR.clean_over(c.get("over")): cut["over"] = CR.clean_over(c.get("over"))
+        p["cut"] = cut
+        p["cut"] = folder_cut(folder, p)
     if "picks" in body:
         items = [{"n": int(x["n"]), "title": " ".join(str(x.get("title", "")).split())[:80]} for x in body["picks"]]
         p["picks"] = {"confirmed": bool(items), "items": items, "updated": time.strftime("%Y-%m-%d %H:%M")}
@@ -680,12 +693,188 @@ def set_cover(body):
     clip = next(iter(glob.glob(os.path.join(glob.escape(folder), f"*_Reels_片段{n}.mp4"))), None)
     pack = os.path.join(folder, "發文包", f"片段{n}")
     if at == "title":
-        b = load_brand(brand_dir_for(p)) if brand_dir_for(p) else None
-        at = TITLE_COVER_AT if not b or resolved_layout(b["brand"].get("layout"))["title_card"] else "auto"
+        at = TITLE_COVER_AT if folder_cut(folder, p)["settings"]["card_title"] != "off" else "auto"
     if at == "auto" or not clip or not os.path.isdir(pack):
         return {"project": p, "made": False, "auto": at == "auto", "pack": os.path.isdir(pack)}
     make_cover(clip, float(at), pack)
     return {"project": p, "made": True, "cover": file_url(os.path.join(pack, "cover_9x16.jpg")) + f"&v={time.time():.0f}"}
+
+
+# ---------------- 剪法 (cut_recipe.py): saved recipes, a channel's default, one folder's own changes ----------------
+def save_recipes(recipes):
+    p = CR.RECIPES_FILE
+    if os.path.exists(p): shutil.copy2(p, p + ".bak")
+    write_text(p, json.dumps(recipes, ensure_ascii=False, indent=2) + "\n")
+
+def raw_brand(d):
+    return read_json(os.path.join(d, "brand.json"), {}) or {} if d else {}
+
+def project_brand_dir(p):
+    """the channel a folder uses: its own pick, else the header's 目前風格, else my-brand"""
+    d = brand_dir_for(p)
+    if d: return d
+    cur = state().get("brand")
+    return cur if cur and os.path.isdir(cur) else os.path.join(HERE, "my-brand")
+
+def detect_format(folder, p):
+    """口播 when the folder has a video and the speaker shows; otherwise (recording only, 純字卡) 動畫解說"""
+    if p.get("face") == "no": return "anim"
+    try: names = os.listdir(folder)
+    except OSError: return "talk"
+    deep = list(names)
+    for d in names:
+        if d in ("_reels_work", "發文包") or d.startswith((".", "_")) or not os.path.isdir(os.path.join(folder, d)): continue
+        try: deep += os.listdir(os.path.join(folder, d))
+        except OSError: pass
+    return "talk" if any(n.lower().endswith((".mp4", ".mov")) and "_Reels_" not in n for n in deep) else "anim"
+
+def folder_cut(folder, p):
+    """the "cut" written into _reels_studio.json: the folder's own choices plus the resolved result for Claude and reels_lib"""
+    own = p.get("cut") or {}
+    recipes = CR.load_recipes()
+    brand = raw_brand(project_brand_dir(p))
+    name = own.get("recipe") if own.get("recipe") in recipes else brand.get("recipe") if brand.get("recipe") in recipes else CR.DEFAULT
+    rec, detected = recipes[name], detect_format(folder, p)
+    fmt = CR.clean_format(own.get("format")) or rec["format"] or detected
+    over = CR.clean_over(own.get("over"))
+    settings = CR.resolve(fmt, rec["over"], over)
+    out = {k: own[k] for k in ("recipe", "format") if own.get(k) and (k != "recipe" or own[k] in recipes)}
+    if over: out["over"] = over
+    out.update(recipe_used=name, format_used=fmt, detected=detected, settings=settings,
+               brief=CR.brief(fmt, settings, name, set(over) | ({"format"} if out.get("format") else set())),
+               _說明="剪法：控制台算好的這個資料夾怎麼剪。剪輯師照 brief 做；settings 是同一份設定的數值。")
+    return out
+
+def sync_cut(folder, p=None, write=True):
+    """recompute a folder's cut; rewrite _reels_studio.json only when the result changed"""
+    p = read_project(folder) if p is None else p
+    new = folder_cut(folder, p)
+    if write and new != p.get("cut"):
+        p["cut"] = new
+        try: write_text(os.path.join(folder, PROJECT_FILE), json.dumps(p, ensure_ascii=False, indent=2) + "\n")
+        except OSError as e: print("could not update", folder, repr(e))
+    return new
+
+def refresh_cuts():
+    """a 剪法 or a channel's default changed: update the folders that already have a cut, so Claude reads the new one"""
+    for f in recent_projects():
+        p = read_project(f)
+        if p.get("cut"): sync_cut(f, p)
+
+def unique_recipe_name(name, recipes):
+    n, k = name, 2
+    while n in recipes: n = f"{name} {k}"; k += 1
+    return n
+
+def migrate_brands():
+    """before 剪法, pace and the title card lived in each channel's brand.json layout. Move them into a 剪法 named after
+    the channel, once, so those channels cut exactly as before; brand.json is backed up first"""
+    recipes, changed = CR.load_recipes(), False
+    for d in brand_dirs():
+        p = os.path.join(d, "brand.json")
+        raw = read_json(p, None)
+        if not isinstance(raw, dict) or not isinstance(raw.get("layout"), dict) or not any(k in raw["layout"] for k in MOVED_LAYOUT):
+            continue
+        moved = CR.legacy_over(raw["layout"])
+        if moved:
+            if raw.get("recipe") in recipes:     # it already has one (written by Claude): fill only what that one leaves out
+                r = recipes[raw["recipe"]]; r["over"] = {**moved, **r["over"]}
+            else:
+                name = unique_recipe_name(f"{raw.get('name') or os.path.basename(d)} 原本的剪法", recipes)
+                recipes[name] = {"format": None, "over": moved}; raw["recipe"] = name
+            changed = True
+        shutil.copy2(p, os.path.join(d, "brand.json.剪法之前.bak"))
+        for k in MOVED_LAYOUT: raw["layout"].pop(k, None)
+        if not raw["layout"]: raw.pop("layout")
+        if changed: save_recipes(recipes)
+        write_text(p, json.dumps(raw, ensure_ascii=False, indent=2) + "\n")
+        md_p = os.path.join(d, "BRAND.md")
+        if os.path.exists(md_p):
+            b = load_brand(d)["brand"]
+            write_text(md_p, md_set(open(md_p, encoding="utf-8").read(), "影片", "版面規則", brand_summary(b)["版面規則"]))
+        print(time.strftime("%Y-%m-%d %H:%M:%S"), "moved pace / title card of", d, "into 剪法", raw.get("recipe"))
+
+def recipe_usage(recipes):
+    """{name: [channel names that use it as their default]}"""
+    out = {n: [] for n in recipes}
+    for d in brand_dirs():
+        raw = raw_brand(d)
+        if os.path.exists(os.path.join(d, "brand.json")):
+            out.setdefault(raw.get("recipe") if raw.get("recipe") in recipes else CR.DEFAULT, []).append(raw.get("name") or os.path.basename(d))
+    return out
+
+def recipes_state():
+    recipes = CR.load_recipes()
+    return {"recipes": recipes, "usage": recipe_usage(recipes), "default": CR.DEFAULT,
+            "formats": CR.FORMATS, "triggers": CR.TRIGGERS, "actions": CR.ACTIONS}
+
+def recipe_name(s):
+    s = " ".join((s or "").split())[:30]
+    if not s: raise ValueError("請輸入剪法的名稱")
+    return s
+
+def save_recipe(body):
+    recipes, name = CR.load_recipes(), body.get("name")
+    if name not in recipes: raise ValueError("找不到這個剪法，請重新整理控制台")
+    recipes[name] = {"format": CR.clean_format(body.get("format")), "over": CR.clean_over(body.get("over"))}
+    save_recipes(recipes); refresh_cuts()
+    return recipes_state()
+
+def new_recipe(body):
+    recipes, name = CR.load_recipes(), recipe_name(body.get("name"))
+    if name in recipes: raise ValueError(f"已經有叫「{name}」的剪法了")
+    src = recipes.get(body.get("copy_from")) or {"format": None, "over": {}}
+    recipes[name] = json.loads(json.dumps(src))
+    save_recipes(recipes)
+    return dict(recipes_state(), created=name)
+
+def rename_recipe(body):
+    recipes, old, new = CR.load_recipes(), body.get("name"), recipe_name(body.get("to"))
+    if old not in recipes or old == CR.DEFAULT: raise ValueError("這個剪法不能改名")
+    if new in recipes: raise ValueError(f"已經有叫「{new}」的剪法了")
+    recipes = {(new if k == old else k): v for k, v in recipes.items()}
+    save_recipes(recipes)
+    repoint(old, new)
+    return dict(recipes_state(), created=new)
+
+def repoint(old, new):
+    """channels and folders that used the 剪法 `old` now use `new` (None: back to their default)"""
+    for d in brand_dirs():
+        p = os.path.join(d, "brand.json"); raw = read_json(p, None)
+        if isinstance(raw, dict) and raw.get("recipe") == old:
+            if new: raw["recipe"] = new
+            else: raw.pop("recipe")
+            write_text(p, json.dumps(raw, ensure_ascii=False, indent=2) + "\n")
+    for f in recent_projects():
+        pj = read_project(f)
+        if (pj.get("cut") or {}).get("recipe") == old:
+            if new: pj["cut"]["recipe"] = new
+            else: pj["cut"].pop("recipe")
+            sync_cut(f, pj)
+    refresh_cuts()
+
+def delete_recipe(body):
+    recipes, name = CR.load_recipes(), body.get("name")
+    if name == CR.DEFAULT: raise ValueError("「預設」剪法不能刪除，沒有選剪法的風格都會用它")
+    if name not in recipes: raise ValueError("這個剪法已經不存在了")
+    del recipes[name]; save_recipes(recipes)
+    repoint(name, None)
+    return recipes_state()
+
+def set_brand_recipe(body):
+    """a channel's default 剪法 (brand.json "recipe"); 預設 is stored as no key"""
+    d = check_brand_dir(body["dir"]); recipes = CR.load_recipes()
+    if body.get("recipe") not in recipes: raise ValueError("找不到這個剪法")
+    p = os.path.join(d, "brand.json"); raw = read_json(p, {}) or {}
+    if body["recipe"] == CR.DEFAULT: raw.pop("recipe", None)
+    else: raw["recipe"] = body["recipe"]
+    if os.path.exists(p): shutil.copy2(p, p + ".bak")
+    write_text(p, json.dumps(raw, ensure_ascii=False, indent=2) + "\n")
+    md_p = os.path.join(d, "BRAND.md")
+    if os.path.exists(md_p):
+        write_text(md_p, md_set(open(md_p, encoding="utf-8").read(), "影片", "版面規則", brand_summary(load_brand(d)["brand"])["版面規則"]))
+    refresh_cuts()
+    return dict(recipes_state(), brand=load_brand(d))
 
 
 def parse_picks(md):
@@ -807,9 +996,11 @@ def new_brand(body):
         "end_card": {k: e.get(k, "") for k in ("icon", "badge", "cta", "sub", "guest_prefix", "logo_shape")},
         "style": resolved_style(style) | {"preset": style.get("preset", "handmade")},
         "layout": resolved_layout(look.get("layout"))}}
-    if body.get("copy_from"):                     # keep every colour override, not only accent/highlight, and the logo
+    if body.get("copy_from"):                     # keep every colour override, not only accent/highlight, the logo and the 剪法
         if os.path.exists(os.path.join(body["copy_from"], "logo.png")): shutil.copy2(os.path.join(body["copy_from"], "logo.png"), os.path.join(d, "logo.png"))
-        write_text(os.path.join(d, "brand.json"), json.dumps({"colors": look.get("colors") or {}}, ensure_ascii=False))
+        keep = {"colors": look.get("colors") or {}}
+        if look.get("recipe"): keep["recipe"] = look["recipe"]
+        write_text(os.path.join(d, "brand.json"), json.dumps(keep, ensure_ascii=False))
     save_brand(form)
     for fn in ("brand.json.bak", "BRAND.md.bak"):
         if os.path.exists(os.path.join(d, fn)): os.remove(os.path.join(d, fn))
@@ -975,12 +1166,15 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0) or 0)) or b"{}")
             path = urlparse(self.path).path
             if path == "/api/state":
+                try: migrate_brands()
+                except Exception as e: print("剪法 migration failed:", repr(e))
                 st = state()
                 brands = [load_brand(d) for d in brand_dirs()]
                 cur = st.get("brand") if st.get("brand") in [b["dir"] for b in brands] else brands[0]["dir"]
                 out = {"brands": brands, "current": cur, "palettes": PALETTES, "recent": recent_projects(),
                        "style_options": STYLE_OPTIONS, "style_presets": STYLE_PRESETS, "layout_options": LAYOUT_OPTIONS,
                        "layout_defaults": BRAND_DEFAULTS["layout"], "version": app_version(),
+                       "cut": recipes_state(),
                        "welcomed": bool(st.get("welcomed")),     # the first-open welcome screen was seen
                        "studio": HERE, "env_brand": os.environ.get("REELS_BRAND"),
                        "stock_keys": {"pexels": has_key("PEXELS_API_KEY"), "unsplash": has_key("UNSPLASH_ACCESS_KEY")}}
@@ -1002,6 +1196,11 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/logo": out = save_logo(body)
             elif path == "/api/md-extra-delete": out = delete_md_extra(body)
             elif path == "/api/cover": out = set_cover(body)
+            elif path == "/api/recipe-save": out = save_recipe(body)
+            elif path == "/api/recipe-new": out = new_recipe(body)
+            elif path == "/api/recipe-rename": out = rename_recipe(body)
+            elif path == "/api/recipe-delete": out = delete_recipe(body)
+            elif path == "/api/brand-recipe": out = set_brand_recipe(body)
             elif path == "/api/new-brand":
                 d = new_brand(body); save_state(brand=d)
                 out = dict(preview({"dir": d}, real=True), brand=load_brand(d))

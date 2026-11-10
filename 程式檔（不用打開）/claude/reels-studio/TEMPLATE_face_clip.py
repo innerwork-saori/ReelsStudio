@@ -38,7 +38,7 @@ FOCUS = (0.5, 0.40)     # where the face sits in the source frame (landscape sho
 PUNCH = 1.12            # every other KEEPS range is zoomed in, so jump cuts read as deliberate
 
 def sc_title(c, t, lt, dur):                                  # hook card over the speaker
-    # layout.title_bg "photo": add photo=<Pexels / Unsplash file>; it replaces the speaker behind the card
+    # 剪法 title background "photo" (LAYOUT["title_bg"]): add photo=<Pexels / Unsplash file>; it replaces the speaker behind the card
     title_card(c, t, lt, ["你是不是也", "一直在【等準備好】？"], "別等了", bg=lambda c: R.face(c, t, focus=FOCUS))
 
 def sc_talk(c, t, lt, dur):                                   # plain talking head
@@ -62,7 +62,7 @@ def sc_pip(c, t, lt, dur):                                    # illustration wit
 def sc_end(c, t, lt, dur):
     end_card(c, t, lt)
 
-# layout.title_card false: no title card, the first scene starts at 0 and carries the hook itself
+# 剪法 without a title card (LAYOUT["title_card"] False): no title card, the first scene starts at 0 and carries the hook itself
 SCENES = [
     ("title", 0.0, sc_title) if LAYOUT["title_card"] else ("talk0", 0.0, sc_talk),
     ("talk", 3.0, sc_talk),

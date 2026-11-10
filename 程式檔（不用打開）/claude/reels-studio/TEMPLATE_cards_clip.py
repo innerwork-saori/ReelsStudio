@@ -1,6 +1,6 @@
 """Clip script template (text-card mode, 純字卡: no recording at all) —
 copy to <material folder>/_reels_work/clipN/clip.py and fill in the 3 marked blocks.
-The 口播稿 is not read aloud: its lines become subtitle cards, each held long enough to read (brand.json layout.pace),
+The 口播稿 is not read aloud: its lines become subtitle cards, each held long enough to read (the 剪法's pace, LAYOUT["pace"]),
 over drawn scenes like the illustrated mode. The video is silent; the user adds music in the IG / TikTok app.
 Check the channel's brand.json first: layout (title card / end card / subtitle size / pace) and style "free".
 
@@ -29,7 +29,7 @@ o = TL.o
 C = [o(t) for _, t, _ in SUBS]     # output second each card appears: start scenes on these
 
 # ---- 2. scenes: fn(c, t, lt, dur). A new picture every 1-2 cards; the picture carries the card's idea. ----
-TITLE_PHOTO = None                  # layout.title_bg "photo": a Pexels / Unsplash file in ./assets (ignored with "paper")
+TITLE_PHOTO = None                  # 剪法 title background "photo" (LAYOUT["title_bg"]): a Pexels / Unsplash file in ./assets (ignored with "paper")
 def sc_title(c, t, lt, dur):
     title_card(c, t, lt, ["你是不是也覺得", "【休息】很有罪惡感？"], "停一下也沒關係", photo=TITLE_PHOTO)
 

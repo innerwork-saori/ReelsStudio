@@ -35,7 +35,7 @@ SUBS = [
 ]
 
 # ---- 3. scenes: fn(c, t, lt, dur). t = global sec, lt = sec since scene start. Sync beats with R.L(name, src). ----
-TITLE_PHOTO = None                  # layout.title_bg "photo": a Pexels / Unsplash file in ./assets, e.g.
+TITLE_PHOTO = None                  # 剪法 title background "photo" (LAYOUT["title_bg"]): a Pexels / Unsplash file in ./assets, e.g.
                                     # os.path.join(HERE, "assets", "unsplash_abc123.jpg") (ignored with "paper")
 def sc_title(c, t, lt, dur):
     title_card(c, t, lt, ["你上一次覺得", "「活著就很【幸福】」", "是什麼時候？"], "小標語", photo=TITLE_PHOTO)
@@ -59,7 +59,7 @@ def sc_end(c, t, lt, dur):
     end_card(c, t, lt)                                       # name / CTA / icon from brand.json
     # podcast-style: end_card(c, t, lt, guest="來賓名", ep="EP80")  -> 「EP80｜來賓名」
 
-# layout.title_card false: no title card, the first scene starts at 0 and carries the hook itself
+# 剪法 without a title card (LAYOUT["title_card"] False): no title card, the first scene starts at 0 and carries the hook itself
 SCENES = [
     ("title", 0.0, sc_title) if LAYOUT["title_card"] else ("example0", 0.0, sc_example),
     ("example", 3.0, sc_example),

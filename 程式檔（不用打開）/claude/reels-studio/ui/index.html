@@ -261,6 +261,15 @@
   #savebar .btn.ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.7); }
   body.has-savebar main { padding-bottom: 140px; }
   body.has-savebar #toast { bottom: 96px; }
+  .subtabs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: -6px 0 18px; }
+  .subtabs button { text-align: left; border: 1.5px solid var(--line); background: var(--card); border-radius: 14px; padding: 10px 14px;
+    cursor: pointer; display: flex; flex-direction: column; gap: 2px; color: inherit; font: inherit; }
+  .subtabs button b { font-size: 16px; }
+  .subtabs button span { font-size: 13px; color: var(--muted); }
+  .subtabs button[aria-selected="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .subtabs button[aria-selected="true"] b { color: var(--accent); }
+  .subtabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (max-width: 520px) { .subtabs { grid-template-columns: 1fr; } }
   nav button .unsaved { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #D9433B; margin-left: 6px; vertical-align: 2px; }
   .dirty { display: block; background: var(--warn-soft); border: 1px solid var(--warn); border-radius: 10px; padding: 6px 10px; }
   #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: #fff;
@@ -332,6 +341,93 @@
     .previewbox { position: static; }
   }
   @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } h1 { font-size: 24px; } }
+
+  /* 剪法: the editor is shared by the 剪法 tab and the 剪片 step; every class starts with cx- */
+  .linklike { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; }
+  .cx-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; margin: 0 0 10px; }
+  .cx-row .what { flex: 1; min-width: 220px; font-size: 15px; }
+  .cx-row select { width: auto; }
+  .cx-pill { display: inline-block; font-size: 13px; border-radius: 999px; padding: 0 9px; background: var(--highlight); color: var(--ink); font-weight: 700; margin-left: 4px; }
+  .cx-editor { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .cx-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .cx-ok { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .cx-depth { display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+  .cx-depth button { border: 0; background: none; border-radius: 999px; padding: 3px 14px; cursor: pointer; color: var(--muted); font-weight: 700; }
+  .cx-depth button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .cx-grid { display: grid; grid-template-columns: 190px minmax(0, 1fr) 320px; gap: 18px; align-items: start; }
+  .cx-grid.lazy { grid-template-columns: minmax(0, 1fr) 320px; }
+  .cx-grid.lazy .cx-rail { display: none; }
+  @media (max-width: 1080px) { .cx-grid, .cx-grid.lazy { grid-template-columns: 1fr; } }
+  .cx-rail ol { list-style: none; margin: 0; padding: 0; }
+  .cx-rail button { width: 100%; text-align: left; border: 1px solid transparent; background: none; border-radius: 14px; padding: 8px 10px; cursor: pointer; display: block; }
+  .cx-rail button[aria-current="true"] { background: var(--bg); border-color: var(--line); }
+  .cx-rail .nm { font-weight: 700; display: flex; justify-content: space-between; gap: 6px; }
+  .cx-rail .q { font-size: 13px; color: var(--muted); font-weight: 400; }
+  .cx-rail .sum { font-size: 13px; color: var(--muted); display: block; line-height: 1.45; }
+  .cx-rail .foot { font-size: 13px; color: var(--muted); margin: 12px 10px 0; border-top: 1px dashed var(--line); padding-top: 10px; }
+  .cx-dot { display: inline-block; min-width: 20px; height: 20px; border-radius: 10px; background: var(--accent); color: #fff; font-size: 12px; text-align: center; line-height: 20px; padding: 0 5px; }
+  .cx-dot.folder { background: var(--highlight); color: var(--ink); }
+  .cx-ctl { padding: 11px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; }
+  .cx-ctl:first-of-type { border-top: 0; }
+  .cx-ctl .lab b { display: block; }
+  .cx-ctl .lab span { font-size: 14px; color: var(--muted); }
+  .cx-src { grid-column: 1 / -1; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+  .cx-src .mine { color: var(--accent); font-weight: 700; }
+  .cx-src .folder { color: var(--ink); background: var(--highlight); border-radius: 6px; padding: 0 6px; font-weight: 700; }
+  .cx-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--bg); }
+  .cx-seg button { border: 0; background: none; padding: 4px 11px; cursor: pointer; font-size: 14px; color: var(--muted); }
+  .cx-seg button + button { border-left: 1px solid var(--line); }
+  .cx-seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  .cx-seg button[data-v="auto"][aria-pressed="true"] { background: var(--ok-soft); color: var(--ink); }
+  .cx-range { display: flex; flex-direction: column; align-items: flex-end; font-size: 14px; color: var(--muted); }
+  .cx-range input { width: 180px; accent-color: var(--accent); padding: 0; border: 0; }
+  .cx-full { display: none !important; }
+  .cx-d-full .cx-full { display: grid !important; }
+  .cx-d-full .cx-full.blk { display: block !important; }
+  .cx-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 4px; }
+  .cx-tile { border: 2px solid var(--line); background: var(--card); border-radius: 16px; padding: 10px 14px; text-align: left; cursor: pointer; position: relative; }
+  .cx-tile b { display: block; }
+  .cx-tile span { font-size: 13px; color: var(--muted); line-height: 1.5; display: block; }
+  .cx-tile[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .cx-tile .det { position: absolute; top: -10px; right: 10px; font-size: 12px; background: var(--ok); color: #fff; border-radius: 999px; padding: 0 8px; }
+  .cx-q { margin: 0 0 16px; }
+  .cx-q h3 { margin: 0 0 6px; }
+  .cx-rule { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 10px; background: var(--bg); border-radius: 12px; margin: 6px 0; font-size: 15px; }
+  .cx-rule select { width: auto; padding: 2px 6px; }
+  .cx-rule .x { margin-left: auto; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 20px; line-height: 1; }
+  .cx-pv { background: var(--bg); border-radius: 16px; padding: 14px; }
+  .cx-pv h3 { margin: 0 0 2px; }
+  .cx-phone { width: 160px; aspect-ratio: 9/16; margin: 10px auto; border-radius: 20px; border: 6px solid #3d3936; overflow: hidden; position: relative; }
+  .cx-phone .base { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transition: transform .35s ease; }
+  .cx-phone .base span { font-size: 11px; color: rgba(0,0,0,.55); background: rgba(255,255,255,.65); padding: 2px 8px; border-radius: 8px; }
+  .cx-phone .over { position: absolute; left: 9%; right: 9%; top: 24%; text-align: center; }
+  .cx-phone .cardui { border-radius: 10px; padding: 8px; font-size: 12px; font-weight: 700; line-height: 1.4; box-shadow: 0 3px 8px rgba(0,0,0,.12); white-space: pre-line; }
+  .cx-phone .cardui em { font-style: normal; display: block; font-size: 10px; font-weight: 400; }
+  .cx-phone .big { font-size: 22px; font-weight: 900; line-height: 1.2; white-space: pre-line; text-shadow: 0 2px 0 #fff, 0 0 10px rgba(255,255,255,.8); }
+  .cx-phone .sub { position: absolute; left: 6%; right: 6%; bottom: 17%; font-size: 10px; border-radius: 8px; padding: 4px 6px; text-align: center; line-height: 1.4; }
+  .cx-track { display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 6px; height: 21px; font-size: 12px; color: var(--muted); }
+  .cx-lane { position: relative; height: 13px; background: var(--card); border-radius: 4px; }
+  .cx-ev { position: absolute; top: 1px; height: 11px; border-radius: 3px; min-width: 6px; }
+  .cx-ev.pt { width: 6px; height: 6px; top: 3.5px; border-radius: 50%; margin-left: -3px; }
+  .cx-tl { position: relative; }
+  .cx-ph { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); pointer-events: none; }
+  .cx-scrub { display: grid; grid-template-columns: 34px 1fr; gap: 6px; }
+  .cx-scrub input { width: 100%; accent-color: var(--ink); padding: 0; border: 0; }
+  .cx-plan { margin: 8px 0 0; padding: 0; list-style: none; font-size: 13px; max-height: 190px; overflow: auto; }
+  .cx-plan li { padding: 3px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 40px 1fr; gap: 6px; }
+  .cx-plan time { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cx-rlayout { display: block; }
+  .cx-rlist { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin: 0 0 14px; }
+  .cx-rlist .r { flex: 0 1 230px; text-align: left; border: 2px solid var(--line); background: var(--card); border-radius: 16px; padding: 10px 14px; cursor: pointer; display: block; }
+  .cx-rlist .cx-side { flex: 1 1 260px; display: flex; flex-direction: column; justify-content: center; }
+  .cx-rlist .cx-side p { margin: 4px 0 0; }
+  .cx-rlist .r[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .cx-rlist .r span { display: block; font-size: 13px; color: var(--muted); }
+  .cx-new { display: flex; gap: 6px; margin-top: 4px; }
+  .cx-new input { flex: 1; min-width: 0; }
+  .cx-changes { margin: 10px 0 0; padding: 10px 14px; background: var(--bg); border-radius: 14px; }
+  .cx-changes ul { margin: 4px 0 8px; padding-left: 20px; }
+  @media (prefers-reduced-motion: reduce) { .cx-phone .base { transition: none; } }
 </style>
 </head>
 <body>
@@ -340,13 +436,13 @@
     <div class="logo"><span class="dot">▶</span>Reels Studio 控制台</div>
     <nav role="tablist">
       <button role="tab" data-tab="make" aria-selected="true">🎬 做影片</button>
-      <button role="tab" data-tab="brand">🎨 風格</button>
+      <button role="tab" data-tab="brand" data-also="recipe">⚙️ 設定</button>
       <button role="tab" data-tab="faq">❓ 常見問題</button>
     </nav>
     <div class="right">
       <div class="ctx">
         <button class="chfolder" id="chfolder" hidden>📁&nbsp;<span id="chfolder-name"></span></button>
-        <label class="chpick" title="做影片和風格分頁都用這個風格">目前風格<select id="chpick"></select></label>
+        <label class="chpick" title="做影片和設定都用這個風格">風格<select id="chpick"></select></label>
       </div>
       <button class="btn ghost small" id="quit" title="關掉這個控制台（之後可以從桌面捷徑再打開）">關閉</button>
     </div>
@@ -362,10 +458,11 @@
     <h1>嗨，歡迎使用 Reels Studio 👋</h1>
     <p class="lead">把錄音、影片或一個想法，做成有字幕和插圖的直式短影音。聽打、剪片、寫文案交給 Claude；這個控制台幫你設定風格、選片段、看成品。</p>
     <ol class="welcome-steps">
-      <li><b>🎨 決定影片風格</b><span>只用這一次、固定成一套風格，或跟 Claude 聊聊再決定，三條路都可以。「風格」分頁最上面的路線圖會帶你走。</span></li>
-      <li><b>🎬 選素材資料夾</b><span>放錄音或影片的資料夾。控制台會告訴你做到哪一步。</span></li>
-      <li><b>💬 複製一句話給 Claude</b><span>貼到 Claude 桌面 App，它就會接著做。做好的影片和文案回到這裡看。</span></li>
+      <li><b>🎬 選素材資料夾</b><span>放錄音或影片的資料夾。還沒錄也沒關係，Claude 可以先幫你寫稿。</span></li>
+      <li><b>💬 複製一句話給 Claude</b><span>貼到 Claude 桌面 App，它就會接著做。控制台會告訴你現在做到哪一步。</span></li>
+      <li><b>👀 回來看成品</b><span>剪好的影片和文案都在這裡看。哪裡想改，點一下就能請 Claude 重剪。</span></li>
     </ol>
+    <p class="muted small">影片的長相（風格）和剪法都有預設，不用先設定就能做。想調的話，隨時到上面的「設定」。</p>
     <div class="actions" id="welcome-actions"></div>
   </div>
 </section>
@@ -391,15 +488,33 @@
   <div id="w-body"></div>
   <div class="card">
     <details id="m-generic"><summary>還沒有素材，或想直接跟 Claude 說？</summary>
-      <p class="muted small">在 Claude 桌面 App 開新對話時選素材所在的資料夾，再貼上句子。複製時會自動加上右上角的目前風格。只有想法、還沒錄音的話，先開一個空資料夾，用第三句請 Claude 寫稿。</p>
+      <p class="muted small">在 Claude 桌面 App 開新對話時選素材所在的資料夾，再貼上句子。複製時會自動加上右上角的風格。只有想法、還沒錄音的話，先開一個空資料夾，用第三句請 Claude 寫稿。</p>
       <table class="phrases" id="phrases"></table>
     </details>
   </div>
 </section>
 
+<!-- ============ 剪法 ============ -->
+<section id="tab-recipe" hidden>
+  <h1>設定</h1>
+  <div class="subtabs" role="tablist" aria-label="設定">
+    <button type="button" role="tab" data-sub="brand"><b>🎨 風格</b><span>影片看起來怎樣：配色、字型、版面</span></button>
+    <button type="button" role="tab" data-sub="recipe"><b>✂️ 剪法</b><span>Claude 怎麼剪：節奏、推近、字卡</span></button>
+  </div>
+  <p class="lead">決定 Claude 剪片時節奏多快、多常推近、放多少字卡。不想管可以跳過：控制台會看素材自己判斷，用「預設」剪法。同一個剪法可以搭配不同的風格。</p>
+  <div class="cx-rlayout">
+    <div class="cx-rlist" id="cx-rlist"></div>
+    <div class="card" id="cx-redit"></div>
+  </div>
+</section>
+
 <!-- ============ 風格 ============ -->
 <section id="tab-brand" hidden>
-  <h1>風格</h1>
+  <h1>設定</h1>
+  <div class="subtabs" role="tablist" aria-label="設定">
+    <button type="button" role="tab" data-sub="brand"><b>🎨 風格</b><span>影片看起來怎樣：配色、字型、版面</span></button>
+    <button type="button" role="tab" data-sub="recipe"><b>✂️ 剪法</b><span>Claude 怎麼剪：節奏、推近、字卡</span></button>
+  </div>
   <p class="lead">影片的版面風格、配色、字型、結尾卡，以及 Claude 寫文案時要遵守的語氣。設定一次，之後每支影片都會套用。</p>
   <details class="card routemap" id="routemap" hidden>
     <summary><h2>🧭 風格路線圖</h2><span class="toggle"><span class="opened">收起</span><span class="closed">展開看三條路</span></span></summary>
@@ -409,7 +524,7 @@
   </details>
   <div class="card" id="brandpick-card">
     <div class="folderbar" style="align-items:center" id="brandpick-row">
-      <div style="flex:1;min-width:240px">正在設定：<b id="brandpick-name"></b><div class="muted small">要設定別的風格，用右上角的「目前風格」切換。</div></div>
+      <div style="flex:1;min-width:240px">正在設定：<b id="brandpick-name"></b><div class="muted small">要設定別的風格，用右上角的「風格」切換。</div></div>
       <button class="btn ghost" id="nb-open">＋ 新增風格</button>
       <button class="btn ghost" id="db-open">刪除這個風格</button>
     </div>
@@ -446,28 +561,16 @@
           <p class="muted small" style="margin:6px 0 0">從上面選的風格出發，只換你想換的那幾項。</p>
           <div class="row2" id="style-parts"></div></details>
         <div id="free-box" hidden>
-          <p class="muted small" style="margin:12px 0 0">自由創作時，標題、字幕、背景、裝飾和轉場都由剪輯師照這裡設計，每支可以不一樣。配色、字型和下面的「開頭標題卡」「版面規則」照樣會套用。樣張只是備用的樣子，不代表成品。</p>
+          <p class="muted small" style="margin:12px 0 0">自由創作時，標題、字幕、背景、裝飾和轉場都由剪輯師照這裡設計，每支可以不一樣。配色、字型、下面的「版面規則」和剪法照樣會套用。樣張只是備用的樣子，不代表成品。</p>
           <div id="free-fields"></div>
         </div>
       </div>
 
       <div class="card">
-        <h2>開頭標題卡</h2>
-        <p class="muted small" style="margin:0">影片最前面 2–3 秒的問句標題，用來抓住滑過去的人。</p>
-        <div class="icons" style="margin-top:10px">
-          <label><input type="checkbox" id="l-title_card"> 影片開頭放標題卡</label>
-        </div>
-        <div id="title-opts">
-          <label class="f" id="title-style-row">樣式<select data-part="title" id="t-style"></select></label>
-          <p class="muted small" id="title-free-note" style="margin:6px 0 0" hidden>自由創作時，標題卡的樣子由剪輯師每支設計；背景照下面的選擇。</p>
-          <label class="f">背景</label>
-          <div class="icons">
-            <label><input type="radio" name="title_bg" value="paper"> 跟影片一樣的背景</label>
-            <label><input type="radio" name="title_bg" value="photo"> 免費圖庫的照片（Pexels／Unsplash）</label>
-          </div>
-          <p class="muted small" id="title-photo-note" style="margin:6px 0 0" hidden></p>
-        </div>
-        <p class="muted small" id="title-off-note" style="margin:6px 0 0" hidden>關掉時，開場會直接進畫面，鉤子改用第一句字幕或剪輯師設計的開場。</p>
+        <h2>開頭標題卡的樣子</h2>
+        <p class="muted small" style="margin:0">影片最前面 2–3 秒的問句標題長什麼樣子。要不要放標題卡、背景要不要用圖庫照片，搬到了<button type="button" class="linklike" data-go-recipe="cards">剪法的「字卡」</button>。</p>
+        <label class="f" id="title-style-row">樣式<select data-part="title" id="t-style"></select></label>
+        <p class="muted small" id="title-free-note" style="margin:6px 0 0" hidden>自由創作時，標題卡的樣子由剪輯師每支設計。</p>
       </div>
 
       <div class="card">
@@ -481,8 +584,7 @@
           <label class="f">字幕位置<select id="l-subtitle_pos"><option value="low">下方（原本）</option><option value="middle">畫面中間</option></select></label>
           <label class="f">字幕大小<select id="l-subtitle_size"><option value="s">小（每行 13 字內）</option><option value="m">中（每行 12 字內，原本）</option><option value="l">大（每行 10 字內）</option></select></label>
         </div>
-        <label class="f">節奏<select id="l-pace"><option value="fast">快：每 2–3 秒換畫面</option><option value="medium">中：每 3–4 秒（原本）</option><option value="slow">慢：每 4–6 秒，留白多</option></select></label>
-        <p class="muted small" style="margin:6px 0 0">關掉結尾卡時，影片在最後一句話說完後結束。</p>
+        <p class="muted small" style="margin:6px 0 0">關掉結尾卡時，影片在最後一句話說完後結束。節奏搬到了<button type="button" class="linklike" data-go-recipe="craft">剪法的「節奏和推近」</button>。</p>
       </div>
 
       <div class="card">
@@ -639,7 +741,7 @@
     <details><summary>只想讓這一支換個感覺，不想改風格</summary>
       <p>把想要的感覺直接寫在要複製的那句話裡，例如「這次想要深色、慢慢浮現的大字」，或點那句話下面的「只用這一次，不用設定風格」。只會套用在這一支。</p></details>
     <details><summary>我有好幾個頻道或帳號</summary>
-      <p>每個帳號建一套風格：到「風格」按「＋ 新增風格」。做影片時用右上角的「目前風格」選要用哪一套，打開的資料夾會記住，下次自動套用。</p>
+      <p>每個帳號建一套風格：到「設定 → 風格」按「＋ 新增風格」。做影片時用右上角的「風格」選要用哪一套，打開的資料夾會記住，下次自動套用。</p>
       <button class="btn ghost small" data-go="new">新增風格</button></details>
     <details><summary>「自由創作」和「快速套版」差在哪裡？</summary>
       <p>快速套版選了就固定是那個樣子，樣張看到的就是成品的樣子。自由創作不套版：你用文字描述想要的感覺，Claude 每支自己設計標題、字幕和畫面，比較不會跟別人撞款；樣張只看得出配色和字型，實際樣子要等剪出第一支。</p></details>
@@ -734,26 +836,31 @@ const copyBtn = (text, label = "複製") => h("button", { class: "btn ghost smal
 function showTab(name) {
   if (name === "home" || name === "works") name = "make";          // old links / bookmarks
   if (name !== "welcome" && S && !S.welcomed) { S.welcomed = true; api("/api/welcomed").catch(() => {}); }
-  document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
+  if (name === "brand" || name === "recipe") setTab = name;          // 設定 reopens where you left it
+  document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name || b.dataset.also === name));
+  document.querySelectorAll(".subtabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.sub === name));
   document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "tab-" + name);
   if (name === "brand") loadFonts();
+  if (name === "recipe") renderRecipeTab();
   syncSavebar();
   if (name === "make" && !$("#w-body").childElementCount && S && S.recent.length) loadProject(S.recent[0]);
   window.scrollTo(0, 0);
   if (name === "brand") headerHeight();
 }
-document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+let setTab = "brand";
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.also ? setTab : b.dataset.tab)));
+document.querySelectorAll(".subtabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.sub)));
 $("#chfolder").addEventListener("click", () => showTab("make"));
 
 // ---------------- data ----------------
 let S = null;          // /api/state
 let cur = null;        // current brand object from the server
 let dirty = false;
-const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色", night: "深夜藍（深色）", cocoa: "可可深棕（深色）", leaf: "植葉米白（植物手帳）", tech: "冷白＋電光藍（科技明亮）", film: "暗夜膠卷（電影質感，深色）",
+const PAL_NAMES = { cream: "奶油暖橘", mint: "清新薄荷", sky: "晴空藍", blush: "蜜桃粉", mono: "極簡＋亮色", night: "深夜藍（深色）", cocoa: "可可深棕（深色）", leaf: "植葉米白（植物手帳）", tech: "冷白＋電光藍（科技明亮）", film: "暗夜膠卷（電影質感，深色）", memo: "奶油便利貼（便利貼牆）",
   berry: "漿果紅＋湖藍", rouge: "胭脂粉＋墨黑（深色）", violet: "霓堇紫＋櫻粉", periwinkle: "長春花藍＋可可棕", nude: "裸桃粉＋苔青", fuchsia: "桃緋粉＋薄荷青", pine: "淺松色＋艾草青", persimmon: "柿橙＋蜜金", wine: "酒紅＋芥末黃", midnight: "午夜藍＋珊瑚橘（深色）", forest: "森林綠＋蜜桃粉", klein: "克萊因藍＋檸檬黃", lavender: "薰衣草紫＋橄欖綠", tomato: "番茄紅＋奶油白", peacock: "孔雀綠＋杏桃橘", berrylime: "莓果紫＋萊姆綠", caramel: "焦糖棕＋霧藍", navy: "海軍藍＋向日葵黃（深色）", rosewood: "玫瑰粉＋墨綠（深色）", brick: "天空藍＋磚紅", matcha: "抹茶綠＋葡萄紫", milktea: "奶茶色＋靛青", electric: "活力橘＋電光藍", dusty: "灰粉＋鐵灰" };
 // 配色的大方向；reels_lib 之後新增、這裡還沒分到的配色，會先放在第一組
 const PAL_GROUPS = [
-  { name: "溫暖柔和", desc: "米色底、暖色系，溫柔耐看", keys: ["cream", "blush", "leaf", "nude", "persimmon", "wine", "milktea", "caramel", "dusty"] },
+  { name: "溫暖柔和", desc: "米色底、暖色系，溫柔耐看", keys: ["cream", "blush", "memo", "leaf", "nude", "persimmon", "wine", "milktea", "caramel", "dusty"] },
   { name: "清新冷調", desc: "藍綠紫為主，乾淨清爽", keys: ["mint", "sky", "tech", "pine", "forest", "lavender", "matcha", "periwinkle", "peacock"] },
   { name: "大膽撞色", desc: "對比強，一眼抓住目光", keys: ["mono", "berry", "violet", "fuchsia", "klein", "tomato", "berrylime", "brick", "electric"] },
   { name: "深色背景", desc: "深底亮字，夜晚感、有質感", fan: "bg", keys: ["night", "cocoa", "film", "rouge", "midnight", "navy", "rosewood"] },
@@ -811,9 +918,8 @@ async function refresh() {
 function renderWelcome() {
   const hasBrand = S.brands.some(b => b.exists);
   $("#welcome-actions").replaceChildren(
-    hasBrand ? h("button", { class: "btn", onclick: () => showTab("make") }, "開始做影片")
-             : h("button", { class: "btn", onclick: openMap }, "先看風格路線圖，選一條路"),
-    h("button", { class: "btn ghost", onclick: () => showTab(hasBrand ? "brand" : "make") }, hasBrand ? "看風格" : "先看看做影片"));
+    h("button", { class: "btn", onclick: () => showTab("make") }, "開始做影片"),
+    h("button", { class: "btn ghost", onclick: () => hasBrand ? showTab("brand") : openMap() }, hasBrand ? "看設定" : "先設定影片長相"));
 }
 const PHRASES = [
   ["一段很長的錄音或影片（Podcast、訪談、講座、直播）", "幫我把這個檔案做成 3 支 reels", "會先聽打、挑精華讓你選，再開始剪"],
@@ -853,7 +959,7 @@ function renderRouteMap() {
   $("#m-maphint").replaceChildren(...any
     ? [`目前用「${(S.brands.find(x => x.dir === S.current && x.exists) || S.brands.find(x => x.exists)).brand.name}」風格。這次想換個感覺，寫在要複製的那句話裡就好；想多一套固定的風格，`,
        h("button", { class: "maplink", onclick: openMap }, "新增風格"), "。"]
-    : ["還沒決定影片要長什麼樣子？先看 ", h("button", { class: "maplink", onclick: openMap }, "風格路線圖"), "，三條路選一條。"]);
+    : ["還沒設定風格也可以直接做，會先用預設的樣子。想先決定影片長相，看 ", h("button", { class: "maplink", onclick: openMap }, "風格路線圖"), "。"]);
   if (!show) return;
 
   // where you are + the one next step
@@ -882,7 +988,7 @@ function renderRouteMap() {
       station("", 2, "在要複製的那句話寫下想要的感覺", "例如「這次想要深色、慢慢浮現的大字」"),
       station("", 3, "貼給 Claude", "這次的感覺只套用在這支，不會存成風格"),
     ], [h("button", { class: "btn a", onclick: () => { leaveNewMode(); showTab("make"); } }, "去做影片")],
-      `配色和字型會用右上角的目前風格${any ? "" : "（還沒設定的話用預設的樣子）"}。點那句話下面的「${ONE_OFF}」，Claude 就不會先問設定的問題。`),
+      `配色和字型會用右上角的風格${any ? "" : "（還沒設定的話用預設的樣子）"}。點那句話下面的「${ONE_OFF}」，Claude 就不會先問設定的問題。`),
     route("b", "固定成一套風格", "頻道有自己的調性，設定一次，之後每支都套用。", newMode ? [
       station("", 1, "在下面取名字，按「建立」", "可以沿用現有風格的配色和字型"),
       station("", 2, "選版面風格、配色、字型，按「儲存設定」", "不確定就先選「自由創作」，用一句話描述感覺"),
@@ -896,16 +1002,16 @@ function renderRouteMap() {
     route("c", "跟 Claude 聊聊再決定", "有想法但說不清楚，或不知道怎麼選，交給 Claude 一起想。", [
       station("", 1, "複製下面這句話，貼給 Claude", "不用選資料夾，開一個新對話就好"),
       station("", 2, "跟 Claude 聊你的頻道和想要的感覺", "它會問觀眾、語氣、喜歡的帳號，提出幾個方向，出樣張給你看"),
-      station("", 3, "回到這裡按「Claude 設定好了」", "再用右上角的「目前風格」選它"),
+      station("", 3, "回到這裡按「Claude 設定好了」", "再用右上角的「風格」選它"),
     ], [h("button", { class: "btn ghost small", onclick: async () => {
           if (dirty && !confirm("風格有還沒儲存的修改，重新讀取後這些修改會不見。要繼續嗎？")) return;
-          try { leaveNewMode(); await refresh(); toast("已重新讀取，在右上角的「目前風格」選它"); } catch (err) { toast(err.message); } } }, "Claude 設定好了")],
+          try { leaveNewMode(); await refresh(); toast("已重新讀取，在右上角的「風格」選它"); } catch (err) { toast(err.message); } } }, "Claude 設定好了")],
       h("div", { class: "sayrow" }, h("div", { class: "saybox" }, discuss),
         h("button", { class: "btn c", onclick: () => copy(discuss) }, "複製這句話"))));
 }
 
 // ---------------- brand form ----------------
-const brandLabel = b => `${b.exists ? b.brand.name : "（還沒設定）"}${b.folder === "my-brand" ? "（預設）" : ""}`;
+const brandLabel = b => b.exists ? `${b.brand.name}${b.folder === "my-brand" ? "（預設）" : ""}` : "預設樣子";
 // The console takes its colours and font from the current style's saved settings, toned down so the page stays light and readable
 const hexRgb = x => { x = String(x || "").replace("#", ""); if (x.length === 3) x = [...x].map(c => c + c).join("");
   return [0, 2, 4].map(i => parseInt(x.slice(i, i + 2), 16) || 0); };
@@ -1005,7 +1111,7 @@ $("#nb-create").addEventListener("click", async () => {
     fillBrand(S.brands.find(b => b.dir === r.brand.dir));
     newChannelMode(false);
     $("#pv-msg").replaceChildren(h("div", { class: "note ok" }, h("b", { class: "t" }, `已建立「${name}」✓`),
-      "接著在下面選版面風格、配色、字型，填寫給 Claude 看的說明，最後按「儲存設定」。要用這個風格剪片時，在右上角的「目前風格」選它就好。"));
+      "接著在下面選版面風格、配色、字型，填寫給 Claude 看的說明，最後按「儲存設定」。要用這個風格剪片時，在右上角的「風格」選它就好。"));
     toast("新風格建立好了");
   } catch (err) { toast(err.message); }
   btn.disabled = false; btn.textContent = "建立";
@@ -1100,15 +1206,16 @@ const PRESET_INFO = {
   botanical: ["植物手帳", "米白紙＋手繪蕨葉、細框字幕、宋體標題、磚紅重點底線、深綠結尾"],
   tech:     ["科技明亮", "冷白點陣＋光暈、發光面板標題＋框角、霧白字幕卡、電光藍重點、俐落動畫"],
   cinema:   ["電影質感", "深色畫面＋上下黑邊、暗角和底片顆粒、寬字距標題、電影字幕、緩慢淡入、片尾名單結尾"],
+  memo:     ["便利貼牆", "米色紙＋粉彩便利貼和紙膠帶、宋體大字、珊瑚紅重點、黃色便利貼重點句"],
   free:     ["自由創作", "不套版：你描述想要的感覺，剪輯師每支自己設計標題、字幕、背景和轉場"],
 };
 const PART_INFO = {
-  subtitle: ["字幕", { box: "白色框（原本）", outline: "描邊大字、沒有框", pill: "每行一條白色膠囊", dark: "深色半透明框", frame: "白底細線框", glass: "霧白卡＋左側色條", film: "電影字幕：沒有框、淡淡的陰影" }],
-  title: ["開頭標題卡", { note: "膠帶便條紙（原本）", bold: "滿版大字、沒有卡片", line: "細框卡＋側邊色條", magazine: "斜斜的色塊帶", leaf: "大字直接放背景＋葉子分隔線", hud: "發光面板＋四個框角＋閃爍游標", cinema: "寬字距大字＋細金線、慢慢淡入" }],
-  background: ["背景與裝飾", { blobs: "手繪色塊＋星光（原本）", plain: "乾淨純色", grid: "方格筆記紙", gradient: "柔和漸層光暈", leaves: "手繪蕨葉", tech: "點陣＋光暈＋線路", film: "暗角＋底片顆粒＋上下黑邊" }],
+  subtitle: ["字幕", { box: "白色框（原本）", outline: "描邊大字、沒有框", pill: "每行一條白色膠囊", dark: "深色半透明框", frame: "白底細線框", glass: "霧白卡＋左側色條", film: "電影字幕：沒有框、淡淡的陰影", sticky: "粉彩便利貼＋紙膠帶，微微歪斜" }],
+  title: ["開頭標題卡", { note: "膠帶便條紙（原本）", bold: "滿版大字、沒有卡片", line: "細框卡＋側邊色條", magazine: "斜斜的色塊帶", leaf: "大字直接放背景＋葉子分隔線", hud: "發光面板＋四個框角＋閃爍游標", cinema: "寬字距大字＋細金線、慢慢淡入", pinboard: "大字直接放背景＋紙膠帶貼住的黃色便利貼" }],
+  background: ["背景與裝飾", { blobs: "手繪色塊＋星光（原本）", plain: "乾淨純色", grid: "方格筆記紙", gradient: "柔和漸層光暈", leaves: "手繪蕨葉", tech: "點陣＋光暈＋線路", film: "暗角＋底片顆粒＋上下黑邊", notes: "米色紙紋＋角落一張便利貼" }],
   line: ["插圖線條", { bold: "粗墨線（原本）", thin: "細線", soft: "淡淡的細線" }],
   motion: ["動畫", { bouncy: "活潑彈跳（原本）", snappy: "俐落、輕微回彈", gentle: "柔和、不彈跳" }],
-  end: ["結尾卡", { classic: "大圖示＋按鈕（原本）", minimal: "極簡：大字＋外框按鈕", card: "名片卡", deep: "整頁深色＋圓形圖示", hud: "發光圖示框＋實心按鈕", credits: "電影片尾：深色、寬字距、金色外框按鈕" }],
+  end: ["結尾卡", { classic: "大圖示＋按鈕（原本）", minimal: "極簡：大字＋外框按鈕", card: "名片卡", deep: "整頁深色＋圓形圖示", hud: "發光圖示框＋實心按鈕", credits: "電影片尾：深色、寬字距、金色外框按鈕", pinned: "膠帶貼住的便利貼圖示＋實心按鈕" }],
 };
 function resolveStyle(s) {
   s = s || {};
@@ -1130,13 +1237,15 @@ function presetMock(key) {           // a tiny drawing of the look in the curren
                gradient: `radial-gradient(circle at 80% 20%, ${p.highlight}66, transparent 55%), linear-gradient(${p.bg}, ${p.peach})`,
                leaves: `radial-gradient(ellipse 18% 8% at 92% 10%, ${p.sage} 0 60%, transparent 62%), radial-gradient(ellipse 16% 7% at 6% 62%, ${p.sage} 0 60%, transparent 62%), radial-gradient(ellipse 10% 5% at 12% 18%, ${p.accent}88 0 60%, transparent 62%), ${p.bg}`,
                tech: `radial-gradient(circle, ${p.ink}22 1px, transparent 1.5px) 0 0/9px 9px, radial-gradient(circle at 85% 15%, ${p.accent}33, transparent 45%), radial-gradient(circle at 10% 90%, ${p.highlight}44, transparent 50%), ${p.bg}`,
-               film: `linear-gradient(#000 0 14%, transparent 14% 86%, #000 86%), radial-gradient(ellipse at 50% 50%, transparent 40%, #0009 100%), radial-gradient(circle at 70% 30%, ${p.accent}30, transparent 55%), ${p.bg}` }[st.background];
+               film: `linear-gradient(#000 0 14%, transparent 14% 86%, #000 86%), radial-gradient(ellipse at 50% 50%, transparent 40%, #0009 100%), radial-gradient(circle at 70% 30%, ${p.accent}30, transparent 55%), ${p.bg}`,
+               notes: `linear-gradient(6deg, transparent 0 80%, ${p.sage}aa 80% 92%, transparent 92%) 100% 0/40% 30% no-repeat, ${p.bg}` }[st.background];
   const sub = { box: `background:#fff;border:2px solid ${p.ink};border-radius:6px`,
                 outline: `background:transparent;color:#fff;-webkit-text-stroke:3px ${p.ink};paint-order:stroke fill;font-size:13px`,
                 pill: `background:#fff;border-radius:99px;box-shadow:0 1px 4px ${p.ink}40`, dark: `background:${p.ink};color:#fff;border-radius:5px`,
                 frame: `background:#fff;border:1px solid ${p.ink};border-radius:4px`,
                 glass: `background:#fffffff0;border:1px solid ${p.accent}88;border-left:4px solid ${p.accent};border-radius:6px;box-shadow:0 2px 8px ${p.accent}40`,
-                film: `background:transparent;color:${p.fg || "#fff"};text-shadow:0 1px 3px #000;letter-spacing:2px;font-weight:500;bottom:16px` }[st.subtitle];
+                film: `background:transparent;color:${p.fg || "#fff"};text-shadow:0 1px 3px #000;letter-spacing:2px;font-weight:500;bottom:16px`,
+                sticky: `background:${p.highlight}99;border-radius:2px;transform:translateX(-50%) rotate(-1.5deg);box-shadow:0 3px 6px ${p.ink}30` }[st.subtitle];
   const txtCol = "";
   return h("div", { class: "mock", style: `background:${bg}` },
     h("span", { style: `position:absolute;left:50%;bottom:7px;transform:translateX(-50%);font-size:11px;padding:1px 8px;white-space:nowrap;font-weight:700;${sub};${txtCol}` }, "字幕長這樣"));
@@ -1160,7 +1269,8 @@ function renderStyle(style) {
 // presets drawn after one particular look: picking them also picks its palette and (if installed) its font
 const PRESET_LOOK = { botanical: { palette: "leaf", fonts: ["Noto Serif TC", "思源宋體"], weight: 700 },
   tech: { palette: "tech", fonts: ["Noto Sans TC", "思源黑體", "Microsoft JhengHei", "微軟正黑體"], weight: 700 },
-  cinema: { palette: "film", fonts: ["Noto Serif TC", "思源宋體"], weight: 600 } };
+  cinema: { palette: "film", fonts: ["Noto Serif TC", "思源宋體"], weight: 600 },
+  memo: { palette: "memo", fonts: ["Noto Serif TC", "思源宋體"], weight: 700 } };
 // the palette / font the channel had before a look preset swapped them in, so leaving that preset puts them back
 let lookPrev = null;
 const LOOK_PALETTES = Object.values(PRESET_LOOK).map(l => l.palette);
@@ -1196,38 +1306,27 @@ function showFreeBox() {             // free style: the description fields inste
   $("#free-box").hidden = !free; $("#style-d").hidden = free;
   syncTitleBox();
 }
-// 開頭標題卡: its own card (on/off, look, background); the look is still style.title in brand.json
+// 開頭標題卡的樣子 (style.title); whether there is a title card and its background are in 剪法
 function syncTitleBox() {
-  const on = $("#l-title_card").checked, free = collectStyle().preset === "free";
-  $("#title-opts").hidden = !on; $("#title-off-note").hidden = on;
+  const free = collectStyle().preset === "free";
   $("#title-style-row").hidden = free; $("#title-free-note").hidden = !free;
-  const photo = (document.querySelector("input[name=title_bg]:checked") || {}).value === "photo";
-  const k = S.stock_keys || {}, note = $("#title-photo-note");
-  note.hidden = !photo;
-  note.textContent = k.pexels || k.unsplash
-    ? `剪輯師會照每支的標題找一張合適的照片（會用 ${[k.pexels && "Pexels", k.unsplash && "Unsplash"].filter(Boolean).join(" 和 ")}），樣張裡的照片只是示意。${k.unsplash ? "用了 Unsplash 的照片，發文時要標註攝影師，發文包會幫你寫好。" : ""}`
-    : "這台電腦還沒有設定 Pexels 或 Unsplash 金鑰，剪片時會先用一般背景。設定方法在「常見問題 → 想用實拍照片，但安裝時跳過了金鑰」。";
 }
-const LAYOUT_BOOL = ["title_card", "end_card", "top_tag"], LAYOUT_SEL = ["subtitle_pos", "subtitle_size", "pace"];
+const LAYOUT_BOOL = ["end_card", "top_tag"], LAYOUT_SEL = ["subtitle_pos", "subtitle_size"];   // pace and the title card are in 剪法
 function fillLayout(l) {
   l = Object.assign({}, S.layout_defaults, l || {});
   for (const k of LAYOUT_BOOL) $("#l-" + k).checked = !!l[k];
   for (const k of LAYOUT_SEL) $("#l-" + k).value = l[k];
-  document.querySelectorAll("input[name=title_bg]").forEach(x => x.checked = x.value === (l.title_bg || "paper"));
   syncTitleBox();
 }
 function collectLayout() {
   const out = {};
   for (const k of LAYOUT_BOOL) out[k] = $("#l-" + k).checked;
   for (const k of LAYOUT_SEL) out[k] = $("#l-" + k).value;
-  out.title_bg = (document.querySelector("input[name=title_bg]:checked") || {}).value || "paper";
   return out;
 }
 // the preview shows the tag, subtitle and end card, so redraw it when those change (pace is not visible)
-["title_card", "end_card", "top_tag", "subtitle_pos", "subtitle_size"].forEach(k =>
+["end_card", "top_tag", "subtitle_pos", "subtitle_size"].forEach(k =>
   $("#l-" + k).addEventListener("change", () => { markDirty(); runPreview(false); }));
-[$("#l-title_card"), ...document.querySelectorAll("input[name=title_bg]")].forEach(x => x.addEventListener("change", syncTitleBox));
-document.querySelectorAll("input[name=title_bg]").forEach(x => x.addEventListener("change", () => { markDirty(); runPreview(false); }));
 $("#t-style").addEventListener("change", () => { markDirty(); runPreview(false); });
 function fillParts(values) {
   const box = $("#style-parts"); box.replaceChildren();
@@ -1502,7 +1601,7 @@ function nextStep(r) {
   const left = confirmed.filter(x => !cut.has(x.n));
   if (left.length) return [`還有 ${left.length} 段選好了但還沒剪。`, CUT_PICKED, "videos"];
   if (!r.clips.length) return ["", "幫我剪 reels", "videos"];
-  if (!step("captions").done) return ["影片好了！先在下面看過影片，接著寫貼文文案。", "幫我寫文案", "captions"];
+  if (!step("captions").done) return ["影片看過了，接著寫貼文文案。", "幫我寫文案", "captions"];
   if (!step("pack").done) return ["最後一步：整理成發文包（封面、文案、發文清單）。", "幫我整理發文包", "pack"];
   return null;
 }
@@ -1514,7 +1613,8 @@ function projectBrand(r) {           // the channel this folder uses: its saved 
     || S.brands.find(b => b.folder === "my-brand" && b.exists) || brands[0];
 }
 // the copied sentence carries the folder and channel, so it works however the Claude chat was opened
-const contextOf = r => { const b = projectBrand(r); return `（素材資料夾：${r.folder}${b ? `；風格：${b.brand.name}` : ""}）`; };
+const contextOf = r => { const b = projectBrand(r), cut = r.cut && r.cut.recipe_used;
+  return `（素材資料夾：${r.folder}${b ? `；風格：${b.brand.name}` : ""}${cut ? `；剪法：${cut}` : ""}）`; };
 
 function howToBox(r, next) {
   // the suggested sentence is only a start: people can write what they want, the folder + channel part stays fixed
@@ -1528,6 +1628,7 @@ function howToBox(r, next) {
   const wishes = ["transcript", "picks", "videos"].includes(next[2])
     ? h("div", { class: "chiplist", style: "margin-top:6px" }, h("span", { class: "muted small", style: "align-self:center" }, "常用的要求，點一下加進去："),
         WISH_CHIPS.map(c => h("button", { type: "button", class: "chip", onclick: () => {
+          if (c === PACE_CHIP && S.cut && r.cut) { paceUp(r); return; }
           const v = ta.value.trim().replace(/[。.]$/, "");
           if (!v.includes(c)) ta.value = v + (v ? "，" : "") + c;
           ta.focus(); } }, c)))
@@ -1566,7 +1667,7 @@ function howToBox(r, next) {
       toast("先把「在這裡寫你想講的事」換成你的主題"); ta.focus();
       const i = ta.value.indexOf(TOPIC_HOLE); ta.setSelectionRange(i, i + TOPIC_HOLE.length); return;
     }
-    copy(say + ctx);
+    copy(say + contextOf(r));         // read now: the 剪法 may have changed since this box was drawn
   } }, "複製這句話");
   return h("div", { class: "note ok" }, h("b", { class: "t" }, "現在要做的事"), next[0] ? h("div", {}, next[0]) : "",
     h("ol", { class: "howto" },
@@ -1580,10 +1681,20 @@ function howToBox(r, next) {
         ta, files, wishes,
         h("div", { class: "muted small ctxline" }, "複製時會自動加在後面：", h("span", {}, ctx)),
         h("div", { class: "actions", style: "margin-top:6px" }, copyIt, reset))),
-    h("div", { class: "muted small" }, "資料夾和風格會自動帶上，Claude 會直接照著做，你不用再另外說明。"));
+    h("div", { class: "muted small" }, "資料夾、風格和剪法會自動帶上，Claude 會直接照著做，你不用再另外說明。"));
 }
 
-const WISH_CHIPS = [ONE_OFF, "不要露臉，只用插圖", "節奏快一點", "字幕大一點", "多用實拍照片", "不用實拍照片，全部用插圖", "影片短一點（30 秒內）"];
+const PACE_CHIP = "節奏快一點";
+// 節奏 lives in 剪法: the chip changes this folder's pace there, so there is one place that decides it
+async function paceUp(r) {
+  const c = curCut && curCut.r === r ? curCut : cxFolderCtx(r);
+  const from = cxVal(c, "pace"), to = { slow: "medium", medium: "fast", fast: "fast" }[from];
+  if (from === to) { toast("節奏已經是最快了"); return; }
+  if (cxSame(to, c.below("pace"))) delete c.own.over.pace; else c.own.over.pace = to;
+  try { await c.save(); toast(`這個資料夾的節奏改成「${cxDesc("pace", to)}」了（在剪法裡）`); if (c === curCut) cxRender(c); }
+  catch (err) { toast(err.message); }
+}
+const WISH_CHIPS = [ONE_OFF, "不要露臉，只用插圖", PACE_CHIP, "字幕大一點", "多用實拍照片", "不用實拍照片，全部用插圖", "影片短一點（30 秒內）"];
 
 function oldWishes(r) {               // what an older panel saved in this folder; Claude still follows it, so show it and allow clearing
   const p = r.project || {};
@@ -1660,10 +1771,12 @@ async function loadProject(path) {
   const picks = picksCard(r);
   const steps = h("ol", { class: "steps" }, r.steps.map(s => {
     const isCur = s.key === curKey;
-    const label = r.cards && s.key === "source" ? s.label : STEP_LABELS[s.key] || s.label;
+    const gate = isCur && s.key === "captions" && needsLook(r);       // just cut: watch first, the 文案 sentence comes after
+    const label = gate ? "看剪好的影片" : r.cards && s.key === "source" ? s.label : STEP_LABELS[s.key] || s.label;
     const extra = [];
     if (s.key === "picks" && picks) extra.push(isCur ? picks : h("details", {}, h("summary", { class: "small" }, "看／改選好的片段"), picks));
-    if (isCur) extra.push(howToBox(r, next));
+    if (isCur) extra.push(gate ? watchFirst() : howToBox(r, next));
+    if (isCur && S.cut && ["picks", "videos"].includes(s.key) && r.cut) extra.push(cutRow(r));   // the sentence here cuts clips: show how
     return h("li", { class: s.done && !isCur ? "done" : isCur ? "current" : "" },
       h("span", { class: "mark" }, s.done && !isCur ? "✓" : isCur ? "●" : "○"),
       h("div", {}, h("div", { class: "label" }, label, isCur ? "　← 現在在這裡" : "",
@@ -1677,9 +1790,9 @@ async function loadProject(path) {
   body.append(h("div", { class: "card" }, h("h2", {}, "一步一步做"), steps, done));
   const old = oldWishes(r);
   if (old) body.append(old);
-  // clips
+  // clips: the videos first, then what to change, then (when they were just cut) the way on
   if (!r.clips.length) return;
-  body.append(h("h2", { style: "margin-top:8px" }, `剪好的影片（${r.clips.length} 支）`));
+  body.append(h("h2", { id: "clips", style: "margin-top:8px" }, `剪好的影片（${r.clips.length} 支）`));
   body.append(h("div", { class: "clips" }, r.clips.map(c => {
     const title = c.caption ? c.caption.split("\n").find(l => l.trim()) : null;
     const video = h("video", { src: c.cover ? c.video : c.video + "#t=0.5", controls: true, preload: "metadata", poster: c.cover || null, playsinline: true });
@@ -1695,15 +1808,28 @@ async function loadProject(path) {
         : [h("p", { class: "muted small" }, "還沒有文案。跟 Claude 說「幫我寫文案」。"),
            h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: c.path, reveal: true }).catch(e => toast(e.message)) }, "在資料夾中顯示")]);
   })));
+  if (S.cut && r.cut) body.append(feedbackCard(r, curKey === "captions" && needsLook(r)));
+}
+
+// right after cutting, the 文案 sentence waits until the clips were watched (remembered per set of clips)
+const lookKey = r => "looked:" + r.folder + ":" + r.clips.map(c => c.name + "/" + c.size_mb).join("|");
+function needsLook(r) {
+  if (!S.cut || !r.cut) return false;
+  try { return !localStorage.getItem(lookKey(r)); } catch { return false; }
+}
+function watchFirst() {
+  return h("div", { class: "note ok" }, h("b", { class: "t" }, "現在要做的事"),
+    h("div", {}, "影片剪好了！先看看下面的影片。哪裡想改，在影片下面點一下；沒問題就按「看起來不錯，下一步」。"),
+    h("div", { class: "actions", style: "margin-top:8px" },
+      h("button", { type: "button", class: "btn small", onclick: () => $("#clips").scrollIntoView({ behavior: "smooth" }) }, "去看影片")));
 }
 
 // which frame a clip's cover uses: the title card (default), the frame the video is paused on, or Claude's pick.
 // The panel remakes the cover itself when the clip already has a publish pack; otherwise the pack will use the choice.
 function coverRow(r, c, video) {
   const at = ((r.project || {}).covers || {})[String(c.n)];
-  const b = projectBrand(r);
-  const noTitle = b && b.exists && b.brand.layout && b.brand.layout.title_card === false;
-  const now = typeof at === "number" ? `第 ${at.toFixed(1)} 秒那一格` : at === "auto" ? "交給 Claude 挑最醒目的一格" : noTitle ? "預設（這個風格沒有標題卡，由 Claude 挑）" : "標題卡（預設）";
+  const noTitle = !!(r.cut && r.cut.settings.card_title === "off");
+  const now = typeof at === "number" ? `第 ${at.toFixed(1)} 秒那一格` : at === "auto" ? "交給 Claude 挑最醒目的一格" : noTitle ? "預設（這個剪法沒有標題卡，由 Claude 挑）" : "標題卡（預設）";
   const note = h("div", { class: "muted small" });
   const set = async (val, label) => {
     try {
@@ -1725,6 +1851,412 @@ function coverRow(r, c, video) {
   if (!c.pack) note.textContent = "還沒做發文包，做的時候會照這個設定。";
   return row;
 }
+
+// ---------------- 剪法 (cut_recipe.py) ----------------
+// Layers, lowest first: the 片型's defaults → a saved 剪法 → one folder's own changes. The same editor edits a 剪法
+// (剪法 tab) or a folder (剪片 step); a folder's changes show as 「只有這個資料夾」 and can be saved into its 剪法.
+const CX_SAMPLE = [   // a made-up 44-second talk: the timeline shows what the settings would do with it
+  { t0: 0, t1: 3, text: "為什麼你越努力，越覺得累？", tags: ["question"] },
+  { t0: 3, t1: 8, text: "我遇過一個工程師，每天加班到十一點", tags: ["story"] },
+  { t0: 8, t1: 13, text: "他說：我只是怕被淘汰", tags: ["quote", "turn"] },
+  { t0: 13, t1: 19, text: "焦慮，像一個沒關緊的水龍頭", tags: ["metaphor"], pic: "水龍頭" },
+  { t0: 19, t1: 27, text: "先看三個訊號：睡不好、不想點開訊息、週日晚上就開始煩", tags: ["list", "number"], num: "3 個訊號" },
+  { t0: 27, t1: 33, text: "累，不一定是你不夠好", tags: ["punch", "turn"] },
+  { t0: 33, t1: 39, text: "可能只是，方向該換了", tags: ["metaphor"], pic: "岔路" },
+  { t0: 39, t1: 44, text: "想聊聊的話，連結在個人檔案", tags: ["cta"] },
+];
+const CX_DUR = 44;
+const CX_TRI = [["on", "一定用"], ["auto", "剪輯師判斷"], ["off", "不用"]];
+const CX_NAMES = { format: "影片類型", pace: "節奏", zoom_every: "推近", cards: "字卡多寡", visual: "畫面", motion: "動態", breath: "金句後留白",
+  max_cards: "字卡上限", rules: "規則", mod_punch: "跳接推近", mod_broll: "滿版插圖", mod_cutout: "去背大字", mod_pip: "子母畫面",
+  mod_trans: "轉場", mod_sfx: "音效", card_title: "問句標題卡", title_bg: "標題卡背景", card_quote: "引言字卡", card_list: "清單字卡",
+  card_number: "數字字卡", card_chapter: "章節卡" };
+const CX_DESC = { pace: v => ({ fast: "快", medium: "中", slow: "慢" })[v], zoom_every: v => v ? `每 ${v} 秒推近` : "不推近",
+  cards: v => ["少", "適中", "多"][v], visual: v => ["人和字幕為主", "平衡", "插圖為主"][v], motion: v => ["沉穩", "適中", "活潑"][v],
+  max_cards: v => `${v} 張`, breath: v => v ? "要" : "不要", title_bg: v => v === "photo" ? "圖庫照片" : "跟影片一樣", rules: v => `${v.length} 條` };
+const cxDesc = (k, v) => CX_DESC[k] ? CX_DESC[k](v) : (CX_TRI.find(t => t[0] === v) || [, v])[1];
+const CX_DIMS = [["format", "影片類型", "這是哪種影片"], ["craft", "節奏和推近", "畫面多久變一次"], ["mods", "效果", "會用哪些手法"], ["cards", "字卡", "會出現哪些字卡"]];
+const CX_KEYS = { craft: ["pace", "zoom_every", "cards", "visual", "motion", "breath", "max_cards", "rules"],
+  mods: ["mod_punch", "mod_broll", "mod_cutout", "mod_pip", "mod_trans", "mod_sfx"],
+  cards: ["card_title", "title_bg", "card_quote", "card_list", "card_number", "card_chapter"] };
+const CX_ACT_GATE = { titlecard: "card_title", quotecard: "card_quote", listcard: "card_list", numbercard: "card_number",
+  broll: "mod_broll", cutout: "mod_cutout", zoom: "mod_punch", pip: "mod_pip", sfx: "mod_sfx" };
+const CX_ACT_TRACK = { titlecard: "card", quotecard: "card", listcard: "card", numbercard: "card", broll: "base", cutout: "fx", zoom: "zoom", pip: "fx", sfx: "fx" };
+const cxSame = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const CX = { depth: "lazy", dim: "format", t: 9, edit: null };
+try { CX.depth = localStorage.getItem("cx-depth") || "lazy"; } catch {}
+const cxFmt = f => S.cut.formats[f] || S.cut.formats.talk;
+
+// a context: what is being edited, what sits below it, how to save
+function cxRecipeCtx(name) {
+  const rec = S.cut.recipes[name];
+  const c = { kind: "recipe", name, layer: rec,
+    fmt: () => rec.format || "talk",
+    below: k => cxFmt(c.fmt()).def[k],
+    setFormat: f => { rec.format = f; },
+    save: () => api("/api/recipe-save", { name, format: rec.format, over: rec.over }).then(s => { Object.assign(S.cut, s); renderRecipeList(); }) };
+  return c;
+}
+function cxFolderRecipe(r, own) {      // the 剪法 a folder uses: its own pick, else its channel's, else 預設
+  const b = projectBrand(r), names = S.cut.recipes;
+  return own.recipe && names[own.recipe] ? own.recipe : b && names[b.brand.recipe] ? b.brand.recipe : S.cut.default;
+}
+function cxFolderCtx(r) {
+  const cut = r.cut || {};
+  const own = { recipe: cut.recipe || null, format: cut.format || null, over: { ...(cut.over || {}) } };
+  const c = { kind: "folder", r, own, layer: own,
+    recName: () => cxFolderRecipe(r, own),
+    rec: () => S.cut.recipes[c.recName()],
+    fmtBelow: () => c.rec().format || cut.detected || "talk",
+    fmt: () => own.format || c.fmtBelow(),
+    below: k => k in c.rec().over ? c.rec().over[k] : cxFmt(c.fmt()).def[k],
+    setFormat: f => { own.format = f === c.fmtBelow() ? null : f; },
+    save: () => api("/api/project-save", { folder: r.folder, cut: own }).then(p => { r.project = p; r.cut = p.cut; if (c.onsaved) c.onsaved(); }) };
+  return c;
+}
+const cxVal = (c, k) => k in c.layer.over ? c.layer.over[k] : c.below(k);
+function cxSave(c) {
+  clearTimeout(c._t);
+  c._t = setTimeout(() => c.save().catch(err => toast(err.message)), 350);
+}
+function cxSet(c, k, v, quiet) {
+  if (cxSame(v, c.below(k))) delete c.layer.over[k]; else c.layer.over[k] = v;
+  cxSave(c); if (!quiet) cxRender(c);
+}
+function cxRender(c) { if (c.mount) c.mount.replaceChildren(cxEditor(c)); if (c.onchange) c.onchange(); }
+
+function cxSrc(c, k) {
+  if (c.kind === "folder") {
+    if (k in c.own.over) return h("div", { class: "cx-src" }, h("span", { class: "folder" }, "只有這個資料夾"),
+      h("button", { type: "button", class: "linklike", onclick: () => cxSaveIntoRecipe(c, [k]) }, `存進剪法「${c.recName()}」`),
+      h("button", { type: "button", class: "linklike", onclick: () => { delete c.own.over[k]; cxSave(c); cxRender(c); } }, "取消"));
+    if (k in c.rec().over) return h("div", { class: "cx-src" }, `剪法「${c.recName()}」設定的`);
+    return h("div", { class: "cx-src" }, `跟著「${cxFmt(c.fmt()).name}」的預設`);
+  }
+  if (k in c.layer.over) return h("div", { class: "cx-src" }, h("span", { class: "mine" }, "這個剪法改的"),
+    h("button", { type: "button", class: "linklike", onclick: () => { delete c.layer.over[k]; cxSave(c); cxRender(c); } }, `回到「${cxFmt(c.fmt()).name}」的預設`));
+  return h("div", { class: "cx-src" }, `跟著「${cxFmt(c.fmt()).name}」的預設`);
+}
+// a folder's own changes → its 剪法 (keys: which ones; all of them when omitted), then the folder follows the 剪法 again
+async function cxSaveIntoRecipe(c, keys) {
+  const name = c.recName(), rec = S.cut.recipes[name];
+  keys = keys || Object.keys(c.own.over);
+  const takeFormat = !keys.length || keys.includes("format") || (!arguments[1] && c.own.format);
+  const fmt = takeFormat && c.own.format ? c.own.format : rec.format;
+  const over = { ...rec.over };
+  for (const k of keys) if (k !== "format") { const v = c.own.over[k], d = cxFmt(fmt || c.r.cut.detected || "talk").def[k];
+    if (cxSame(v, d)) delete over[k]; else over[k] = v; delete c.own.over[k]; }
+  if (takeFormat) c.own.format = null;
+  try {
+    Object.assign(S.cut, await api("/api/recipe-save", { name, format: fmt, over }));
+    await c.save(); toast(`已存進剪法「${name}」，之後用這個剪法的影片都會這樣剪`); cxRender(c); renderRecipeList();
+  } catch (err) { toast(err.message); }
+}
+const cxSeg = (c, k, opts) => h("div", { class: "cx-seg", role: "group", "aria-label": CX_NAMES[k] },
+  opts.map(([v, l]) => h("button", { type: "button", "data-v": String(v), "aria-pressed": cxSame(cxVal(c, k), v), onclick: () => cxSet(c, k, v) }, l)));
+const cxCtl = (c, k, title, hint, control, full) => h("div", { class: "cx-ctl" + (full ? " cx-full" : "") },
+  h("div", { class: "lab" }, h("b", {}, title), hint ? h("span", {}, hint) : ""), control, cxSrc(c, k));
+function cxRange(c, k, min, max) {
+  const lab = h("span", {}, cxDesc(k, cxVal(c, k)));
+  const inp = h("input", { type: "range", min, max, step: 1, "aria-label": CX_NAMES[k] });
+  inp.value = cxVal(c, k);
+  inp.addEventListener("input", () => { cxSet(c, k, +inp.value, true); lab.textContent = cxDesc(k, +inp.value); if (c.draw) c.draw(); });
+  inp.addEventListener("change", () => cxRender(c));
+  return h("div", { class: "cx-range" }, inp, lab);
+}
+function cxFormatTiles(c) {
+  const detected = c.kind === "folder" ? c.r.cut.detected : null;
+  const tiles = Object.entries(S.cut.formats).map(([id, f]) => h("button", { type: "button", class: "cx-tile",
+      "aria-pressed": c.fmt() === id && !(c.kind === "recipe" && !c.layer.format), onclick: () => { c.setFormat(id); cxSave(c); cxRender(c); } },
+    id === detected ? h("span", { class: "det" }, detected === "talk" ? "偵測到露臉影片" : "偵測到沒有露臉") : "",
+    h("b", {}, f.name), h("span", {}, f.desc)));
+  if (c.kind === "recipe") tiles.unshift(h("button", { type: "button", class: "cx-tile", "aria-pressed": !c.layer.format,
+      onclick: () => { c.setFormat(null); cxSave(c); cxRender(c); } },
+    h("b", {}, "跟著素材"), h("span", {}, "有露臉影片就是口播，只有錄音或字卡就是動畫，控制台自己判斷。")));
+  return h("div", { class: "cx-tiles" }, tiles);
+}
+const cxPaceTiles = c => h("div", { class: "cx-tiles" }, [["slow", "慢", "每 4–6 秒換一次畫面，留白多"], ["medium", "中", "每 3–4 秒，大多數口播"], ["fast", "快", "每 2–3 秒，適合知識型"]].map(([v, l, d]) =>
+  h("button", { type: "button", class: "cx-tile", "aria-pressed": cxVal(c, "pace") === v, onclick: () => cxSet(c, "pace", v) }, h("b", {}, l), h("span", {}, d))));
+
+const CX_PANELS = {
+  format: c => [h("h2", {}, "影片類型"), h("p", { class: "muted small", style: "margin:0 0 8px" }, c.kind === "folder"
+      ? "控制台看了資料夾裡的素材，先幫你選好。不對再換；換了之後節奏、效果、字卡會換成那一類的預設，你改過的不會被蓋掉。"
+      : "這個剪法固定用在哪種影片。選「跟著素材」，每個資料夾就照裡面的素材自動判斷。"), cxFormatTiles(c)],
+  craft: c => [h("h2", {}, "節奏和推近"), h("p", { class: "muted small", style: "margin:0 0 4px" }, "剪輯師什麼時候推近、什麼時候出字卡、畫面多久變一次。右邊的時間條會跟著變。"),
+    cxCtl(c, "pace", "節奏", "畫面多久換一次（原本在「風格」的版面規則）", cxSeg(c, "pace", [["slow", "慢"], ["medium", "中"], ["fast", "快"]])),
+    cxCtl(c, "zoom_every", "推近的頻率", "主講人畫面每隔幾秒推近一次", cxRange(c, "zoom_every", 0, 10)),
+    cxCtl(c, "cards", "字卡多寡", "「剪輯師判斷」的字卡要多積極", cxRange(c, "cards", 0, 2)),
+    cxCtl(c, "visual", "畫面以什麼為主", "講抽象概念時要不要切到插圖", cxRange(c, "visual", 0, 2)),
+    cxCtl(c, "motion", "動態強度", "彈跳、轉場和大字特效的多寡", cxRange(c, "motion", 0, 2)),
+    cxCtl(c, "breath", "金句後留白", "金句講完停 0.5 秒再接下一句", cxSeg(c, "breath", [[true, "要"], [false, "不要"]]), true),
+    cxCtl(c, "max_cards", "一支最多幾張字卡", "避免變成簡報", cxRange(c, "max_cards", 1, 8), true),
+    h("div", { class: "cx-full blk" }, h("h3", {}, "規則"),
+      h("p", { class: "muted small", style: "margin:0 0 6px" }, "剪輯師讀逐字稿時照這些規則判斷。上面的節奏和多寡，決定「剪輯師判斷」的項目要做到多滿。"),
+      cxVal(c, "rules").map((r, i) => {
+        const edit = (j, v) => { const rs = cxVal(c, "rules").map(x => x.slice()); rs[i][j] = v; cxSet(c, "rules", rs); };
+        return h("div", { class: "cx-rule" }, "當講到",
+          h("select", { "aria-label": "條件", onchange: e => edit(0, e.target.value) }, Object.entries(S.cut.triggers).map(([k, l]) => h("option", { value: k, selected: r[0] === k }, l))),
+          "，就用",
+          h("select", { "aria-label": "做法", onchange: e => edit(1, e.target.value) }, Object.entries(S.cut.actions).map(([k, l]) => h("option", { value: k, selected: r[1] === k }, l))),
+          h("button", { type: "button", class: "x", "aria-label": "刪除這條規則", onclick: () => cxSet(c, "rules", cxVal(c, "rules").filter((_, j) => j !== i)) }, "×"));
+      }),
+      h("button", { type: "button", class: "btn ghost small", style: "margin-top:6px", onclick: () => cxSet(c, "rules", [...cxVal(c, "rules"), ["story", "sfx"]]) }, "＋ 新增規則"),
+      cxSrc(c, "rules"))],
+  mods: c => [h("h2", {}, "效果"), h("p", { class: "muted small", style: "margin:0 0 4px" }, "剪輯師手上有哪些手法。「剪輯師判斷」會照節奏和多寡決定用不用、用幾次。"),
+    cxCtl(c, "mod_punch", "跳接推近", "露臉畫面的鏡頭放大", cxSeg(c, "mod_punch", CX_TRI)),
+    cxCtl(c, "mod_broll", "滿版插圖", "講到抽象概念時切走", cxSeg(c, "mod_broll", CX_TRI)),
+    cxCtl(c, "mod_cutout", "去背大字", "金句變成疊在畫面上的大字", cxSeg(c, "mod_cutout", CX_TRI)),
+    cxCtl(c, "mod_pip", "子母畫面", "主講人縮小放在插圖旁邊", cxSeg(c, "mod_pip", CX_TRI)),
+    cxCtl(c, "mod_trans", "轉場", "換場時的圓形、滑動、推進", cxSeg(c, "mod_trans", CX_TRI), true),
+    cxCtl(c, "mod_sfx", "音效", "字卡和大字出現時的小音效", cxSeg(c, "mod_sfx", CX_TRI), true)],
+  cards: c => [h("h2", {}, "字卡"), h("p", { class: "muted small", style: "margin:0 0 4px" }, "字卡的外觀跟著右上角的風格，這裡只決定哪幾種會出現。"),
+    cxCtl(c, "card_title", "問句標題卡", "開頭 3 秒的鉤子（原本在「風格」）", cxSeg(c, "card_title", CX_TRI)),
+    cxCtl(c, "title_bg", "標題卡背景", "圖庫照片要先設定 Pexels 或 Unsplash 金鑰", cxSeg(c, "title_bg", [["paper", "跟影片一樣"], ["photo", "圖庫照片"]])),
+    cxCtl(c, "card_quote", "引言字卡", "引用別人說的話", cxSeg(c, "card_quote", CX_TRI)),
+    cxCtl(c, "card_list", "清單字卡", "講到「三個訊號」這種列舉", cxSeg(c, "card_list", CX_TRI)),
+    cxCtl(c, "card_number", "數字字卡", "講到數字時放大", cxSeg(c, "card_number", CX_TRI)),
+    cxCtl(c, "card_chapter", "章節卡", "長一點的影片用來分段", cxSeg(c, "card_chapter", CX_TRI), true)],
+};
+const cxLazy = c => [h("h2", {}, "兩個選擇就好"),
+  h("p", { class: "muted small", style: "margin:0 0 12px" }, "其他交給剪輯師判斷，樣子照右上角的風格。之後想細調，切到「常用」或「全部」，這裡選的都會留著。"),
+  h("div", { class: "cx-q" }, h("h3", {}, c.kind === "folder" ? "這個資料夾的影片是哪一種？" : "這個剪法用在哪種影片？"), cxFormatTiles(c)),
+  h("div", { class: "cx-q", style: "margin:0" }, h("h3", {}, "節奏要多快？"), cxPaceTiles(c))];
+function cxChanged(c, id) {
+  if (id === "format") return c.kind === "folder" && c.own.format ? 1 : 0;
+  return CX_KEYS[id].filter(k => k in c.layer.over).length;
+}
+function cxSummary(c, id) {
+  if (id === "format") return cxFmt(c.fmt()).name + (c.kind === "recipe" && !c.layer.format ? "（跟著素材）" : "");
+  if (id === "craft") return `節奏${cxDesc("pace", cxVal(c, "pace"))}，${cxDesc("zoom_every", cxVal(c, "zoom_every"))}`;
+  return `${CX_KEYS[id].filter(k => k !== "title_bg" && cxVal(c, k) !== "off").length} 種會用`;
+}
+function cxEditor(c) {
+  const lazy = CX.depth === "lazy";
+  const rail = h("nav", { class: "cx-rail", "aria-label": "剪法的四個面向" }, h("ol", {}, CX_DIMS.map(([id, n, q]) => {
+    const k = cxChanged(c, id);
+    return h("li", {}, h("button", { type: "button", "aria-current": CX.dim === id, onclick: () => { CX.dim = id; cxRender(c); } },
+      h("span", { class: "nm" }, h("span", {}, n, " ", h("span", { class: "q" }, q)),
+        k ? h("span", { class: "cx-dot" + (c.kind === "folder" ? " folder" : ""), title: `改了 ${k} 項` }, k) : ""),
+      h("span", { class: "sum" }, cxSummary(c, id))));
+  })), h("div", { class: "foot" }, "顏色、字型、字幕位置在「設定 → 風格」。"));
+  const pv = cxPreview(c);
+  const out = h("div", { class: "cx-d-" + CX.depth },
+    h("div", { class: "cx-head" },
+      h("div", { class: "cx-depth", role: "group", "aria-label": "設定的詳細程度" }, [["lazy", "懶人"], ["mid", "常用"], ["full", "全部"]].map(([d, l]) =>
+        h("button", { type: "button", "aria-pressed": CX.depth === d, onclick: () => { CX.depth = d; try { localStorage.setItem("cx-depth", d); } catch {} cxRender(c); } }, l))),
+      h("span", { class: "muted small" }, { lazy: "選兩樣，其他交給剪輯師", mid: "每一類四五個常用設定", full: "每一項，包括「當⋯⋯就⋯⋯」規則" }[CX.depth])),
+    h("div", { class: "cx-grid" + (lazy ? " lazy" : "") }, rail, h("div", {}, lazy ? cxLazy(c) : CX_PANELS[CX.dim](c)), pv.el));
+  requestAnimationFrame(pv.draw);
+  return out;
+}
+
+// what the settings would do with the sample talk
+function cxPlan(c) {
+  const v = k => cxVal(c, k), f = c.fmt(), ev = [];
+  const boost = { fast: 1, medium: 0, slow: -1 }[v("pace")];
+  const ok = (g, need) => v(g) === "on" || (v(g) === "auto" && need);
+  const need = { card_title: true, card_quote: v("cards") + boost >= 1, card_list: v("cards") + boost >= 1, card_number: v("cards") + boost >= 2,
+    mod_broll: v("visual") + boost >= 1, mod_cutout: v("motion") >= 1, mod_punch: f !== "anim", mod_pip: v("visual") === 1, mod_sfx: v("motion") >= 2 };
+  let left = v("max_cards");
+  for (const s of CX_SAMPLE) for (const [trig, act] of v("rules")) {
+    if (!s.tags.includes(trig)) continue;
+    const g = CX_ACT_GATE[act], track = CX_ACT_TRACK[act];
+    if (!ok(g, need[g])) continue;
+    if (act === "titlecard" && s.t0 > 0) continue;
+    if ((act === "zoom" || act === "pip") && f === "anim") continue;
+    if (track === "card") { if (left <= 0 || ev.some(e => e.track === "card" && e.t0 === s.t0)) continue; left--; }
+    ev.push({ track, act, t0: s.t0, t1: track === "zoom" ? s.t0 : s.t1, why: `${S.cut.triggers[trig]} → ${S.cut.actions[act]}`, s });
+  }
+  if (v("card_chapter") === "on" || (v("card_chapter") === "auto" && v("cards") >= 2)) ev.push({ track: "card", act: "chapter", t0: 19, t1: 21, why: "新段落 → 章節卡", s: CX_SAMPLE[4] });
+  const broll = ev.filter(e => e.act === "broll"), onBase = t => !broll.some(b => t >= b.t0 && t < b.t1);
+  if (f !== "anim" && v("zoom_every") > 0 && ok("mod_punch", true))
+    for (let t = 3 + v("zoom_every"); t < CX_DUR - 1; t += v("zoom_every"))
+      if (onBase(t) && !ev.some(e => e.act === "zoom" && Math.abs(e.t0 - t) < 1.5)) ev.push({ track: "zoom", act: "zoom", t0: t, t1: t, why: `每 ${v("zoom_every")} 秒推近一次` });
+  if (ok("mod_trans", v("motion") >= 1)) for (const b of broll) ev.push({ track: "tr", act: "trans", t0: b.t0, t1: b.t0, why: "切到插圖 → 轉場" }, { track: "tr", act: "trans", t0: b.t1, t1: b.t1, why: "回到主畫面 → 轉場" });
+  return ev.sort((a, b) => a.t0 - b.t0);
+}
+const CX_TRACKS = [["base", "畫面", "var(--ok)"], ["zoom", "推近", "var(--accent)"], ["card", "字卡", "var(--highlight)"], ["fx", "特效", "var(--warn)"], ["tr", "轉場", "var(--muted)"]];
+function cxPreview(c) {
+  const b = (S.brands.find(x => x.dir === S.current && x.exists) || {}).brand || {};
+  const pal = Object.assign({}, S.palettes[b.palette] || S.palettes.cream, b.colors || {});
+  const fg = pal.fg || pal.ink;
+  const phone = h("div", { class: "cx-phone", style: `background:${pal.bg}` }, h("div", { class: "base" }, h("span")), h("div", { class: "over" }),
+    h("div", { class: "sub", style: `background:#fff;color:${pal.ink}` }));
+  const tl = h("div", { class: "cx-tl" }), plan = h("ul", { class: "cx-plan" });
+  const scrub = h("input", { type: "range", min: 0, max: CX_DUR - 0.1, step: 0.1, "aria-label": "時間" });
+  scrub.value = CX.t;
+  const draw = () => {
+    const ev = cxPlan(c), t = CX.t, f = c.fmt();
+    tl.replaceChildren(...CX_TRACKS.map(([id, l, col]) => {
+      const lane = h("div", { class: "cx-lane" });
+      if (id === "base") lane.append(h("div", { class: "cx-ev", style: "left:0;width:100%;background:var(--line)" }));
+      for (const e of ev.filter(e => e.track === id)) { const pt = e.t0 === e.t1;
+        lane.append(h("div", { class: "cx-ev" + (pt ? " pt" : ""), title: e.why, style: `left:${e.t0 / CX_DUR * 100}%;${pt ? "" : `width:${(e.t1 - e.t0) / CX_DUR * 100}%;`}background:${col}` })); }
+      return h("div", { class: "cx-track" }, h("span", {}, l), lane);
+    }), h("div", { class: "cx-ph", style: `left:calc(40px + (100% - 40px) * ${t / CX_DUR})` }));
+    const s = CX_SAMPLE.find(s => t >= s.t0 && t < s.t1) || CX_SAMPLE[CX_SAMPLE.length - 1];
+    const inB = ev.find(e => e.act === "broll" && t >= e.t0 && t < e.t1), zooms = ev.filter(e => e.act === "zoom" && e.t0 <= t).length;
+    const base = phone.querySelector(".base");
+    base.style.background = inB ? `color-mix(in srgb, ${pal.accent} 22%, ${pal.bg})` : f === "talk" ? "linear-gradient(#cfd5da,#aeb6bd)" : f === "vlog" ? "linear-gradient(#c9d3c0,#9fae98)" : pal.bg;
+    base.style.transform = !inB && zooms % 2 ? "scale(1.12)" : "scale(1)";
+    base.firstChild.textContent = inB ? `滿版插圖：${s.pic || "比喻畫面"}` : cxFmt(f).base;
+    const over = phone.querySelector(".over"); over.replaceChildren();
+    const card = ev.find(e => e.track === "card" && t >= e.t0 && t < e.t1), cut = ev.find(e => e.act === "cutout" && t >= e.t0 && t < e.t1);
+    const after = x => x.includes("：") ? x.split("：")[1] : x;
+    if (card) over.append(h("div", { class: "cardui", style: `background:#fff;color:${pal.ink}` }, h("em", { style: `color:${pal.accent}` }, S.cut.actions[card.act] ? S.cut.actions[card.act].replace(/（.*）/, "") : "章節卡"),
+      { listcard: after(card.s.text).split(/[、，]/).join("\n"), quotecard: `「${after(card.s.text)}」`, numbercard: card.s.num || card.s.text, chapter: "下一段" }[card.act] || card.s.text));
+    else if (cut) over.append(h("div", { class: "big", style: `color:${pal.accent}` }, cut.s.text.replace("，", "，\n")));
+    const sub = phone.querySelector(".sub"); sub.textContent = s.text; sub.hidden = !!(card && card.act === "titlecard");
+    plan.replaceChildren(...ev.map(e => h("li", {}, h("time", {}, `${Math.floor(e.t0)} 秒`), e.why)));
+    void fg;
+  };
+  scrub.addEventListener("input", () => { CX.t = +scrub.value; draw(); });
+  c.draw = draw;
+  return { draw, el: h("div", { class: "cx-pv" }, h("h3", {}, "會怎麼剪"),
+    h("p", { class: "muted small", style: "margin:0" }, "用一段 44 秒的範例口播試排，拖下面的時間條看每一秒。真正剪的時候，剪輯師照你的逐字稿判斷。"),
+    phone, tl, h("div", { class: "cx-scrub" }, h("span"), scrub), plan) };
+}
+
+// 剪片 step: which 剪法 this folder uses, with 調整 opening the editor right there
+let cxOpen = false;
+let curCut = null;                    // the 剪法 row on the page, so the pace chip updates what is shown
+function cutRow(r) {
+  const c = curCut = cxFolderCtx(r);
+  const wrap = h("div", {});
+  const mount = h("div", { class: "cx-editor" });
+  c.mount = mount;
+  const row = () => {
+    const n = Object.keys(c.own.over).length + (c.own.format ? 1 : 0);
+    const sel = h("select", { "aria-label": "這個資料夾用的剪法", onchange: e => { c.own.recipe = e.target.value; cxSave(c); cxRender(c); } },
+      Object.keys(S.cut.recipes).map(k => h("option", { value: k, selected: k === c.recName() }, k)));
+    return h("div", { class: "cx-row" },
+      h("label", { class: "small" }, "剪的時候用 ", sel),
+      h("div", { class: "what" }, h("b", {}, cxFmt(c.fmt()).name),
+        !c.own.format && !c.rec().format ? h("span", { class: "muted" }, r.cut.detected === "talk" ? "（偵測到露臉影片）" : "（偵測到沒有露臉）") : "",
+        `　節奏${cxDesc("pace", cxVal(c, "pace"))}，${cxDesc("zoom_every", cxVal(c, "zoom_every"))}，字卡${cxDesc("cards", cxVal(c, "cards"))}`,
+        n ? h("span", { class: "cx-pill" }, `這個資料夾另外改了 ${n} 項`) : ""),
+      h("button", { type: "button", class: "btn ghost small", "aria-expanded": cxOpen, onclick: () => { cxOpen = !cxOpen; paint(); } }, cxOpen ? "收起" : "調整"));
+  };
+  const saveAll = () => {
+    const n = Object.keys(c.own.over).length + (c.own.format ? 1 : 0);
+    return n ? h("div", { class: "note ok", style: "margin-top:12px" }, `這個資料夾另外改了 ${n} 項，只影響這個資料夾的影片。`, " ",
+      h("button", { type: "button", class: "btn small", onclick: () => cxSaveIntoRecipe(c) }, `全部存進剪法「${c.recName()}」`)) : "";
+  };
+  const paint = () => {
+    if (cxOpen) mount.replaceChildren(cxEditor(c));
+    wrap.replaceChildren(row(), cxOpen ? mount : "", cxOpen ? saveAll() : "");
+  };
+  c.onchange = () => { const open = cxOpen; if (open) { wrap.replaceChildren(row(), mount, saveAll()); } else paint(); };
+  c.onsaved = () => document.querySelectorAll(".ctxline span").forEach(x => x.textContent = contextOf(r));   // the copied sentence names the 剪法
+  paint();
+  return wrap;
+}
+
+// after watching: quick feedback → this folder only, or into its 剪法
+const CX_FEEDBACK = [
+  ["zoom_every", "推近太多", v => v === 0 ? 0 : Math.min(10, v + 2)], ["zoom_every", "推近太少", v => v === 0 ? 6 : Math.max(3, v - 2)],
+  ["cards", "字卡太多", v => Math.max(0, v - 1)], ["cards", "字卡太少", v => Math.min(2, v + 1)],
+  ["visual", "想要更多插圖", v => Math.min(2, v + 1)], ["visual", "插圖太多", v => Math.max(0, v - 1)],
+  ["pace", "太趕", v => ({ fast: "medium", medium: "slow", slow: "slow" })[v]], ["pace", "太拖", v => ({ slow: "medium", medium: "fast", fast: "fast" })[v]],
+  ["card_title", "不要標題卡", () => "off"]];
+function feedbackCard(r, looking) {
+  const c = cxFolderCtx(r), picked = {};
+  const box = h("div", { class: "card" });
+  const done = h("div", {});
+  const paint = () => {
+    const list = Object.entries(picked);
+    box.replaceChildren(h("h2", {}, "看完影片，哪裡想改？"),
+      h("p", { class: "muted small", style: "margin:0 0 8px" }, `這些影片用的是剪法「${c.recName()}」。點下面的按鈕，控制台會幫你改設定，再請 Claude 重剪。`),
+      h("div", { class: "chiplist" }, CX_FEEDBACK.map(([k, l, fn]) => h("button", { type: "button", class: "chip", "aria-pressed": picked[k] && picked[k].label === l,
+        style: picked[k] && picked[k].label === l ? "border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700" : "",
+        onclick: () => {
+          if (picked[k] && picked[k].label === l) delete picked[k];
+          else { const from = cxVal(c, k), to = fn(from); if (cxSame(from, to)) { toast(`${CX_NAMES[k]}已經是「${cxDesc(k, from)}」了`); return; } picked[k] = { label: l, from, to }; }
+          paint(); } }, l))),
+      list.length ? h("div", { class: "cx-changes" }, h("b", {}, "會這樣改："),
+        h("ul", {}, list.map(([k, x]) => h("li", {}, `${CX_NAMES[k]}：${cxDesc(k, x.from)} → ${cxDesc(k, x.to)}`))),
+        h("div", { class: "actions" },
+          h("button", { type: "button", class: "btn", onclick: () => apply(false) }, "只改這個資料夾"),
+          h("button", { type: "button", class: "btn ghost", onclick: () => apply(true) }, `存進剪法「${c.recName()}」`))) : "",
+      done,
+      looking && !list.length ? h("div", { class: "cx-ok" }, h("span", { class: "muted small" }, "都不用改的話："),
+        h("button", { type: "button", class: "btn", onclick: () => {
+          try { localStorage.setItem(lookKey(r), "1"); } catch {}
+          loadProject(r.folder).then(() => document.querySelector(".steps .current")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+        } }, "看起來不錯，下一步")) : "");
+  };
+  const apply = async (intoRecipe) => {
+    const keys = Object.keys(picked);
+    for (const [k, x] of Object.entries(picked)) { if (cxSame(x.to, c.below(k))) delete c.own.over[k]; else c.own.over[k] = x.to; }
+    try {
+      if (intoRecipe) await cxSaveIntoRecipe(c, keys); else { await c.save(); toast("已改好，只影響這個資料夾"); }
+      const nums = r.clips.map(x => x.n).join("、");
+      const say = `照控制台的剪法，幫我重剪片段 ${nums}`;
+      for (const k of keys) delete picked[k];
+      paint();
+      done.replaceChildren(h("div", { class: "note ok" }, h("b", { class: "t" }, "設定改好了，接著請 Claude 重剪"),
+        h("div", { class: "say" }, say), h("div", { class: "actions", style: "margin-top:6px" },
+          h("button", { type: "button", class: "btn small", onclick: () => copy(say + contextOf(r)) }, "複製這句話")),
+        h("div", { class: "muted small" }, "不想重剪的片段，從句子裡拿掉就好。")));
+    } catch (err) { toast(err.message); }
+  };
+  paint();
+  return box;
+}
+
+// 剪法 tab
+function renderRecipeList() {
+  if (!S || !S.cut) return;
+  const names = Object.keys(S.cut.recipes);
+  if (!CX.edit || !S.cut.recipes[CX.edit]) {
+    const b = S.brands.find(x => x.dir === S.current && x.exists);
+    CX.edit = b && S.cut.recipes[b.brand.recipe] ? b.brand.recipe : S.cut.default;
+  }
+  const curBrand = S.brands.find(x => x.dir === S.current && x.exists);
+  const newName = h("input", { type: "text", maxlength: 30, placeholder: "新剪法的名稱", "aria-label": "新剪法的名稱" });
+  $("#cx-rlist").replaceChildren(
+    ...names.map(n => { const r = S.cut.recipes[n], used = S.cut.usage[n] || [], k = Object.keys(r.over).length;
+      return h("button", { type: "button", class: "r", "aria-current": CX.edit === n, onclick: () => { CX.edit = n; renderRecipeTab(); } },
+        h("b", {}, n), h("span", {}, `${r.format ? cxFmt(r.format).name : "跟著素材"}，${k ? `改了 ${k} 項` : "全部用預設"}`),
+        used.length ? h("span", {}, "風格「" + used.join("」「") + "」預設用這個") : ""); }),
+    h("div", { class: "cx-side" },
+      h("div", { class: "cx-new" }, newName, h("button", { type: "button", class: "btn ghost small", onclick: async () => {
+        const from = CX.edit;
+        try { const s = await api("/api/recipe-new", { name: newName.value, copy_from: from }); Object.assign(S.cut, s); CX.edit = s.created; renderRecipeTab(); toast(`已新增剪法「${s.created}」，從「${from}」複製過來`); }
+        catch (err) { toast(err.message); } } }, "新增")),
+      h("p", { class: "muted small" }, "新增的剪法會從目前選的那個複製一份，再慢慢改。")));
+}
+function renderRecipeTab() {
+  if (!S || !S.cut) return;
+  renderRecipeList();
+  const name = CX.edit, c = cxRecipeCtx(name), mount = h("div", {});
+  c.mount = mount; c.onchange = renderRecipeList;
+  mount.append(cxEditor(c));
+  const curBrand = S.brands.find(x => x.dir === S.current && x.exists);
+  const isDefault = curBrand && (curBrand.brand.recipe || S.cut.default) === name;
+  const tools = h("div", { class: "actions", style: "margin:0 0 6px" },
+    curBrand && !isDefault ? h("button", { type: "button", class: "btn ghost small", onclick: async () => {
+      try { const s = await api("/api/brand-recipe", { dir: curBrand.dir, recipe: name }); Object.assign(S.cut, s); curBrand.brand = s.brand.brand; renderRecipeTab(); toast(`風格「${curBrand.brand.name}」之後預設用剪法「${name}」`); }
+      catch (err) { toast(err.message); } } }, `設成風格「${curBrand.brand.name}」的預設剪法`) : "",
+    name !== S.cut.default ? h("button", { type: "button", class: "btn ghost small", onclick: async () => {
+      const to = prompt("新的名稱", name); if (!to || to === name) return;
+      try { const s = await api("/api/recipe-rename", { name, to }); Object.assign(S.cut, s); CX.edit = s.created; await refreshBrandsQuiet(); renderRecipeTab(); }
+      catch (err) { toast(err.message); } } }, "改名") : "",
+    name !== S.cut.default ? h("button", { type: "button", class: "btn ghost small", onclick: async () => {
+      const used = S.cut.usage[name] || [];
+      if (!confirm(`刪除剪法「${name}」？${used.length ? `風格「${used.join("」「")}」會改回用「${S.cut.default}」剪法。` : ""}用這個剪法的資料夾也會改回它們風格的預設剪法。`)) return;
+      try { Object.assign(S.cut, await api("/api/recipe-delete", { name })); CX.edit = null; await refreshBrandsQuiet(); renderRecipeTab(); toast(`已刪除剪法「${name}」`); }
+      catch (err) { toast(err.message); } } }, "刪除") : "");
+  $("#cx-redit").replaceChildren(h("div", { class: "cx-head", style: "justify-content:space-between" }, h("h2", { style: "margin:0" }, `剪法「${name}」`), tools),
+    isDefault ? h("p", { class: "muted small", style: "margin:0" }, `目前風格「${curBrand.brand.name}」預設用這個剪法。改了之後，用這個剪法的資料夾下次剪片都會照新的設定。`)
+              : h("p", { class: "muted small", style: "margin:0" }, "改了之後，用這個剪法的資料夾下次剪片都會照新的設定。"),
+    mount);
+}
+async function refreshBrandsQuiet() {   // brand.json "recipe" changed on the server (rename / delete): reload the brands
+  const s = await api("/api/state");
+  S.brands = s.brands; S.cut = s.cut;
+}
+document.querySelectorAll("[data-go-recipe]").forEach(b => b.addEventListener("click", () => { CX.dim = b.dataset.goRecipe; if (CX.depth === "lazy") CX.depth = "mid"; showTab("recipe"); }));
 
 // 常見問題: some answers take you straight to the place they talk about
 document.querySelectorAll("#tab-faq [data-copy], footer [data-copy]").forEach(b => b.addEventListener("click", () => copy(b.dataset.copy)));
@@ -1809,12 +2341,11 @@ $("#quit").addEventListener("click", async () => {
 setInterval(() => api("/api/ping").catch(() => {}), 60000);
 
 refresh().then(() => {
-  // where to start: the welcome screen once (first open), then what this person needs next —
-  // no style yet → 風格; otherwise → 做影片 (the daily work)
-  const hasBrand = S.brands.some(b => b.exists);
-  let tab = !S.welcomed ? "welcome" : hasBrand ? "make" : "brand";
+  // where to start: the welcome screen once (first open), then 做影片 — a style and a 剪法 both have defaults,
+  // so nobody has to fill in settings before the first video
+  let tab = !S.welcomed ? "welcome" : "make";
   const hash = location.hash.slice(1);
-  if (["make", "brand", "faq", "home", "works"].includes(hash)) tab = hash;
+  if (["make", "brand", "recipe", "faq", "home", "works"].includes(hash)) tab = hash;
   renderWelcome();
   showTab(tab);
   api("/api/latest").then(showUpdate).catch(() => {});

@@ -27,23 +27,30 @@ W, H, FPS = 1080, 1920, 30
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 # ---------------- brand (brand.json) ----------------
-def _project_brand():
-    """channel picked in the Reels Studio panel: "brand" in <material folder>\\_reels_studio.json, looked up from the
-    running script's folder (clip.py lives in <material>\\_reels_work\\clipN\\) and the working folder, a few levels up"""
+def _project_file():
+    """<material folder>\\_reels_studio.json (written by the Reels Studio panel), looked up from the running script's
+    folder (clip.py lives in <material>\\_reels_work\\clipN\\) and the working folder, a few levels up"""
     starts = [os.path.dirname(os.path.abspath(sys.argv[0])) if sys.argv and sys.argv[0] else None, os.getcwd()]
     for d in filter(None, starts):
         for _ in range(4):
             p = os.path.join(d, "_reels_studio.json")
-            if os.path.exists(p):
-                try: b = json.load(open(p, encoding="utf-8")).get("brand")
-                except Exception: b = None
-                if b:
-                    b = b if os.path.isabs(b) else os.path.join(HERE, b)
-                    if os.path.isdir(b): return b
-                    print(f"[reels_lib] channel folder {b} (from {p}) not found, using my-brand")
-                break
+            if os.path.exists(p): return p
             if os.path.dirname(d) == d: break
             d = os.path.dirname(d)
+    return None
+
+def _project():
+    p = _project_file()
+    try: return json.load(open(p, encoding="utf-8")) if p else {}
+    except Exception: return {}
+
+def _project_brand():
+    """channel picked in the Reels Studio panel: "brand" in _reels_studio.json"""
+    b = _project().get("brand")
+    if b:
+        b = b if os.path.isabs(b) else os.path.join(HERE, b)
+        if os.path.isdir(b): return b
+        print(f"[reels_lib] channel folder {b} (from {_project_file()}) not found, using my-brand")
     return None
 
 BRAND_DIR = os.environ.get("REELS_BRAND") or _project_brand() or os.path.join(HERE, "my-brand")
@@ -72,6 +79,9 @@ PALETTES = {   # bg may be light or dark; text straight on the background uses F
     # film: warm near-black, cream type, brass-gold keywords (cinema preset); deep = the credits page
     "film":  dict(bg="#17130F", ink="#0B0907", fg="#F1E7D6", accent="#D8A657", highlight="#E9C98A", peach="#E8C2A0", rose="#D98C7A",
                   sage="#A7BFA0", sky="#9EB8C9", lilac="#BDB1D6", alert="#E05A44", ok="#8FBF8A", gray="#5E554A", deep="#0B0907"),
+    # memo: warm cream paper, pastel sticky notes, coral keywords, butter-yellow punch note (memo preset)
+    "memo":  dict(bg="#F6F1E7", ink="#2A2420", accent="#C8553D", highlight="#F7DE96", peach="#F6D5C0", rose="#EDCFC4",
+                  sage="#CFDEC3", sky="#C9DCE6", lilac="#DCD0E6", alert="#B8432F", ok="#7FA07A", gray="#A39C94", deep="#3B342E"),
     # clash pairs (8組經典撞色 + 16 more): the deeper colour is the accent, the brighter one the highlight
     "berry": dict(bg="#EEFBFC", ink="#3A0106", accent="#65020A", highlight="#18D5E7", peach="#F9C9B0", rose="#E98A7E",
                    sage="#9CC5A1", sky="#A8D5E2", lilac="#CFC4EC", alert="#E2533B", ok="#7DB88A", gray="#CAC9CB"),
@@ -155,15 +165,19 @@ LAYOUT_OPTIONS = {
 # 自由創作方向; its element values are only the fallback the built-in title_card / end_card / subtitles use.
 STYLE_OPTIONS = {
     # subtitle: white framed box / outlined text, no box / a pill per line / dark box / thin-line box / frosted card + accent bar / movie subtitle on a soft shade
-    "subtitle":   ["box", "outline", "pill", "dark", "frame", "glass", "film"],
+    # ... / sticky: a pastel sticky note held by a strip of paper tape
+    "subtitle":   ["box", "outline", "pill", "dark", "frame", "glass", "film", "sticky"],
     # title: taped note card / big text, no card / thin-frame card / colour slab / text on the paper + leaf rule / glowing panel + corner brackets / letter-spaced type between thin rules
-    "title":      ["note", "bold", "line", "magazine", "leaf", "hud", "cinema"],
+    # / pinboard: big type on the paper, punch line on a pinned butter-yellow note
+    "title":      ["note", "bold", "line", "magazine", "leaf", "hud", "cinema", "pinboard"],
     # background: hand-drawn blobs + sparkles / flat / notebook grid / soft gradient / fern sprigs / dot grid + glows + circuit trace / dark vignette + grain + letterbox bars
-    "background": ["blobs", "plain", "grid", "gradient", "leaves", "tech", "film"],
+    # / notes: warm paper grain + pastel notes pinned in the corners
+    "background": ["blobs", "plain", "grid", "gradient", "leaves", "tech", "film", "notes"],
     "line":       ["bold", "thin", "soft"],                             # illustration outlines: thick ink / thin ink / thin and faded
     "motion":     ["bouncy", "snappy", "gentle"],                       # overshoot of every pop-in + transition length
     # end card layout (deep: full deep-colour page, round badge; hud: icon on a bracketed tile; credits: dark film-credits page)
-    "end":        ["classic", "minimal", "card", "deep", "hud", "credits"],
+    # pinned: icon on a taped sticky note, name on the paper, filled button
+    "end":        ["classic", "minimal", "card", "deep", "hud", "credits", "pinned"],
 }
 STYLE_PRESETS = {
     "free":     {"subtitle": "pill", "title": "bold", "background": "plain", "line": "thin", "motion": "snappy", "end": "minimal"},
@@ -175,6 +189,7 @@ STYLE_PRESETS = {
     "botanical": {"subtitle": "frame", "title": "leaf", "background": "leaves", "line": "thin", "motion": "gentle", "end": "deep"},
     "tech":     {"subtitle": "glass", "title": "hud", "background": "tech", "line": "thin", "motion": "snappy", "end": "hud"},
     "cinema":   {"subtitle": "film", "title": "cinema", "background": "film", "line": "thin", "motion": "gentle", "end": "credits"},
+    "memo":     {"subtitle": "sticky", "title": "pinboard", "background": "notes", "line": "thin", "motion": "gentle", "end": "pinned"},
 }
 
 def load_brand():
@@ -207,6 +222,25 @@ def _layout():
     return out
 
 LAYOUT = _layout()
+
+def _cut():
+    """the 剪法 (cut_recipe.py): pace, title card and its background moved out of brand.json's layout. The folder's
+    resolved cut when the panel wrote one, else the channel's 剪法, else what an older layout said"""
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("reels_cut_recipe", os.path.join(HERE, "cut_recipe.py"))
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+        try: raw = json.load(open(os.path.join(BRAND_DIR, "brand.json"), encoding="utf-8"))
+        except Exception: raw = {}
+        return m.engine_settings(_project(), raw)
+    except Exception as e:
+        print(f"[reels_lib] could not read the 剪法 ({e!r}), using brand.json layout"); return None
+
+CUT = _cut() or {}
+if CUT:
+    LAYOUT["pace"] = CUT["pace"]
+    LAYOUT["title_card"] = CUT["card_title"] != "off"        # 剪輯師判斷 keeps the slot; the clip script may start at 0
+    LAYOUT["title_bg"] = CUT["title_bg"]
 if os.path.normcase(os.path.abspath(BRAND_DIR)) != os.path.normcase(os.path.join(HERE, "my-brand")):
     try: print(f"[reels_lib] channel: {BRAND['name']}  ({BRAND_DIR})")
     except UnicodeEncodeError: print(f"[reels_lib] channel: {BRAND_DIR!a}")
@@ -496,6 +530,20 @@ def sticky(c, s):
     rrect(c, -130, -110, 260, 220, 6, P("#FFE58A")); c.drawRect(skia.Rect.MakeXYWH(-130, -110, 260, 34), P("#F7D25F"))
     text(c, s, 0, 40, 64, INK, bold=1.5)
 
+def washi(c, x, y, w, rot, a=1.0, h=46):
+    """a strip of translucent paper tape, centred on (x, y)"""
+    with Xf(c, x, y, 1, rot):
+        c.drawRect(skia.Rect.MakeXYWH(-w / 2, -h / 2 + 3, w, h), P(INK, 0.06 * a, blur=4))
+        c.drawRect(skia.Rect.MakeXYWH(-w / 2, -h / 2, w, h), P(WHITE, 0.72 * a))
+
+def memo_note(c, x, y, w, h, fill, a=1.0):
+    """a sticky note (top-left x, y) with a lifted shadow: the corners cast more than the middle"""
+    c.drawRect(skia.Rect.MakeXYWH(x + 8, y + 14, w - 16, h - 6), P(INK, 0.13 * a, blur=18))
+    c.drawRect(skia.Rect.MakeXYWH(x, y, w, h), P(fill, a))
+    c.drawRect(skia.Rect.MakeXYWH(x, y + h - 26, w, 26), P(fill, a, shader=lin(0, y + h - 26, 0, y + h, [fill, mix(fill, INK, 0.05)])))
+
+def note_fill(col): return mix(col, WHITE, 0.45)   # the pastel paper of a sticky note in colour col
+
 def flower(c, col, t):
     c.drawLine(0, 0, 0, 120, P("#6FA77A", stroke=8))
     for i in range(6):
@@ -533,7 +581,7 @@ LEAVES = [(1080, 40, -140, 520, "sage"), (-20, 900, 40, 460, "sage"), (40, 1900,
 def deco(c, t, a=1.0):
     """the channel's decoration layer (style "background"): sparkles + rings / none / a few pencil marks / soft glints"""
     bgs = STYLE["background"]
-    if bgs in ("plain", "leaves"): return    # leaves: the sprigs are part of paper_bg
+    if bgs in ("plain", "leaves", "notes"): return    # leaves / notes: the sprigs / corner notes are part of paper_bg
     if bgs == "tech":                        # small crosshairs + blinking data dots in the margins
         for i, (x, y) in enumerate([(70, 470), (1010, 760), (90, 1240)]):
             r = 14; yy = y + 4 * math.sin(t * 1.3 + i); pl = P(ACC, 0.45 * a, stroke=3, raw=True)
@@ -599,11 +647,23 @@ def paper_bg(c, t, base=BG):
         c.drawPoints(skia.Canvas.kPoints_PointMode, [skia.Point(rnd.random() * W, rnd.random() * H) for _ in range(420)],
                      P(FG, 0.05, stroke=2.4, raw=True))
         letterbox(c)
+    elif bgs == "notes":                     # warm paper grain, one pastel note taped in the top corner
+        c.drawPoints(skia.Canvas.kPoints_PointMode, PAPER_GRAIN, P(FG, 0.045, stroke=2.2, raw=True))
+        for i, (x, y, w, h, rot, col, hold) in enumerate(CORNER_NOTES):
+            with Xf(c, x, y, 1, rot + 0.6 * math.sin(t * 0.5 + i * 2.1)):
+                memo_note(c, -w / 2, -h / 2, w, h, note_fill(_pal[col]), 0.9)
+                for j in range(3): c.drawLine(-w / 2 + 50, -h / 2 + 120 + j * 44, w / 2 - 70 - j * 40, -h / 2 + 120 + j * 44, P(FG, 0.10, stroke=5, raw=True))
+                washi(c, hold * w * 0.15, -h / 2, 150, hold * 6)
     elif bgs == "gradient":
         top, bot =(mix(base, WHITE, 0.08), mix(base, ACC, 0.12)) if DARK else (mix(base, WHITE, 0.5), mix(base, PEACH, 0.4))
         c.drawPaint(P(base, shader=lin(0, 0, 0, H, [top, bot])))
         for x, y, r, col, a in ((860 + 30 * math.sin(t * 0.4), 520, 520, SUN, 0.30), (180, 1450 + 30 * math.cos(t * 0.35), 560, SKY, 0.26)):
             c.drawCircle(x, y, r, P(col, shader=skia.GradientShader.MakeRadial(skia.Point(x, y), r, [hx(col, a), hx(col, 0)])))
+
+# memo background: fixed paper grain, and (centre x, y, w, h, angle, colour key, tape side -1/0/1) notes peeking in at the corners
+_rg = random.Random(7)
+PAPER_GRAIN = [skia.Point(_rg.random() * W, _rg.random() * H) for _ in range(700)]
+CORNER_NOTES = [(1020, 290, 260, 240, 6, "sage", -1)]   # just one, so the background stays quiet
 
 def letterbox(c):
     """the cinema look's black bars, top and bottom (inside the area IG's own buttons cover anyway)"""
@@ -745,7 +805,7 @@ class Timeline:
         return len(s.KEEPS) - 1
 
 # ---------------- text cards (no recording) ----------------
-CARD_CPS = {"fast": 6.5, "medium": 5.5, "slow": 4.5}     # Chinese characters read per second, by layout.pace
+CARD_CPS = {"fast": 6.5, "medium": 5.5, "slow": 4.5}     # Chinese characters read per second, by the 剪法 pace (LAYOUT["pace"])
 
 def read_secs(txt, cps=None):
     """how long a subtitle card stays up so it can be read once, calmly"""
@@ -840,6 +900,10 @@ def draw_subtitle(c, t, s, t0, who="r"):
             rrect(c, -bw / 2 + 16, -bh / 2 + 22, 8, bh - 44, 4, P(ACC))
         elif st == "film":                   # no box: a soft shade behind light type, like a movie subtitle
             rrect(c, -bw / 2 + 10, -bh / 2 + 6, bw - 20, bh - 12, bh / 2, P("#000000", 0.42, blur=34))
+        elif st == "sticky":                 # a pastel note, a little crooked (the same way for the same line), taped at the top
+            c.rotate((sum(map(ord, s)) % 5 - 2) * 0.6)
+            memo_note(c, -bw / 2, -bh / 2, bw, bh, note_fill(SAGE if chip else SUN))
+            washi(c, 0, -bh / 2, min(200, bw * 0.4), -3 + sum(map(ord, s)) % 3 * 3, h=40)
         # outline: nothing behind the letters
         if chip:
             cw = font(32).measureText(chip) + 36
@@ -851,6 +915,7 @@ def draw_subtitle(c, t, s, t0, who="r"):
             elif st == "outline": rich_line(c, l, 0, y0 + i * lh, sz, base=WHITE, acc=SUN, hi=False, outline=sz * 0.13)
             elif st == "frame": rich_line(c, l, 0, y0 + i * lh, sz, acc=RED if big else ACC, hi=False, under=True)
             elif st == "film": rich_line(c, l, 0, y0 + i * lh, sz, base=FG if DARK else WHITE, acc=SUN, hi=False, bold=1.2, outline=sz * 0.05)
+            elif st == "sticky": rich_line(c, l, 0, y0 + i * lh, sz, acc=RED if big else ACC, hi=False, bold=1.8)
             else: rich_line(c, l, 0, y0 + i * lh, sz, acc=RED if big else ACC)
 
 def top_tag(c, t, label):
@@ -858,6 +923,11 @@ def top_tag(c, t, label):
         with Xf(c, W / 2, 318):
             w = text_spaced(c, label, 0, 10, fit(label, 32, 640), FG, a=0.8, sp=0.22, maxw=640)
             for d in (-1, 1): c.drawLine(d * (w / 2 + 26), 0, d * (w / 2 + 86), 0, P(SUN, 0.7, stroke=2, raw=True))
+        return
+    if STYLE["background"] == "notes":       # the label written on a strip of paper tape
+        with Xf(c, W / 2, 318, 1, -1.5):
+            sz = fit(label, 34, 820); w = font(sz).measureText(label)
+            washi(c, 0, -6, w + 90, 0, h=66); text(c, label, 0, 6, sz, FG, a=0.85, bold=1)
         return
     with Xf(c, W / 2, 318):
         sz = fit(label, 36, 860); w = font(sz).measureText(label)
@@ -871,7 +941,7 @@ def title_card(c, t, lt, rows, punch, punch_bg=SUN, y=None, bg=None, photo=None,
     bg: optional fn(c) drawn instead of the paper background — e.g. lambda c: R.face(c, t) so the speaker is
     already on screen behind the card (a light wash keeps the card readable).
     photo: a stock photo or video file (pexels.py / unsplash.py get) drawn full-bleed behind the card when
-    brand.json layout.title_bg is "photo" (ignored otherwise, so clip scripts can always pass it)."""
+    the 剪法 title background (LAYOUT["title_bg"]) is "photo" (ignored otherwise, so clip scripts can always pass it)."""
     if photo and LAYOUT["title_bg"] == "photo":
         img = video(photo).frame_at(lt) if photo.lower().endswith((".mp4", ".mov", ".webm")) else load_image(photo)
         draw_media(c, img, k=eio(prog(lt, 0, 3.5)), zoom=(1.0, 1.06), pan=((0, 0), (0, -30)), grade=grade)
@@ -903,7 +973,7 @@ def title_wash(c):
     """keep the title readable on a photo: text straight on the picture (leaf: dark type; bold: white type) needs
     more help than a solid card"""
     style = STYLE["title"]
-    if style == "leaf":
+    if style in ("leaf", "pinboard"):
         c.drawRect(skia.Rect.MakeWH(W, H), P(BG, 0.62))
     elif style == "cinema":                  # light type straight on the picture: darken it like a film still
         c.drawRect(skia.Rect.MakeWH(W, H), P("#000000", 0.5))
@@ -994,6 +1064,20 @@ def _title_styled(c, t, lt, rows, punch, punch_bg, y, k, style):
                 w = text_spaced(c, punch, 0, sz * 0.36, sz, SUN, sp=0.12, bold=2, maxw=860)
                 rw = w * 0.5 * eo(prog(lt, 1.2, 0.8))
                 c.drawLine(-rw, sz * 0.36 + 44, rw, sz * 0.36 + 44, P(SUN, 0.7, stroke=2, raw=True))
+    elif style == "pinboard":                # small spaced label, big type on the paper, punch on a taped butter-yellow note
+        label = BRAND["tag"] or BRAND["name"]
+        top = -330 if n == 3 else -260
+        with Xf(c, W / 2, y, 1, 0, clamp(k * 1.4)):
+            text_spaced(c, label, 0, top, fit(label, 34, 700), mix(FG, BG, 0.4), sp=0.16, bold=1.5, maxw=700)
+            _title_rows(c, lt, rows, top + 90, 124, 100, 920, base=FG, hi=False, bold=2.5)
+            sz = fit(punch, 116, 760); w = font(sz).measureText(punch)
+            nw, nh = w + 150, sz + 120; ny = top + 90 + n * 124 + 50
+            drop = 1 - eo(prog(lt, 0.7, 0.45))
+            with Xf(c, shake, ny + nh / 2 + 40 * drop, 1, -1.5, clamp(prog(lt, 0.7, 0.3))):
+                memo_note(c, -nw / 2, -nh / 2, nw, nh, note_fill(SUN))
+                text(c, punch, 0, sz * 0.36, sz, ACC, bold=3)
+                kp = eo(prog(lt, 1.05, 0.3))            # the tape is pressed on once the note has landed
+                if kp > 0: washi(c, -nw / 2 + 30, -nh / 2 + 10, 150 * kp, -32, h=44)
     else:                                    # magazine: a tilted colour slab sliding in, white type, punch on a label
         slide = (1 - eo(prog(lt, 0.0, 0.4))) * -W
         with Xf(c, W / 2 + slide, y, 1, -5):
@@ -1172,6 +1256,23 @@ def _end_styled(c, t, lt, show, line, is_ep, cta, sub, badge, draw_icon, style):
             tri = skia.Path(); tri.moveTo(x0, -20); tri.lineTo(x0, 20); tri.lineTo(x0 + 34, 0); tri.close(); c.drawPath(tri, P(SUN))
         if sub:
             with Xf(c, 540, 1470, 1, 0, eo(prog(lt, 1.2, 0.7))): text(c, sub, 0, 0, fit(sub, 40, 900), light, a=0.6)
+    elif style == "pinned":                  # icon on a taped peach note, a taped badge note, name on the paper
+        with Xf(c, 540, 690 + 30 * (1 - k), 1, -3, clamp(k * 1.5)):
+            memo_note(c, -210, -210, 420, 420, note_fill(PEACH))
+            if draw_icon:
+                with Xf(c, 0, 10, 0.9 if draw_icon is brand_logo else 0.6): draw_icon(c)
+            washi(c, -130, -205, 170, -18, a=clamp(prog(lt, 0.2, 0.3) * 1.5)); washi(c, 135, -205, 170, 16, a=clamp(prog(lt, 0.3, 0.3) * 1.5))
+        if badge:
+            with Xf(c, 540, 1000, eback(prog(lt, 0.25, 0.4), 1.6), 2):
+                sz = fit(badge, 52, 600); bw = font(sz).measureText(badge) + 110
+                memo_note(c, -bw / 2, -54, bw, 100, note_fill(SAGE)); washi(c, 0, -54, 110, 4, h=34)
+                text(c, badge, 0, 16, sz, INK, bold=1.5)
+        with Xf(c, 540, 1160 + (1 - kt2) * 30, 1, 0, kt2):
+            text(c, show, 0, 0, fit(show, 100, 940), FG, bold=2.5)
+            if line: text(c, line, 0, 76, fit(line, 44, 900), FG, a=0.7)
+        with Xf(c, 540, 1380, lerp(0.85, 1, eback(prog(lt, 0.6, 0.4))), 0, eo(prog(lt, 0.6, 0.3))): _cta(c, cta)
+        if sub:
+            with Xf(c, 540, 1535, 1, 0, eo(prog(lt, 0.9, 0.4))): text(c, sub, 0, 0, fit(sub, 42, 900), FG, a=0.7)
     else:                                    # card: everything on one profile-style card
         with Xf(c, 540, 985, lerp(0.85, 1, k), 0, clamp(k * 1.5)):
             shadow(c, -390, -470, 780, 880, 48, 0.16)
@@ -1193,7 +1294,7 @@ def _end_styled(c, t, lt, show, line, is_ep, cta, sub, badge, draw_icon, style):
 # ---------------- the reel ----------------
 class Reel:
     """scenes: [(name, out_start_sec, fn(c, t, lt, dur))], first must start at 0 (the title card, or the opening
-            scene when brand.json layout.title_card is false), last = end card (when layout.end_card is true).
+            scene when the 剪法 has no title card), last = end card (when layout.end_card is true).
     subs:   [(text, SOURCE second, who)]  — converted with timeline.o().
     trans:  {scene_name: 'circle' | 'slide' | 'zoom' | 'fade' | 'push' | 'cut' | fn}  transition INTO that scene.
             fade = cross-dissolve, push = the new scene pushes the old one up. fn(c, k, prev, cur): your own,
