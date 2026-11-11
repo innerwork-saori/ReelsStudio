@@ -1527,7 +1527,7 @@ function renderRecent() {
   const others = S.recent.filter(p => p !== openFolder);
   if (others.length) box.append(h("div", { class: "muted small", style: "margin-bottom:6px" }, openFolder ? "其他最近的資料夾" : "最近的資料夾：點一下接著做"),
     h("div", { class: "recentgrid" }, others.slice(0, 6).map(p => h("button", { class: "recent", title: p, onclick: () => loadProject(p) },
-      h("b", {}, "📁 " + p.split("\\").pop()), h("div", { class: "muted" }, p)))));
+      h("b", {}, "📁 " + p.split(/[\\/]/).pop()), h("div", { class: "muted" }, p)))));
 }
 function showPicker(open) {          // the folder picker is big when nothing is open, a small 換資料夾 bar after
   $("#m-pick-title").textContent = "選素材資料夾";
@@ -1745,8 +1745,8 @@ async function loadProject(path) {
   catch (err) { body.replaceChildren(h("div", { class: "note" }, err.message)); return; }
   $("#w-path").value = ""; S.recent = r.recent; openFolder = r.folder;
   $("#chfolder").hidden = false; $("#chfolder").title = r.folder + "\n點一下回到「做影片」";
-  $("#chfolder-name").textContent = r.folder.split("\\").pop();
-  $("#chfolder").setAttribute("aria-label", "目前資料夾：" + r.folder.split("\\").pop());
+  $("#chfolder-name").textContent = r.folder.split(/[\\/]/).pop();
+  $("#chfolder").setAttribute("aria-label", "目前資料夾：" + r.folder.split(/[\\/]/).pop());
   headerHeight();
   // a folder that already chose its channel brings the header along (not while the channel form has unsaved edits)
   const saved = (r.project || {}).brand && S.brands.find(b => b.exists && (b.folder === r.project.brand || b.dir === r.project.brand));
@@ -1755,7 +1755,7 @@ async function loadProject(path) {
   body.replaceChildren();
   const brand = projectBrand(r);
   body.append(h("div", { class: "card" }, h("div", { class: "folderhead" },
-    h("h2", {}, "📁 " + r.folder.split("\\").pop()),
+    h("h2", {}, "📁 " + r.folder.split(/[\\/]/).pop()),
     brand ? h("span", { class: "chip", style: "cursor:default" }, "風格：" + brand.brand.name) : "",
     h("span", { style: "margin-left:auto;display:flex;gap:8px;flex-wrap:wrap" },
       h("button", { class: "btn ghost small", onclick: () => api("/api/open", { path: r.folder }).catch(e => toast(e.message)) }, "打開這個資料夾"),
