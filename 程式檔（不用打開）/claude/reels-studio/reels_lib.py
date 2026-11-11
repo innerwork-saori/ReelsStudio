@@ -8,7 +8,7 @@ With style preset "free" these built-ins are only a fallback: the clip script ma
 
 The channel's look comes from brand.json (see BRAND_DIR below; written by the reels-studio setup interview):
 name, palette preset + colour overrides, font, end card, layout look (style) and layout rules (layout).
-Without a brand.json the defaults below are used.
+Without a brand.json the defaults below are used, with the "free" layout look.
 
 Two picture modes, freely mixed inside one clip:
   illustrated  scenes drawn with shapes / props.py / Pexels media (audio-only sources)
@@ -160,8 +160,8 @@ LAYOUT_OPTIONS = {
 }
 
 # Layout looks (the panel's 版面風格). A preset fills every element; keys given next to it override that one element.
-# New channels start as "free" (brand_template, the panel). No "style" in brand.json = handmade, the original look,
-# so channels made before free existed keep theirs. "free" = the editor designs each clip from BRAND.md's
+# New channels, and no brand.json at all, start as "free" (brand_template, the panel, load_brand). A brand.json
+# without "style" = handmade, the original look, so channels made before free existed keep theirs. "free" = the editor designs each clip from BRAND.md's
 # 自由創作方向; its element values are only the fallback the built-in title_card / end_card / subtitles use.
 STYLE_OPTIONS = {
     # subtitle: white framed box / outlined text, no box / a pill per line / dark box / thin-line box / frosted card + accent bar / movie subtitle on a soft shade
@@ -200,6 +200,8 @@ def load_brand():
         for k, v in user.items():
             if isinstance(v, dict) and isinstance(b.get(k), dict): b[k].update(v)
             else: b[k] = v
+    else:                                   # no channel set up yet ("預設樣子" in the panel): 自由創作, like a new channel
+        b["style"] = {"preset": "free"}
     return b
 
 BRAND = load_brand()
