@@ -1875,6 +1875,27 @@ const CX_DESC = { pace: v => ({ fast: "快", medium: "中", slow: "慢" })[v], z
   cards: v => ["少", "適中", "多"][v], visual: v => ["人和字幕為主", "平衡", "插圖為主"][v], motion: v => ["沉穩", "適中", "活潑"][v],
   max_cards: v => `${v} 張`, breath: v => v ? "要" : "不要", title_bg: v => v === "photo" ? "圖庫照片" : "跟影片一樣", rules: v => `${v.length} 條` };
 const cxDesc = (k, v) => CX_DESC[k] ? CX_DESC[k](v) : (CX_TRI.find(t => t[0] === v) || [, v])[1];
+// one change in words a person would say ("節奏快", "不用問句標題卡"), for lists of what a 剪法 or a folder changed
+function cxSay(k, v) {
+  const n = CX_NAMES[k];
+  switch (k) {
+    case "pace": return "節奏" + cxDesc(k, v);
+    case "zoom_every": return cxDesc(k, v);
+    case "cards": return "字卡" + cxDesc(k, v);
+    case "visual": return "畫面" + cxDesc(k, v);
+    case "motion": return "動態" + cxDesc(k, v);
+    case "breath": return v ? "金句後留白" : "金句後不留白";
+    case "max_cards": return `最多 ${v} 張字卡`;
+    case "title_bg": return v === "photo" ? "標題卡用圖庫照片" : "標題卡背景跟影片一樣";
+    case "rules": return "自訂了規則";
+  }
+  return v === "on" ? "一定用" + n : v === "off" ? "不用" + n : n + "交給剪輯師";
+}
+// what a layer changed: "節奏快、不用問句標題卡", or past max "節奏快、每 3 秒推近、字卡多，還有 2 項"
+function cxChanges(over, format, max = 4) {
+  const all = [...(format ? [`固定用「${cxFmt(format).name}」`] : []), ...Object.entries(over || {}).map(([k, v]) => cxSay(k, v))];
+  return all.length > max ? `${all.slice(0, max).join("、")}，還有 ${all.length - max} 項` : all.join("、");
+}
 const CX_DIMS = [["format", "影片類型", "這是哪種影片"], ["craft", "節奏和推近", "畫面多久變一次"], ["mods", "效果", "會用哪些手法"], ["cards", "字卡", "會出現哪些字卡"]];
 const CX_KEYS = { craft: ["pace", "zoom_every", "cards", "visual", "motion", "breath", "max_cards", "rules"],
   mods: ["mod_punch", "mod_broll", "mod_cutout", "mod_pip", "mod_trans", "mod_sfx"],
@@ -2036,7 +2057,8 @@ function cxEditor(c) {
     const k = cxChanged(c, id);
     return h("li", {}, h("button", { type: "button", "aria-current": CX.dim === id, onclick: () => { CX.dim = id; cxRender(c); } },
       h("span", { class: "nm" }, h("span", {}, n, " ", h("span", { class: "q" }, q)),
-        k ? h("span", { class: "cx-dot" + (c.kind === "folder" ? " folder" : ""), title: `改了 ${k} 項` }, k) : ""),
+        k ? h("span", { class: "cx-dot" + (c.kind === "folder" ? " folder" : ""), title: id === "format" ? `改成「${cxFmt(c.fmt()).name}」`
+          : "改了：" + CX_KEYS[id].filter(x => x in c.layer.over).map(x => cxSay(x, c.layer.over[x])).join("、") }, k) : ""),
       h("span", { class: "sum" }, cxSummary(c, id))));
   })), h("div", { class: "foot" }, "顏色、字型、字幕位置在「設定 → 風格」。"));
   const pv = cxPreview(c);
@@ -2134,12 +2156,12 @@ function cutRow(r) {
       h("div", { class: "what" }, h("b", {}, cxFmt(c.fmt()).name),
         !c.own.format && !c.rec().format ? h("span", { class: "muted" }, r.cut.detected === "talk" ? "（偵測到露臉影片）" : "（偵測到沒有露臉）") : "",
         `　節奏${cxDesc("pace", cxVal(c, "pace"))}，${cxDesc("zoom_every", cxVal(c, "zoom_every"))}，字卡${cxDesc("cards", cxVal(c, "cards"))}`,
-        n ? h("span", { class: "cx-pill" }, `這個資料夾另外改了 ${n} 項`) : ""),
+        n ? h("span", { class: "cx-pill" }, `這個資料夾另外改成：${cxChanges(c.own.over, c.own.format, 2)}`) : ""),
       h("button", { type: "button", class: "btn ghost small", "aria-expanded": cxOpen, onclick: () => { cxOpen = !cxOpen; paint(); } }, cxOpen ? "收起" : "調整"));
   };
   const saveAll = () => {
     const n = Object.keys(c.own.over).length + (c.own.format ? 1 : 0);
-    return n ? h("div", { class: "note ok", style: "margin-top:12px" }, `這個資料夾另外改了 ${n} 項，只影響這個資料夾的影片。`, " ",
+    return n ? h("div", { class: "note ok", style: "margin-top:12px" }, `這個資料夾另外改成：${cxChanges(c.own.over, c.own.format, 99)}。只影響這個資料夾的影片。`, " ",
       h("button", { type: "button", class: "btn small", onclick: () => cxSaveIntoRecipe(c) }, `全部存進剪法「${c.recName()}」`)) : "";
   };
   const paint = () => {
@@ -2215,9 +2237,9 @@ function renderRecipeList() {
   const curBrand = S.brands.find(x => x.dir === S.current && x.exists);
   const newName = h("input", { type: "text", maxlength: 30, placeholder: "新剪法的名稱", "aria-label": "新剪法的名稱" });
   $("#cx-rlist").replaceChildren(
-    ...names.map(n => { const r = S.cut.recipes[n], used = S.cut.usage[n] || [], k = Object.keys(r.over).length;
-      return h("button", { type: "button", class: "r", "aria-current": CX.edit === n, onclick: () => { CX.edit = n; renderRecipeTab(); } },
-        h("b", {}, n), h("span", {}, `${r.format ? cxFmt(r.format).name : "跟著素材"}，${k ? `改了 ${k} 項` : "全部用預設"}`),
+    ...names.map(n => { const r = S.cut.recipes[n], used = S.cut.usage[n] || [], ch = cxChanges(r.over, null);
+      return h("button", { type: "button", class: "r", "aria-current": CX.edit === n, title: cxChanges(r.over, null, 99) || null, onclick: () => { CX.edit = n; renderRecipeTab(); } },
+        h("b", {}, n), h("span", {}, `${r.format ? cxFmt(r.format).name : "跟著素材"}，${ch || "全部用預設"}`),
         used.length ? h("span", {}, "風格「" + used.join("」「") + "」預設用這個") : ""); }),
     h("div", { class: "cx-side" },
       h("div", { class: "cx-new" }, newName, h("button", { type: "button", class: "btn ghost small", onclick: async () => {
