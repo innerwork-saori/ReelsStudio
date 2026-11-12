@@ -429,6 +429,26 @@
   <p>不要的風格：用右上角的「風格」選它，在「設定」裡的「風格」按 <b>「刪除這個風格」</b>。它會移到<span data-only="win">資源回收筒</span><span data-only="mac">垃圾桶</span>，刪錯了可以從那裡還原。預設風格不能刪除。<span data-only="mac">第一次刪除時，Mac 會問是否允許控制「Finder」，請按「好」。</span></p>
 </details>
 <details>
+  <summary>「剪法」是什麼？和「風格」差在哪裡？</summary>
+  <p><b>風格</b>是影片看起來怎樣：配色、字型、字幕、版面、結尾卡。<b>剪法</b>是 Claude 怎麼剪：節奏多快、多常推近、放多少字卡、用哪些效果。兩個都在控制台上方的「⚙️ 設定」，分開設定、可以自由搭配，例如同一個頻道，訪談用慢一點的剪法，知識分享用快一點的剪法。</p>
+</details>
+<details>
+  <summary>一定要設定剪法嗎？</summary>
+  <p>不用。沒設定的話會用「預設」剪法：控制台看資料夾裡的素材自己判斷，有露臉影片就剪成口播 Reels，只有錄音或字卡就剪成動畫解說。想調的話，「懶人」設定只要選影片類型和節奏；想細調再切到「常用」或「全部」。</p>
+</details>
+<details>
+  <summary>只想讓這一支剪得不一樣，或看完覺得推近太多、字卡太少</summary>
+  <p>還沒剪：在「做影片」剪片那一步，按剪法那一行的「調整」，在那裡改，只影響這個資料夾。已經剪好：在影片下面的「看完影片，哪裡想改？」點符合的按鈕，選「只改這個資料夾」或「存進剪法」，再把出現的那句話貼給 Claude 重剪。原本的影片會改名成「…_舊.mp4」留著。</p>
+</details>
+<details>
+  <summary>原本設定的「節奏」和「開頭標題卡」怎麼不見了？</summary>
+  <p>搬到剪法了。第一次打開新版控制台時，每個風格原本的節奏和標題卡設定，會自動搬進一個叫「〈風格名稱〉原本的剪法」的剪法，剪出來跟以前一樣；搬之前的設定也另外備份成 <span class="file">brand.json.剪法之前.bak</span>。標題卡的樣子還是在風格裡設定。</p>
+</details>
+<details>
+  <summary>設好剪法，Claude 一定會照做嗎？</summary>
+  <p>節奏、要不要開頭標題卡、標題卡背景這三項，剪片程式會直接照做。其他像推近多常、字卡多寡，是寫成白話交給 Claude 照著剪，大多數時候會照做，但不是程式強制的。看完覺得哪裡沒照做，用「哪裡想改？」的按鈕請它重剪，或直接跟它說。</p>
+</details>
+<details>
   <summary>點桌面的 Reels Studio 沒有反應</summary>
   <p><span data-only="mac">雙擊 <span class="file">Reels Studio.command</span> 會先跳出終端機視窗，用控制台時不要關掉它。</span>等 5 秒左右，瀏覽器應該會自己打開。如果還是沒有，直接跟 Claude 說「打開控制台」。控制台只在你自己的電腦上執行，不會上傳任何東西；關掉分頁 15 分鐘後它會自己結束，也可以按右上角的「關閉」。</p>
 </details>
@@ -438,7 +458,7 @@
 </details>
 <details>
   <summary>重新安裝會不會把我的設定洗掉？</summary>
-  <p>不會。重新安裝只會更新程式，你的風格設定會保留；被替換的舊檔也會先備份到 <span class="file" data-only="win">.claude\backup-reels-studio-日期時間\</span><span class="file" data-only="mac">.claude/backup-reels-studio-日期時間/</span>。</p>
+  <p>不會。重新安裝只會更新程式，你的風格和剪法設定都會保留；被替換的舊檔也會先備份到 <span class="file" data-only="win">.claude\backup-reels-studio-日期時間\</span><span class="file" data-only="mac">.claude/backup-reels-studio-日期時間/</span>。</p>
 </details>
 
 <h2><span class="num">!</span>使用須知與免責聲明</h2>
