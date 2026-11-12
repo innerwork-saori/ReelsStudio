@@ -687,10 +687,10 @@
   <div class="card faq">
     <h2>剛開始</h2>
     <details><summary>我不知道從哪裡開始</summary>
-      <p>先決定影片要長什麼樣子：只用這一次、固定成一套風格，或跟 Claude 聊聊再決定。決定好之後到「做影片」選放錄音或影片的資料夾，照著步驟走。</p>
-      <button class="btn ghost small" data-go="map">看風格路線圖</button></details>
+      <p>直接到「做影片」選放錄音或影片的資料夾，照著步驟走就好。風格和剪法都有預設，不用先設定：影片會先用「自由創作」的樣子，剪法由控制台看素材自己判斷。做過一兩支、知道自己想要什麼樣子，再到「設定」固定下來。</p>
+      <button class="btn ghost small" data-go="make">去做影片</button> <button class="btn ghost small" data-go="map">看風格路線圖</button></details>
     <details><summary>複製的句子要貼到哪裡？</summary>
-      <p>打開 Claude 桌面 App，開一個新的對話，貼上送出。句子後面已經帶著資料夾和風格，不用再另外說明。</p></details>
+      <p>打開 Claude 桌面 App，開一個新的對話，貼上送出。句子後面已經帶著資料夾、風格和剪法，不用再另外說明。</p></details>
     <details><summary>我只有想法，還沒有錄音</summary>
       <p>先開一個空的資料夾，在「做影片」打開它。第一步會給你一句話，請 Claude 幫你寫口播稿；照著稿子錄好，把錄音放進資料夾，按「重新讀取」就能接著做。</p></details>
     <details><summary>照片、影片、聲音可以怎麼搭配？</summary>
@@ -716,6 +716,9 @@
       <button class="btn ghost small" data-go="make">去做影片</button></details>
     <details><summary>剪一支要多久？</summary>
       <p>大約 10–30 分鐘，有露臉的影片比較久，可以同時剪 2 支。這段時間電腦可以做別的事，但不要關機。第一次聽打會先下載語音辨識模型，會特別久，之後就快了。</p></details>
+    <details><summary>影片剪好了，為什麼沒有出現寫文案的句子？</summary>
+      <p>剛剪好時，控制台會先請你看影片。看完沒問題，按影片下面的「看起來不錯，下一步」，寫文案的句子就會出現。想改的話，點同一張卡片上的「推近太多」「字卡太少」這類按鈕，請 Claude 重剪。</p>
+      <p class="muted small">控制台會記得你看過哪幾支；重剪之後又會先請你看一次。</p></details>
     <details><summary>字幕有錯，或想改其中一支</summary>
       <p>Claude 沒辦法真的聽聲音，成品請自己完整看一遍。哪一句要改、哪裡想換，直接跟 Claude 說，例如「片段 2 的第三句字幕應該是……」。</p></details>
     <details id="faq-props"><summary>影片裡的插圖有哪些現成道具？</summary>
@@ -737,6 +740,40 @@
   </div>
 
   <div class="card faq">
+    <h2>剪法</h2>
+    <details><summary>「剪法」和「風格」差在哪裡？</summary>
+      <p><b>風格</b>是影片看起來怎樣：配色、字型、字幕、版面、結尾卡。<b>剪法</b>是 Claude 怎麼剪：節奏多快、多常推近、放多少字卡、用哪些效果。</p>
+      <p>兩個分開設定，可以自由搭配。例如同一個頻道風格，訪談用慢一點的剪法，知識分享用快一點的剪法。兩個都在上面的「設定」。</p></details>
+    <details><summary>一定要設定剪法嗎？</summary>
+      <p>不用。沒設定的話會用「預設」剪法：控制台看資料夾裡的素材自己判斷，有露臉影片就剪成口播 Reels，只有錄音或字卡就剪成動畫解說，其他照那一類的預設做。剪出來覺得哪裡不對，再來調就好。</p>
+      <button class="btn ghost small" data-go="recipe">看剪法</button></details>
+    <details><summary>懶人、常用、全部差在哪？</summary>
+      <p>只是一次看到多少設定，存的東西都一樣。<b>懶人</b>只問兩件事：這是哪種影片、節奏要多快。<b>常用</b>每一類列出四五個常用設定。<b>全部</b>連「講到列舉就用清單字卡」這種規則都能改。切換時，已經改的設定都會留著。</p></details>
+    <details><summary>「一定用」「剪輯師判斷」「不用」是什麼意思？</summary>
+      <ul>
+        <li><b>一定用</b>：講到符合的地方就做，例如每次講到列舉都放清單字卡。</li>
+        <li><b>剪輯師判斷</b>：Claude 照節奏和字卡多寡決定要不要做、做幾次，不會每次都做。</li>
+        <li><b>不用</b>：這支影片完全不做。</li>
+      </ul></details>
+    <details><summary>只想讓這一支剪得不一樣</summary>
+      <p>在「做影片」剪片那一步，按剪法那一行的「調整」，在那裡改。改的項目會標成「只有這個資料夾」，只影響這個資料夾的影片，你存好的剪法不會變。覺得改得好，按「存進剪法」，之後用這個剪法的影片都會這樣剪。</p></details>
+    <details><summary>看完影片覺得推近太多、字卡太少，怎麼改？</summary>
+      <p>在「做影片」影片下面的「看完影片，哪裡想改？」，點符合的按鈕（可以點好幾個），會先列出要怎麼改。選「只改這個資料夾」或「存進剪法」，再把出現的那句話複製貼給 Claude，它就會照新的設定重剪。</p>
+      <p class="muted small">重剪時，原本的影片會改名成「…_舊.mp4」留著，可以比較兩支。不想重剪的片段，從句子裡拿掉就好。</p></details>
+    <details><summary>影片類型判斷錯了</summary>
+      <p>例如資料夾裡有露臉影片，但你其實想做成動畫解說。在剪片那一步按「調整」，在「這個資料夾的影片是哪一種？」選對的那個就好，只影響這個資料夾。想讓某個剪法每次都固定用同一種，到「設定 → 剪法」選那個剪法，在影片類型選它。</p></details>
+    <details><summary>我有好幾個頻道，可以各用各的剪法嗎？</summary>
+      <p>可以。先用右上角的「風格」切到那個頻道，再到「設定 → 剪法」選要用的剪法，按「設成風格『…』的預設剪法」。之後這個風格的資料夾都會用它；某個資料夾想用別的，在剪片那一步的選單換就好。</p></details>
+    <details><summary>原本在風格裡的「節奏」和「開頭標題卡」去哪了？</summary>
+      <p>搬到剪法了：節奏在「節奏和推近」，要不要開頭標題卡、標題卡背景在「字卡」。標題卡的<b>樣子</b>還是在風格裡設定。</p>
+      <p>你原本設過的不會不見：第一次打開新版控制台時，每個風格原本的節奏和標題卡，會自動搬進一個叫「〈風格名稱〉原本的剪法」的剪法，剪出來跟以前一樣。搬之前的設定也另外備份成 <span class="file">brand.json.剪法之前.bak</span>。</p></details>
+    <details><summary>剪法頁右邊的時間條，是我的影片嗎？</summary>
+      <p>不是。那是用一段 44 秒的範例口播，排給你看「照這些設定大概會怎麼剪」。真的剪片時，Claude 會照你的逐字稿判斷哪裡要推近、哪裡放字卡。</p></details>
+    <details><summary>設好剪法，Claude 一定會照做嗎？</summary>
+      <p>節奏、要不要開頭標題卡、標題卡背景這三項，剪片程式會直接照做。其他像推近多常、字卡多寡、「講到列舉就用清單字卡」這些，是寫成白話交給 Claude 照著剪，大多數時候會照做，但不是程式強制的。看完影片覺得哪裡沒照做，用「哪裡想改？」的按鈕請它重剪，或直接跟它說。</p></details>
+  </div>
+
+  <div class="card faq">
     <h2>風格</h2>
     <details><summary>只想讓這一支換個感覺，不想改風格</summary>
       <p>把想要的感覺直接寫在要複製的那句話裡，例如「這次想要深色、慢慢浮現的大字」，或點那句話下面的「只用這一次，不用設定風格」。只會套用在這一支。</p></details>
@@ -747,8 +784,8 @@
       <p>快速套版選了就固定是那個樣子，樣張看到的就是成品的樣子。自由創作不套版：你用文字描述想要的感覺，Claude 每支自己設計標題、字幕和畫面，比較不會跟別人撞款；樣張只看得出配色和字型，實際樣子要等剪出第一支。</p></details>
     <details><summary>剛安裝的字型沒有出現在清單裡</summary>
       <p>按右上角「關閉」，再點桌面上的「Reels Studio」重新打開控制台，字型清單才會更新。</p></details>
-    <details><summary>重新安裝會不會把我的風格洗掉？</summary>
-      <p>不會。重新安裝只更新程式，你的風格和作品都會保留。</p></details>
+    <details><summary>重新安裝會不會把我的風格和剪法洗掉？</summary>
+      <p>不會。重新安裝只更新程式，你的風格、剪法和作品都會保留。</p></details>
   </div>
 
   <div class="card faq">
@@ -2285,6 +2322,7 @@ document.querySelectorAll("#tab-faq [data-copy], footer [data-copy]").forEach(b 
 document.querySelectorAll("#tab-faq [data-go]").forEach(b => b.addEventListener("click", () => {
   const go = b.dataset.go;
   if (go === "make") showTab("make");
+  else if (go === "recipe") showTab("recipe");
   else if (go === "new") { showTab("brand"); if (S.brands.some(x => x.exists)) $("#nb-open").click(); }
   else openMap();
 }));
